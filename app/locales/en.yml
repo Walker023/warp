@@ -1,0 +1,169 @@
+# English translations for Warp application
+app:
+  name: "Warp"
+  about: "About Warp"
+
+menu:
+  # Main menu bar
+  warp: "Warp"
+  file: "File"
+  edit: "Edit"
+  view: "View"
+  tab: "Tab"
+  blocks: "Blocks"
+  ai: "AI"
+  drive: "Drive"
+  window: "Window"
+  help: "Help"
+
+  # Warp (App) menu
+  show_about_warp: "About Warp"
+  toggle_resource_center: "Resource Center"
+  refer_a_friend: "Refer a Friend"
+  preferences: "Preferences"
+  show_settings: "Settings..."
+  toggle_keybindings_page: "Keybindings"
+  configure_keybindings: "Configure Keybindings..."
+  show_appearance: "Appearance..."
+  view_changelog: "View Changelog"
+  privacy_policy: "Privacy Policy..."
+  debug: "Debug"
+  hide: "Hide Warp"
+  hide_others: "Hide Others"
+  show_all: "Show All"
+  set_warp_as_default_terminal: "Set Warp as Default Terminal"
+  log_out: "Log out"
+  quit: "Quit Warp"
+
+  # File menu
+  new_window: "New Window"
+  new_tab: "New Tab"
+  open_recent: "Open Recent"
+  close_tab: "Close Tab"
+  close_window: "Close Window"
+
+  # Edit menu
+  undo: "Undo"
+  redo: "Redo"
+  cut: "Cut"
+  copy: "Copy"
+  paste: "Paste"
+  select_all: "Select All"
+  find: "Find"
+  use_warp_prompt: "Use Warp's Prompt"
+  copy_on_select: "Copy on Select within the Terminal"
+  synchronize_inputs: "Synchronize Inputs"
+
+  # View menu
+  zoom_in: "Zoom In"
+  zoom_out: "Zoom Out"
+  reset_zoom: "Reset Zoom"
+  toggle_fullscreen: "Toggle Fullscreen"
+  toggle_mouse_reporting: "Toggle Mouse Reporting"
+  toggle_scroll_reporting: "Toggle Scroll Reporting"
+  toggle_focus_reporting: "Toggle Focus Reporting"
+  compact_mode: "Compact Mode"
+
+  # Tab menu
+  new_tab_in_current_directory: "New Tab in Current Directory"
+  duplicate_tab: "Duplicate Tab"
+  split_pane_right: "Split Pane Right"
+  split_pane_down: "Split Pane Down"
+
+  # Blocks menu
+  share_block: "Share Block"
+  copy_block_output: "Copy Block Output"
+  rerun_block: "Rerun Block"
+
+  # AI menu
+  open_ai_chat: "Open AI Chat"
+  ask_ai: "Ask AI"
+
+  # Drive menu
+  open_drive: "Open Drive"
+  sync_settings: "Sync Settings"
+
+  # Window menu
+  minimize: "Minimize"
+  zoom: "Zoom"
+  bring_all_to_front: "Bring All to Front"
+
+  # Help menu
+  send_feedback: "Send Feedback..."
+  documentation: "Documentation"
+  keyboard_shortcuts: "Keyboard Shortcuts"
+  report_issue: "Report Issue"
+  search_help: "Search"
+
+  # Debug menu items
+  enable_shell_debug_mode: "Enable Shell Debug Mode (-x) for New Sessions"
+  disable_shell_debug_mode: "Disable Shell Debug Mode (-x) for New Sessions"
+  enable_in_band_generators: "Enable In-band Generators for New Sessions"
+  disable_in_band_generators: "Disable in-band generators for new sessions"
+  enable_pty_recording: "Enable PTY Recording Mode (warp.pty.recording)"
+  disable_pty_recording: "Disable PTY Recording Mode (warp.pty.recording)"
+  show_initialization_block: "Show Initialization Block"
+  hide_initialization_block: "Hide Initialization Block"
+  show_in_band_command_blocks: "Show In-band Command Blocks"
+  hide_in_band_command_blocks: "Hide In-band Command Blocks"
+  show_ssh_command_blocks: "Show Warpified SSH Blocks"
+  hide_ssh_command_blocks: "Hide Warpified SSH Blocks"
+  export_default_settings_csv: "Export Default Settings as CSV to home dir"
+  manually_toggle_network_status: "Manually Toggle Network Status"
+  create_anonymous_user: "Create anonymous user"
+
+settings:
+  # Settings categories
+  general: "General"
+  appearance: "Appearance"
+  keyboard: "Keyboard"
+  features: "Features"
+  privacy: "Privacy"
+  advanced: "Advanced"
+
+  # Language settings
+  language: "Language"
+  language_description: "Application UI language"
+  language_restart_description: "Restart Warp for language changes to take effect."
+  restart_warp: "Restart Warp"
+
+  # Common settings labels
+  enable: "Enable"
+  disable: "Disable"
+  reset: "Reset"
+  save: "Save"
+  cancel: "Cancel"
+  ok: "OK"
+  apply: "Apply"
+
+dialogs:
+  # Common dialog buttons
+  yes: "Yes"
+  no: "No"
+  continue: "Continue"
+  close: "Close"
+
+  # Confirmation dialogs
+  confirm_action: "Are you sure?"
+  unsaved_changes: "You have unsaved changes. Do you want to save them?"
+
+tips:
+  # Tips and hints
+  welcome: "Welcome to Warp!"
+  getting_started: "Getting started with Warp"
+
+reward:
+  # Reward view dialog
+  title: "Congrats!"
+  subtitle_sent: "You earned an exclusive Warp theme for referring someone to Warp."
+  subtitle_received: "You earned an exclusive Warp theme for being referred to Warp."
+  button_cta: "Try it out!"
+  accessibility_help: "Press enter to open the theme chooser or escape to dismiss."
+
+errors:
+  # Common error messages
+  generic_error: "An error occurred"
+  network_error: "Network connection failed"
+  permission_denied: "Permission denied"
+  file_not_found: "File not found"
+  failed_to_persist_setting: "Failed to persist setting"

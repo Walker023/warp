@@ -62,11 +62,21 @@ pub(super) fn apply_update(
     }
 }
 
-pub(super) fn relaunch() -> Result<()> {
+pub(super) fn restart_app() -> Result<()> {
+    let Ok(program) = CURRENT_EXE.as_ref() else {
+        bail!("Failed to get path to current executable to restart Warp")
+    };
+
+    log::info!("Restarting Warp using path: {program:?}");
+    command::blocking::Command::new(program).spawn()?;
+    Ok(())
+}
+
+pub(super) fn relaunch_for_update() -> Result<()> {
     match UpdateMethod::detect() {
         UpdateMethod::Unknown => bail!("Don't know how to relaunch for an unknown update method!"),
-        UpdateMethod::AppImage(appimage_path) => appimage::relaunch(&appimage_path),
-        UpdateMethod::PackageManager(_) => package_manager::relaunch(),
+        UpdateMethod::AppImage(appimage_path) => appimage::relaunch_for_update(&appimage_path),
+        UpdateMethod::PackageManager(_) => package_manager::relaunch_for_update(),
     }
 }
 
@@ -140,7 +150,7 @@ mod appimage {
         Ok(DownloadReady::Yes)
     }
 
-    pub(super) fn relaunch(appimage_path: &Path) -> Result<()> {
+    pub(super) fn relaunch_for_update(appimage_path: &Path) -> Result<()> {
         let mut command = command::blocking::Command::new(appimage_path);
         // Pass a flag to the app to let it know it was restarted as part of the
         // autoupdate process.
@@ -273,7 +283,7 @@ mod package_manager {
         }
     }
 
-    pub(super) fn relaunch() -> Result<()> {
+    pub(super) fn relaunch_for_update() -> Result<()> {
         let Ok(program) = CURRENT_EXE.as_ref() else {
             bail!(
                 "Failed to get path to current executable to relaunch after completing auto-update"

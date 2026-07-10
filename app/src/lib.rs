@@ -1,5 +1,9 @@
 #![allow(clippy::doc_lazy_continuation)]
 
+// 初始化 rust-i18n。该宏必须在 crate 根调用，以便在 crate 根生成
+// `t!` 宏依赖的内部符号（如 `_rust_i18n_t`）。
+rust_i18n::i18n!("locales", fallback = "en");
+
 mod ai;
 mod alloc;
 mod antivirus;
@@ -39,6 +43,7 @@ mod external_secrets;
 mod font_fallback;
 mod global_resource_handles;
 mod gpu_state;
+mod i18n;
 mod input_classifier;
 mod interval_timer;
 mod linear;
@@ -183,7 +188,6 @@ use crate::uri::web_intent_parser::maybe_rewrite_web_url_to_intent;
 pub mod workflows;
 pub mod workspace;
 
-use std::borrow::Cow;
 use std::collections::HashSet;
 use std::ops::Deref;
 #[cfg(feature = "local_fs")]
@@ -1129,6 +1133,24 @@ pub(crate) fn initialize_app(
 
     let user_defaults_on_startup = settings::init(startup_toml_parse_error, ctx);
     timer.mark_interval_end("READ_USER_DEFAULTS_AND_INITIALIZE_SETTINGS");
+
+    // Initialize language settings and switch to the user's preferred locale.
+    // 语言来源优先级：环境变量 WARP_LANG > 保存的设置 > 默认英文。
+    // 环境变量让用户无需改代码即可切换，例如 `WARP_LANG=zh-CN`。
+    {
+        use crate::i18n::switch_locale;
+        use crate::settings::{LanguageSettings, Locale};
+
+        let locale = match std::env::var("WARP_LANG").ok().as_deref() {
+            Some("zh-CN") | Some("zh") | Some("zh_CN") => Locale::ZhCn,
+            Some("en") => Locale::En,
+            // 未设置或无法识别时，回退到保存的语言设置
+            _ => *LanguageSettings::as_ref(ctx).locale.value(),
+        };
+        let locale_str = locale.to_str();
+        switch_locale(locale_str);
+        log::info!("Application locale set to: {}", locale_str);
+    }
 
     if FeatureFlag::UIZoom.is_enabled() {
         ctx.set_zoom_factor(WindowSettings::as_ref(ctx).zoom_level.as_zoom_factor());

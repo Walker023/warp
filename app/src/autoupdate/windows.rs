@@ -247,7 +247,25 @@ pub(super) fn check_and_report_update_errors(ctx: &mut AppContext) {
     }
 }
 
-pub(super) fn relaunch() -> Result<()> {
+pub(super) fn restart_app() -> Result<()> {
+    let program = std::env::current_exe()?;
+    log::info!("Restarting Warp using path: {program:?}");
+    let pid = std::process::id();
+    let program = program.display().to_string().replace('\'', "''");
+    let restart_command = format!("Wait-Process -Id {pid}; Start-Process -FilePath '{program}'");
+    Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-WindowStyle",
+            "Hidden",
+            "-Command",
+            &restart_command,
+        ])
+        .spawn()?;
+    Ok(())
+}
+
+pub(super) fn relaunch_for_update() -> Result<()> {
     let install_dir = install_dir()?;
     let Some(installer_path) = INSTALLER_PATH
         .lock()

@@ -10,9 +10,9 @@ use warp_core::features::FeatureFlag;
 use warp_core::ui::icons::Icon;
 use warpui::assets::asset_cache::AssetSource;
 use warpui::elements::{
-    Align, Border, CacheOption, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment,
-    Element, Empty, Flex, Image, MainAxisAlignment, MainAxisSize, MouseStateHandle, ParentElement,
-    Radius, Shrinkable, Text,
+    Align, Border, CacheOption, ChildView, ConstrainedBox, Container, CornerRadius,
+    CrossAxisAlignment, Element, Empty, Flex, Image, MainAxisAlignment, MainAxisSize,
+    MouseStateHandle, ParentElement, Radius, Shrinkable, Text,
 };
 use warpui::fonts::Weight;
 use warpui::keymap::ContextPredicate;
@@ -37,10 +37,13 @@ use crate::auth::auth_state::AuthState;
 use crate::auth::auth_view_modal::AuthViewVariant;
 use crate::auth::{AuthStateProvider, UserUid};
 use crate::autoupdate::{self, AutoupdateStage, AutoupdateState};
+use crate::i18n::t;
 #[cfg(not(target_family = "wasm"))]
 use crate::server::iap::{IapCredentialsState, IapManager, IapManagerEvent};
 use crate::server::ids::ServerId;
 use crate::settings::cloud_preferences::CloudPreferencesSettings;
+use crate::settings::{LanguageSettings, Locale};
+use crate::view_components::{Dropdown, DropdownItem};
 use crate::workspace::WorkspaceAction;
 use crate::workspaces::update_manager::TeamUpdateManager;
 use crate::workspaces::user_workspaces::UserWorkspaces;
@@ -52,6 +55,7 @@ const REFERRAL_CTA: &str = "Earn rewards by sharing Warp with friends & colleagu
 const REGULAR_TEXT_FONT_SIZE: f32 = 12.;
 const VERTICAL_MARGIN: f32 = 24.;
 const LOG_OUT_TEXT: &str = "Log out";
+const LANGUAGE_DROPDOWN_WIDTH: f32 = 160.;
 lazy_static! {
     static ref SETTINGS_SYNC_BINDINGS_ADDED: Arc<Mutex<bool>> = Default::default();
 }
@@ -109,12 +113,14 @@ pub fn handle_experiment_change(app: &mut AppContext) {
     ToggleSettingActionPair::add_toggle_setting_action_pairs_as_bindings(toggle_binding_pairs, app);
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum MainPageAction {
     Relaunch,
     DownloadUpdate,
     CheckForUpdate,
     ToggleSettingsSync,
+    SetLanguage(Locale),
+    RestartForLanguageChange,
     Upgrade {
         team_uid: Option<ServerId>,
         user_id: UserUid,
@@ -161,6 +167,7 @@ pub enum MainSettingsPageEvent {
 pub struct MainSettingsPageView {
     page: PageType<Self>,
     auth_state: Arc<AuthState>,
+    language_dropdown: ViewHandle<Dropdown<MainPageAction>>,
 }
 
 impl Entity for MainSettingsPageView {
@@ -214,6 +221,16 @@ impl TypedActionView for MainSettingsPageView {
                 );
                 ctx.notify();
             }
+            MainPageAction::SetLanguage(locale) => {
+                LanguageSettings::handle(ctx).update(ctx, |language_settings, ctx| {
+                    report_if_error!(language_settings.locale.set_value(*locale, ctx));
+                });
+                self.sync_language_dropdown(ctx);
+                ctx.notify();
+            }
+            MainPageAction::RestartForLanguageChange => {
+                autoupdate::restart_app(ctx);
+            }
             MainPageAction::Upgrade { team_uid, user_id } => match team_uid {
                 Some(team_uid) => {
                     ctx.open_url(&UserWorkspaces::upgrade_link_for_team(*team_uid));
@@ -255,6 +272,7 @@ impl View for MainSettingsPageView {
 impl MainSettingsPageView {
     pub fn new(ctx: &mut ViewContext<MainSettingsPageView>) -> Self {
         let auth_state = AuthStateProvider::as_ref(ctx).get().clone();
+        let language_dropdown = Self::create_language_dropdown(ctx);
 
         let autoupdate_state_handle = AutoupdateState::handle(ctx);
         ctx.observe(
@@ -263,6 +281,11 @@ impl MainSettingsPageView {
         );
 
         ctx.subscribe_to_model(&CloudPreferencesSettings::handle(ctx), |_, _, _, ctx| {
+            ctx.notify();
+        });
+
+        ctx.subscribe_to_model(&LanguageSettings::handle(ctx), |me, _, _, ctx| {
+            me.sync_language_dropdown(ctx);
             ctx.notify();
         });
 
@@ -277,6 +300,8 @@ impl MainSettingsPageView {
         ];
 
         widgets.push(Box::new(SettingsSyncWidget::default()));
+
+        widgets.push(Box::new(LanguageWidget::default()));
 
         widgets.push(Box::new(EarnRewardsWidget::default()));
 
@@ -299,7 +324,43 @@ impl MainSettingsPageView {
 
         let page = PageType::new_uncategorized(widgets, Some("Account"));
 
-        MainSettingsPageView { page, auth_state }
+        MainSettingsPageView {
+            page,
+            auth_state,
+            language_dropdown,
+        }
+    }
+
+    fn create_language_dropdown(
+        ctx: &mut ViewContext<Self>,
+    ) -> ViewHandle<Dropdown<MainPageAction>> {
+        let current_locale = *LanguageSettings::as_ref(ctx).locale.value();
+        ctx.add_typed_action_view(move |ctx| {
+            let mut dropdown = Dropdown::new(ctx);
+            dropdown.set_top_bar_max_width(LANGUAGE_DROPDOWN_WIDTH);
+            dropdown.set_menu_width(LANGUAGE_DROPDOWN_WIDTH, ctx);
+            dropdown.add_items(
+                Locale::ALL
+                    .into_iter()
+                    .map(|locale| {
+                        DropdownItem::new(
+                            locale.display_name(),
+                            MainPageAction::SetLanguage(locale),
+                        )
+                    })
+                    .collect(),
+                ctx,
+            );
+            dropdown.set_selected_by_action(MainPageAction::SetLanguage(current_locale), ctx);
+            dropdown
+        })
+    }
+
+    fn sync_language_dropdown(&mut self, ctx: &mut ViewContext<Self>) {
+        let current_locale = *LanguageSettings::as_ref(ctx).locale.value();
+        self.language_dropdown.update(ctx, |dropdown, ctx| {
+            dropdown.set_selected_by_action(MainPageAction::SetLanguage(current_locale), ctx);
+        });
     }
 
     fn handle_autoupdate_state_change(
@@ -729,6 +790,58 @@ impl SettingsWidget for SettingsSyncWidget {
                 })
                 .finish(),
             None,
+        ))
+        .with_margin_top(VERTICAL_MARGIN)
+        .finish()
+    }
+}
+
+#[derive(Default)]
+struct LanguageWidget {
+    restart_mouse_state: MouseStateHandle,
+}
+
+impl SettingsWidget for LanguageWidget {
+    type View = MainSettingsPageView;
+
+    fn search_terms(&self) -> &str {
+        "language locale ui chinese english restart"
+    }
+
+    fn render(
+        &self,
+        view: &Self::View,
+        appearance: &Appearance,
+        _app: &AppContext,
+    ) -> Box<dyn Element> {
+        let restart_button = appearance
+            .ui_builder()
+            .button(ButtonVariant::Secondary, self.restart_mouse_state.clone())
+            .with_text_label(t!("settings.restart_warp").to_string())
+            .with_style(UiComponentStyles {
+                font_size: Some(12.),
+                padding: Some(Coords::uniform(6.).left(16.).right(16.)),
+                ..Default::default()
+            })
+            .build()
+            .on_click(|ctx, _, _| {
+                ctx.dispatch_typed_action(MainPageAction::RestartForLanguageChange);
+            })
+            .finish();
+        let controls = Flex::row()
+            .with_cross_axis_alignment(CrossAxisAlignment::Center)
+            .with_child(ChildView::new(&view.language_dropdown).finish())
+            .with_child(Container::new(restart_button).with_margin_left(8.).finish())
+            .finish();
+
+        Container::new(render_body_item::<MainPageAction>(
+            t!("settings.language").to_string(),
+            None,
+            LocalOnlyIconState::Hidden,
+            ToggleState::Enabled,
+            appearance,
+            controls,
+            Some(t!("settings.language_restart_description").to_string()),
         ))
         .with_margin_top(VERTICAL_MARGIN)
         .finish()

@@ -130,21 +130,31 @@ where
     })
 }
 
-pub(super) fn relaunch() -> Result<()> {
+pub(super) fn restart_app() -> Result<()> {
+    relaunch(false)
+}
+
+pub(super) fn relaunch_for_update() -> Result<()> {
+    relaunch(true)
+}
+
+fn relaunch(for_update: bool) -> Result<()> {
     let bundle_path = PathBuf::from(get_bundle_path()?);
     // Set the -n option to open a new instance of the app even if one is
     // running so we still launch the new version even if the user was running
     // multiple instances of Warp.
     let mut launch_command = OsString::from("/usr/bin/open -n ");
     launch_command.push(bundle_path.as_os_str());
-    // Pass a flag to the app to let it know it was restarted as part of the
-    // autoupdate process.
-    launch_command.push(format!(" --args {}", warp_cli::finish_update_flag()));
-    // If we're testing with a local copy of channel_versions.json, have the
-    // newly-started binary also reference that same file (so we can test
-    // displaying an updated changelog after an autoupdate).
-    if let Ok(path) = env::var("WARP_CHANNEL_VERSIONS_PATH") {
-        launch_command.push(format!(" --env WARP_CHANNEL_VERSIONS_PATH={path}"));
+    if for_update {
+        // Pass a flag to the app to let it know it was restarted as part of the
+        // autoupdate process.
+        launch_command.push(format!(" --args {}", warp_cli::finish_update_flag()));
+        // If we're testing with a local copy of channel_versions.json, have the
+        // newly-started binary also reference that same file (so we can test
+        // displaying an updated changelog after an autoupdate).
+        if let Ok(path) = env::var("WARP_CHANNEL_VERSIONS_PATH") {
+            launch_command.push(format!(" --env WARP_CHANNEL_VERSIONS_PATH={path}"));
+        }
     }
 
     // We need to make sure that the current Warp process is no longer running

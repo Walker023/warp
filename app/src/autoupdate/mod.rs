@@ -869,7 +869,7 @@ pub fn initiate_relaunch_for_update(app: &mut AppContext) {
         AutoupdateStage::UpdatedPendingRestart { .. } => {
             // The update was already fully applied, so all that's left to do is relaunch.
             log::info!("Relaunching to apply update");
-            RelaunchModel::handle(app).update(app, RelaunchModel::request_relaunch);
+            RelaunchModel::handle(app).update(app, RelaunchModel::request_update_relaunch);
             app.terminate_app(TerminationMode::Cancellable, None);
         }
         AutoupdateStage::UpdateReady {
@@ -893,7 +893,7 @@ pub fn initiate_relaunch_for_update(app: &mut AppContext) {
             });
 
             // Record that we should relaunch the app after terminating.
-            RelaunchModel::handle(app).update(app, RelaunchModel::request_relaunch);
+            RelaunchModel::handle(app).update(app, RelaunchModel::request_update_relaunch);
 
             // If there are any update steps that are deferred until relaunching, perform them now
             // (this is only true on macOS). We do this *before* requesting termination so that, if
@@ -996,7 +996,7 @@ where
 pub fn cancel_relaunch(app: &mut AppContext) {
     let previous_status = RelaunchModel::handle(app).update(app, RelaunchModel::cancel_relaunch);
 
-    if previous_status == RelaunchStatus::Requested {
+    if previous_status == RelaunchStatus::Requested(RelaunchReason::Update) {
         AutoupdateState::handle(app).update(app, |autoupdate_state, ctx| {
             autoupdate_state.set_unable_to_launch_state(
                 |new_version: VersionInfo, update_id: String| AutoupdateStage::UpdateReady {
@@ -1009,6 +1009,18 @@ pub fn cancel_relaunch(app: &mut AppContext) {
     }
 }
 
+/// Relaunch Warp, applying an already-ready autoupdate first when needed.
+pub fn restart_app(app: &mut AppContext) {
+    if AutoupdateState::as_ref(app).stage.ready_for_update() {
+        initiate_relaunch_for_update(app);
+        return;
+    }
+
+    log::info!("Relaunching Warp");
+    RelaunchModel::handle(app).update(app, RelaunchModel::request_app_restart);
+    app.terminate_app(TerminationMode::Cancellable, None);
+}
+
 pub fn spawn_child_if_necessary(app: &mut AppContext) {
     let relaunch_handle = RelaunchModel::handle(app);
     let status = relaunch_handle.as_ref(app).relaunch_status;
@@ -1017,16 +1029,25 @@ pub fn spawn_child_if_necessary(app: &mut AppContext) {
     // user restarts normally, the update won't be applied. However, finalize_update is async and
     // we don't necessarily want to block termination on it.
 
-    if status == RelaunchStatus::Requested {
+    if let RelaunchStatus::Requested(reason) = status {
         cfg_if::cfg_if! {
             if #[cfg(target_os = "macos")] {
-                let relaunch_status = mac::relaunch();
+                let relaunch_status = match reason {
+                    RelaunchReason::AppRestart => mac::restart_app(),
+                    RelaunchReason::Update => mac::relaunch_for_update(),
+                };
             } else if #[cfg(target_os = "linux")] {
-                let relaunch_status = linux::relaunch();
+                let relaunch_status = match reason {
+                    RelaunchReason::AppRestart => linux::restart_app(),
+                    RelaunchReason::Update => linux::relaunch_for_update(),
+                };
             } else if #[cfg(windows)] {
-                let relaunch_status = windows::relaunch();
+                let relaunch_status = match reason {
+                    RelaunchReason::AppRestart => windows::restart_app(),
+                    RelaunchReason::Update => windows::relaunch_for_update(),
+                };
             } else {
-                let relaunch_status: Result<()> = Err(anyhow!("No autoupdate support on this platform!"));
+                let relaunch_status: Result<()> = Err(anyhow!("No relaunch support on this platform!"));
             }
         }
         match relaunch_status {
@@ -1034,10 +1055,17 @@ pub fn spawn_child_if_necessary(app: &mut AppContext) {
                 log::info!("Terminating app for relaunch. Bye!");
             }
             Err(e) => {
-                log::error!("Error relaunching app after autoupdate: {e:?}");
-                AutoupdateState::handle(app).update(app, |autoupdate_state, ctx| {
-                    autoupdate_state.relaunch_failed(ctx);
-                });
+                log::error!("Error relaunching app: {e:?}");
+                if reason == RelaunchReason::Update {
+                    AutoupdateState::handle(app).update(app, |autoupdate_state, ctx| {
+                        autoupdate_state.relaunch_failed(ctx);
+                    });
+                } else {
+                    RelaunchModel::handle(app).update(app, |relaunch_model, ctx| {
+                        relaunch_model.relaunch_status = RelaunchStatus::Failed;
+                        ctx.notify();
+                    });
+                }
             }
         }
     }
@@ -1085,11 +1113,18 @@ pub fn remove_old_executable() -> Result<()> {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+enum RelaunchReason {
+    #[default]
+    AppRestart,
+    Update,
+}
+
 #[derive(Clone, Copy, Default, Eq, PartialEq)]
-pub enum RelaunchStatus {
+enum RelaunchStatus {
     #[default]
     None,
-    Requested,
+    Requested(RelaunchReason),
     Failed,
 }
 
@@ -1103,12 +1138,15 @@ impl RelaunchModel {
         Default::default()
     }
 
+    /// Request relaunching the app without applying an update.
+    fn request_app_restart(&mut self, ctx: &mut ModelContext<Self>) {
+        self.relaunch_status = RelaunchStatus::Requested(RelaunchReason::AppRestart);
+        ctx.notify();
+    }
+
     /// Request relaunching the app to apply an update.
-    ///
-    /// When terminating the app, we check this state to know whether to launch the updated version
-    /// or quit the app normally.
-    fn request_relaunch(&mut self, ctx: &mut ModelContext<Self>) {
-        self.relaunch_status = RelaunchStatus::Requested;
+    fn request_update_relaunch(&mut self, ctx: &mut ModelContext<Self>) {
+        self.relaunch_status = RelaunchStatus::Requested(RelaunchReason::Update);
         ctx.notify();
     }
 

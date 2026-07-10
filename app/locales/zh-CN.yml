@@ -1,0 +1,169 @@
+# 简体中文翻译 - Warp 应用
+app:
+  name: "Warp"
+  about: "关于 Warp"
+
+menu:
+  # 主菜单栏
+  warp: "Warp"
+  file: "文件"
+  edit: "编辑"
+  view: "视图"
+  tab: "标签页"
+  blocks: "代码块"
+  ai: "AI"
+  drive: "云盘"
+  window: "窗口"
+  help: "帮助"
+
+  # Warp (应用) 菜单
+  show_about_warp: "关于 Warp"
+  toggle_resource_center: "资源中心"
+  refer_a_friend: "推荐朋友"
+  preferences: "偏好设置"
+  show_settings: "设置..."
+  toggle_keybindings_page: "快捷键"
+  configure_keybindings: "配置快捷键..."
+  show_appearance: "外观..."
+  view_changelog: "查看更新日志"
+  privacy_policy: "隐私政策..."
+  debug: "调试"
+  hide: "隐藏 Warp"
+  hide_others: "隐藏其他"
+  show_all: "显示全部"
+  set_warp_as_default_terminal: "将 Warp 设为默认终端"
+  log_out: "退出登录"
+  quit: "退出 Warp"
+
+  # 文件菜单
+  new_window: "新建窗口"
+  new_tab: "新建标签页"
+  open_recent: "打开最近"
+  close_tab: "关闭标签页"
+  close_window: "关闭窗口"
+
+  # 编辑菜单
+  undo: "撤销"
+  redo: "重做"
+  cut: "剪切"
+  copy: "复制"
+  paste: "粘贴"
+  select_all: "全选"
+  find: "查找"
+  use_warp_prompt: "使用 Warp 提示符"
+  copy_on_select: "终端内选择时复制"
+  synchronize_inputs: "同步输入"
+
+  # 视图菜单
+  zoom_in: "放大"
+  zoom_out: "缩小"
+  reset_zoom: "重置缩放"
+  toggle_fullscreen: "切换全屏"
+  toggle_mouse_reporting: "切换鼠标报告"
+  toggle_scroll_reporting: "切换滚动报告"
+  toggle_focus_reporting: "切换焦点报告"
+  compact_mode: "紧凑模式"
+
+  # 标签页菜单
+  new_tab_in_current_directory: "在当前目录新建标签页"
+  duplicate_tab: "复制标签页"
+  split_pane_right: "向右拆分窗格"
+  split_pane_down: "向下拆分窗格"
+
+  # 代码块菜单
+  share_block: "分享代码块"
+  copy_block_output: "复制代码块输出"
+  rerun_block: "重新运行代码块"
+
+  # AI 菜单
+  open_ai_chat: "打开 AI 聊天"
+  ask_ai: "询问 AI"
+
+  # 云盘菜单
+  open_drive: "打开云盘"
+  sync_settings: "同步设置"
+
+  # 窗口菜单
+  minimize: "最小化"
+  zoom: "缩放"
+  bring_all_to_front: "将全部窗口置于前台"
+
+  # 帮助菜单
+  send_feedback: "发送反馈..."
+  documentation: "文档"
+  keyboard_shortcuts: "键盘快捷键"
+  report_issue: "报告问题"
+  search_help: "搜索"
+
+  # 调试菜单项
+  enable_shell_debug_mode: "为新会话启用 Shell 调试模式 (-x)"
+  disable_shell_debug_mode: "为新会话禁用 Shell 调试模式 (-x)"
+  enable_in_band_generators: "为新会话启用内联生成器"
+  disable_in_band_generators: "为新会话禁用内联生成器"
+  enable_pty_recording: "启用 PTY 录制模式 (warp.pty.recording)"
+  disable_pty_recording: "禁用 PTY 录制模式 (warp.pty.recording)"
+  show_initialization_block: "显示初始化块"
+  hide_initialization_block: "隐藏初始化块"
+  show_in_band_command_blocks: "显示内联命令块"
+  hide_in_band_command_blocks: "隐藏内联命令块"
+  show_ssh_command_blocks: "显示 Warpified SSH 块"
+  hide_ssh_command_blocks: "隐藏 Warpified SSH 块"
+  export_default_settings_csv: "导出默认设置为 CSV 到主目录"
+  manually_toggle_network_status: "手动切换网络状态"
+  create_anonymous_user: "创建匿名用户"
+
+settings:
+  # 设置分类
+  general: "通用"
+  appearance: "外观"
+  keyboard: "键盘"
+  features: "功能"
+  privacy: "隐私"
+  advanced: "高级"
+
+  # 语言设置
+  language: "语言"
+  language_description: "应用界面语言"
+  language_restart_description: "重启 Warp 后语言更改会生效。"
+  restart_warp: "重启 Warp"
+
+  # 常用设置标签
+  enable: "启用"
+  disable: "禁用"
+  reset: "重置"
+  save: "保存"
+  cancel: "取消"
+  ok: "确定"
+  apply: "应用"
+
+dialogs:
+  # 常用对话框按钮
+  yes: "是"
+  no: "否"
+  continue: "继续"
+  close: "关闭"
+
+  # 确认对话框
+  confirm_action: "您确定吗？"
+  unsaved_changes: "您有未保存的更改。是否要保存？"
+
+tips:
+  # 提示和技巧
+  welcome: "欢迎使用 Warp！"
+  getting_started: "开始使用 Warp"
+
+reward:
+  # 奖励弹窗
+  title: "恭喜！"
+  subtitle_sent: "您因推荐他人使用 Warp 而获得了专属主题。"
+  subtitle_received: "您因被推荐使用 Warp 而获得了专属主题。"
+  button_cta: "试试看！"
+  accessibility_help: "按 Enter 打开主题选择器，按 Escape 关闭。"
+
+errors:
+  # 常见错误消息
+  generic_error: "发生错误"
+  network_error: "网络连接失败"
+  permission_denied: "权限被拒绝"
+  file_not_found: "文件未找到"
+  failed_to_persist_setting: "保存设置失败"
