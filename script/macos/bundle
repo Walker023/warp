@@ -263,6 +263,11 @@ else
   fi
 fi
 
+if [[ -n "${WARP_CARGO_PROFILE:-}" ]]; then
+  echo "Using Cargo profile override: $WARP_CARGO_PROFILE"
+  CARGO_PROFILE="$WARP_CARGO_PROFILE"
+fi
+
 TARGET_PROFILE_DIR="$CARGO_PROFILE"
 if [[ "$CARGO_PROFILE" == "dev" ]]; then
   TARGET_PROFILE_DIR="debug"

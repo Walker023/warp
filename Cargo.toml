@@ -427,6 +427,15 @@ debug = 1
 # Force the rust compiler to create a dSYM. Starting in 1.53 the default on MacOS is "unpacked".
 split-debuginfo = "packed"
 
+# Resource-conscious profile for community fork builds on standard GitHub
+# runners. Official releases use larger runners and keep ThinLTO plus debug
+# symbols through the existing release profiles.
+[profile.release-fork]
+inherits = "release"
+debug = 0
+split-debuginfo = "off"
+lto = false
+
 [profile.dev]
 # Use line-tables-only to speed up dev builds. Change to `debug = true` if you
 # need full debuginfo for step-through debugging (gdb/lldb).

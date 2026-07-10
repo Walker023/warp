@@ -30,7 +30,9 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_BUILD_JOBS: 2
   GIT_RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+  WARP_CARGO_PROFILE: release-fork
 
 jobs:
   validate:
@@ -82,7 +84,27 @@ jobs:
       - name: Build unsigned universal DMG
         id: bundle
         shell: bash
-        run: ./script/bundle --channel oss --nosign --release-tag "$GIT_RELEASE_TAG"
+        run: |
+          set -o pipefail
+          ./script/bundle --channel oss --nosign --release-tag "$GIT_RELEASE_TAG" 2>&1 | tee macos-build.log
+
+      - name: Report macOS build failure
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          grep -Ei "error|failed|failure|panic|no space|not found|cannot" macos-build.log \
+            | tail -n 20 \
+            | while IFS= read -r line; do
+                echo "::error title=macOS build log::$line"
+              done
+
+      - name: Upload macOS failure log
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: fork-release-macos-failure-log
+          path: macos-build.log
+          if-no-files-found: ignore
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
@@ -123,10 +145,41 @@ jobs:
         id: bundle
         shell: pwsh
         run: |
-          ./script/windows/bundle.ps1 `
-            -CHANNEL oss `
-            -RELEASE_TAG "$env:GIT_RELEASE_TAG" `
-            -ARCH "${{ matrix.arch }}"
+          try {
+            ./script/windows/bundle.ps1 `
+              -CHANNEL oss `
+              -RELEASE_TAG "$env:GIT_RELEASE_TAG" `
+              -ARCH "${{ matrix.arch }}" *>&1 `
+              | Tee-Object -FilePath windows-build.log
+
+            if (-not $?) {
+              exit 1
+            }
+          } catch {
+            $_ | Out-String | Tee-Object -FilePath windows-build.log -Append
+            exit 1
+          }
+
+      - name: Report Windows build failure
+        if: ${{ failure() }}
+        shell: pwsh
+        run: |
+          Select-String `
+            -Path windows-build.log `
+            -Pattern 'error|failed|failure|panic|no space|not found|cannot' `
+            | Select-Object -Last 20 `
+            | ForEach-Object {
+                $Line = $_.Line.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+                Write-Output "::error title=Windows ${{ matrix.arch }} build log::$Line"
+              }
+
+      - name: Upload Windows failure log
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: fork-release-windows-${{ matrix.arch }}-failure-log
+          path: windows-build.log
+          if-no-files-found: ignore
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6

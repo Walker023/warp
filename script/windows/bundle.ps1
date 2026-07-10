@@ -74,6 +74,11 @@ if ($DEBUG_BUILD) {
     $CARGO_PROFILE = 'rlto'
 }
 
+if ($env:WARP_CARGO_PROFILE) {
+    Write-Output "Using Cargo profile override: $env:WARP_CARGO_PROFILE"
+    $CARGO_PROFILE = $env:WARP_CARGO_PROFILE
+}
+
 if ($CARGO_PROFILE -eq 'dev') {
     $CARGO_TARGET_OUTPUT_DIR = "$CARGO_TARGET_DIR" + '\' + $PLATFORM_TARGET + '\debug'
 } else {
