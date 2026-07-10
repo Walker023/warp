@@ -1291,7 +1291,7 @@ pub(crate) fn initialize_app(
     timer.mark_interval_end("READ_USER_DEFAULTS_AND_INITIALIZE_SETTINGS");
 
     // Initialize language settings and switch to the user's preferred locale.
-    // 语言来源优先级：环境变量 WARP_LANG > 保存的设置 > 默认英文。
+    // 语言来源优先级：环境变量 WARP_LANG > 保存的设置 > 默认简体中文。
     // 环境变量让用户无需改代码即可切换，例如 `WARP_LANG=zh-CN`。
     {
         use crate::i18n::switch_locale;

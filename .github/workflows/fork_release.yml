@@ -156,19 +156,19 @@ jobs:
         with:
           tag_name: ${{ inputs.version }}
           target_commitish: ${{ github.sha }}
-          name: Warp Chinese ${{ inputs.version }}
+          name: Warp 中文版 ${{ inputs.version }}
           draft: ${{ inputs.draft }}
           prerelease: ${{ inputs.prerelease }}
           generate_release_notes: true
           body: |
-            Community build containing the Chinese localization changes from this fork.
+            本版本包含此 fork 的简体中文本地化改动，首次启动默认显示简体中文，并保留英文切换选项。
 
-            Artifacts:
-            - `WarpOss.dmg`: universal macOS build for Apple Silicon and Intel Macs.
-            - `WarpOssSetup.exe`: Windows x64 installer.
-            - `WarpOssSetup-arm64.exe`: Windows ARM64 installer.
-            - `SHA256SUMS.txt`: SHA-256 checksums for all installers.
+            下载文件：
+            - `WarpOss.dmg`：支持 Apple Silicon 和 Intel Mac 的 Universal 安装包。
+            - `WarpOssSetup.exe`：Windows x64 安装程序。
+            - `WarpOssSetup-arm64.exe`：Windows ARM64 安装程序。
+            - `SHA256SUMS.txt`：全部安装包的 SHA-256 校验值。
 
-            These community artifacts are not signed or notarized with the official Warp certificates. macOS Gatekeeper and Windows SmartScreen may display security warnings during installation.
+            这些社区构建未使用 Warp 官方证书签名或公证。macOS Gatekeeper 和 Windows SmartScreen 可能在安装时显示安全警告。
           files: release-assets/*
           fail_on_unmatched_files: true

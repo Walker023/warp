@@ -11,9 +11,9 @@ use settings::{RespectUserSyncSetting, SupportedPlatforms, SyncToCloud};
     rename_all = "kebab-case"
 )]
 pub enum Locale {
-    #[default]
     #[schemars(description = "English")]
     En,
+    #[default]
     #[schemars(description = "Simplified Chinese")]
     ZhCn,
 }
@@ -43,7 +43,7 @@ impl settings_value::SettingsValue for Locale {}
 define_settings_group!(LanguageSettings, settings: [
     locale: LanguageLocale {
         type: Locale,
-        default: Locale::En,
+        default: Locale::ZhCn,
         supported_platforms: SupportedPlatforms::DESKTOP,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         private: false,
@@ -62,6 +62,7 @@ mod tests {
 
     #[test]
     fn locale_runtime_and_settings_file_values_are_stable() {
+        assert_eq!(Locale::default(), Locale::ZhCn);
         assert_eq!(Locale::En.to_str(), "en");
         assert_eq!(Locale::ZhCn.to_str(), "zh-CN");
         assert_eq!(Locale::En.display_name(), "English");
