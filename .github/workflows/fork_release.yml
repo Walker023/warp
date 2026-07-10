@@ -1,6 +1,9 @@
 name: Fork Release (macOS and Windows)
 
 on:
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       version:
@@ -22,12 +25,12 @@ permissions:
   contents: write
 
 concurrency:
-  group: fork-release-${{ inputs.version }}
+  group: fork-release-${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
   cancel-in-progress: false
 
 env:
   CARGO_TERM_COLOR: always
-  GIT_RELEASE_TAG: ${{ inputs.version }}
+  GIT_RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
 
 jobs:
   validate:
@@ -37,7 +40,7 @@ jobs:
       - name: Validate tag format
         shell: bash
         env:
-          RELEASE_TAG: ${{ inputs.version }}
+          RELEASE_TAG: ${{ env.GIT_RELEASE_TAG }}
         run: |
           if ! git check-ref-format "refs/tags/$RELEASE_TAG" >/dev/null; then
             echo "::error::Invalid Git tag: $RELEASE_TAG"
@@ -154,11 +157,11 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2.2.2
         with:
-          tag_name: ${{ inputs.version }}
+          tag_name: ${{ env.GIT_RELEASE_TAG }}
           target_commitish: ${{ github.sha }}
-          name: Warp 中文版 ${{ inputs.version }}
-          draft: ${{ inputs.draft }}
-          prerelease: ${{ inputs.prerelease }}
+          name: Warp 中文版 ${{ env.GIT_RELEASE_TAG }}
+          draft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft || false }}
+          prerelease: ${{ github.event_name == 'push' || inputs.prerelease }}
           generate_release_notes: true
           body: |
             本版本包含此 fork 的简体中文本地化改动，首次启动默认显示简体中文，并保留英文切换选项。

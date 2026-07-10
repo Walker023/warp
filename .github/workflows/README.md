@@ -4,7 +4,7 @@ This README file documents the format of the `release_configurations.json` file 
 
 ## Fork Releases
 
-Fork maintainers can run the `Fork Release (macOS and Windows)` workflow manually from the GitHub Actions page. Enter a unique tag such as `v0.2026.07.10.1`; after all builds pass, the workflow creates one GitHub Release containing a universal macOS DMG plus Windows x64 and ARM64 installers.
+Fork maintainers can publish by pushing a `v*` tag or by running the `Fork Release (macOS and Windows)` workflow manually from the GitHub Actions page. Use a unique tag such as `v0.2026.07.10.1`; after all builds pass, the workflow creates one GitHub Release containing a universal macOS DMG plus Windows x64 and ARM64 installers.
 
 The fork workflow uses the `oss` release channel and does not require Warp's private GCP, Sentry, Apple, or Azure credentials. Its artifacts are unsigned community builds, so macOS Gatekeeper and Windows SmartScreen may warn users during installation.
 
