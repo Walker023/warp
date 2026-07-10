@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CARGO_TERM_COLOR: always
+  CARGO_TERM_COLOR: never
   CARGO_BUILD_JOBS: 2
   GIT_RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
   WARP_CARGO_PROFILE: release-fork
@@ -92,8 +92,7 @@ jobs:
         if: ${{ failure() }}
         shell: bash
         run: |
-          grep -Ei "error|failed|failure|panic|no space|not found|cannot" macos-build.log \
-            | tail -n 20 \
+          tail -n 10 macos-build.log \
             | while IFS= read -r line; do
                 echo "::error title=macOS build log::$line"
               done
@@ -164,12 +163,10 @@ jobs:
         if: ${{ failure() }}
         shell: pwsh
         run: |
-          Select-String `
-            -Path windows-build.log `
-            -Pattern 'error|failed|failure|panic|no space|not found|cannot' `
-            | Select-Object -Last 20 `
+          Get-Content windows-build.log `
+            | Select-Object -Last 10 `
             | ForEach-Object {
-                $Line = $_.Line.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+                $Line = $_.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
                 Write-Output "::error title=Windows ${{ matrix.arch }} build log::$Line"
               }
 

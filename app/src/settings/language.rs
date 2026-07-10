@@ -46,6 +46,7 @@ define_settings_group!(LanguageSettings, settings: [
         default: Locale::ZhCn,
         supported_platforms: SupportedPlatforms::DESKTOP,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
+        surface: settings::SettingSurfaces::GUI,
         private: false,
         storage_key: "Language",
         toml_path: "general.language",
