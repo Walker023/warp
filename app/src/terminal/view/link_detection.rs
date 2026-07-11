@@ -4,6 +4,7 @@ use serde::{Serialize, Serializer};
 use warpui::platform::Cursor;
 use warpui::ViewContext;
 
+use crate::i18n::t;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::{LinkOpenMethod, TelemetryEvent};
 use crate::terminal::model::grid::grid_handler::Link;
@@ -82,7 +83,7 @@ impl GridHighlightedLink {
         }
     }
 
-    pub fn tooltip_text(&self) -> &'static str {
+    pub fn tooltip_text(&self) -> String {
         match &self {
             #[cfg(feature = "local_fs")]
             GridHighlightedLink::File(file_link)
@@ -92,11 +93,11 @@ impl GridHighlightedLink {
                     .map(|path| path.is_dir())
                     .unwrap_or(false) =>
             {
-                "Open folder"
+                t!("terminal.open_folder").to_string()
             }
             #[cfg(feature = "local_fs")]
-            GridHighlightedLink::File(_) => "Open file",
-            GridHighlightedLink::Url(_) => "Open link",
+            GridHighlightedLink::File(_) => t!("terminal.open_file").to_string(),
+            GridHighlightedLink::Url(_) => t!("terminal.open_link").to_string(),
         }
     }
 }
@@ -175,15 +176,15 @@ pub enum RichContentLink {
 }
 
 impl RichContentLink {
-    pub fn tooltip_text(&self) -> &'static str {
+    pub fn tooltip_text(&self) -> String {
         match &self {
             #[cfg(feature = "local_fs")]
             RichContentLink::FilePath { absolute_path, .. } if absolute_path.is_dir() => {
-                "Open folder"
+                t!("terminal.open_folder").to_string()
             }
             #[cfg(feature = "local_fs")]
-            RichContentLink::FilePath { .. } => "Open file",
-            RichContentLink::Url(_) => "Open link",
+            RichContentLink::FilePath { .. } => t!("terminal.open_file").to_string(),
+            RichContentLink::Url(_) => t!("terminal.open_link").to_string(),
         }
     }
 }

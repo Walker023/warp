@@ -1,3 +1,4 @@
+use rust_i18n::t;
 use ui_components::Component;
 use warp_core::ui::appearance::Appearance;
 use warpui_core::elements::Empty;
@@ -30,7 +31,7 @@ use crate::OnboardingIntention;
 
 /// Options for rendering a callout.
 struct CalloutOptions {
-    title: &'static str,
+    title: String,
     /// Pre-built text with keybindings already embedded
     text: String,
     step: StepStatus,
@@ -42,13 +43,13 @@ struct CalloutOptions {
 }
 
 struct ButtonOptions {
-    text: &'static str,
+    text: String,
     action: OnboardingCalloutViewAction,
     keystroke: Option<Keystroke>,
 }
 
 struct CheckboxOptions {
-    label: &'static str,
+    label: String,
     checked: bool,
 }
 
@@ -59,27 +60,28 @@ fn get_universal_input_callout_options(
 ) -> Option<CalloutOptions> {
     match state {
         UniversalInputCalloutState::MeetInput => Some(CalloutOptions {
-            title: "Meet the Warp input",
-            text: format!(
-                "Your terminal input accepts both terminal commands and agent prompts and automatically detects which you're using. Use {} to lock the input to Agent mode (natural language) or Terminal mode (commands).",
-                keybindings.toggle_input_mode
-            ),
+            title: t!("onboarding.callout.meet_input.title").to_string(),
+            text: t!(
+                "onboarding.callout.meet_input.body",
+                keybinding = keybindings.toggle_input_mode.clone()
+            )
+            .to_string(),
             step: StepStatus::new(0, 2),
             left_button: None,
             right_button: ButtonOptions {
-                text: "Next",
+                text: t!("onboarding.common.next").to_string(),
                 action: OnboardingCalloutViewAction::NextClicked,
                 keystroke: Some(Keystroke::parse("enter").unwrap_or_default()),
             },
             checkbox: None,
         }),
         UniversalInputCalloutState::TalkToAgent => Some(CalloutOptions {
-            title: "Talk to the agent",
-            text: "You can type in natural language to engage the agent. Submit the query below to start: What tests exist in this repo, how are they structured, and what do they cover?".to_string(),
+            title: t!("onboarding.callout.talk_to_agent.title").to_string(),
+            text: t!("onboarding.callout.talk_to_agent.body").to_string(),
             step: StepStatus::new(1, 2),
             left_button: if has_project {
                 Some(ButtonOptions {
-                    text: "Skip",
+                    text: t!("onboarding.common.skip").to_string(),
                     action: OnboardingCalloutViewAction::SkipClicked,
                     keystroke: Some(Keystroke::parse("delete").unwrap_or_default()),
                 })
@@ -87,7 +89,11 @@ fn get_universal_input_callout_options(
                 None
             },
             right_button: ButtonOptions {
-                text: if has_project { "Submit" } else { "Finish" },
+                text: if has_project {
+                    t!("onboarding.common.submit").to_string()
+                } else {
+                    t!("onboarding.common.finish").to_string()
+                },
                 action: OnboardingCalloutViewAction::NextClicked,
                 keystroke: Some(Keystroke::parse("enter").unwrap_or_default()),
             },
@@ -117,15 +123,20 @@ fn get_agent_modality_callout_options(
             if initial_natural_language_detection_enabled {
                 // NL detection was already enabled - show simpler "overrides" callout without checkbox
                 Some(CalloutOptions {
-                    title: "Welcome to terminal mode",
-                    text: format!(
-                        "Run commands here, just like a regular terminal. If you type a question or task using natural language, Warp can suggest opening it in agent mode. You can always override using {}.",
-                        keybindings.toggle_input_mode
-                    ),
+                    title: t!("onboarding.callout.terminal_mode.title").to_string(),
+                    text: t!(
+                        "onboarding.callout.terminal_mode.body",
+                        keybinding = keybindings.toggle_input_mode.clone()
+                    )
+                    .to_string(),
                     step: StepStatus::new(0, total_steps),
                     left_button: None,
                     right_button: ButtonOptions {
-                        text: if is_final_step { "Finish" } else { "Next" },
+                        text: if is_final_step {
+                            t!("onboarding.common.finish").to_string()
+                        } else {
+                            t!("onboarding.common.next").to_string()
+                        },
                         action: OnboardingCalloutViewAction::NextClicked,
                         keystroke: Some(Keystroke::parse("enter").unwrap_or_default()),
                     },
@@ -134,20 +145,28 @@ fn get_agent_modality_callout_options(
             } else {
                 // NL detection was disabled - show full explanation with checkbox to enable
                 Some(CalloutOptions {
-                    title: "You’re in terminal mode",
-                    text: format!(
-                        "Run commands here, just like a regular terminal. If you type a question or task using natural language, Warp can suggest opening it in agent mode. You can always override using {}.",
-                        keybindings.toggle_input_mode
-                    ),
+                    title: t!("onboarding.callout.terminal_mode.title_existing").to_string(),
+                    text: t!(
+                        "onboarding.callout.terminal_mode.body",
+                        keybinding = keybindings.toggle_input_mode.clone()
+                    )
+                    .to_string(),
                     step: StepStatus::new(0, total_steps),
                     left_button: None,
                     right_button: ButtonOptions {
-                        text: if is_final_step { "Finish" } else { "Next" },
+                        text: if is_final_step {
+                            t!("onboarding.common.finish").to_string()
+                        } else {
+                            t!("onboarding.common.next").to_string()
+                        },
                         action: OnboardingCalloutViewAction::NextClicked,
                         keystroke: Some(Keystroke::parse("enter").unwrap_or_default()),
                     },
                     checkbox: Some(CheckboxOptions {
-                        label: "Enable Natural Language Detection",
+                        label: t!(
+                            "onboarding.callout.terminal_mode.enable_natural_language_detection"
+                        )
+                        .to_string(),
                         checked: natural_language_detection_enabled,
                     }),
                 })
@@ -156,16 +175,16 @@ fn get_agent_modality_callout_options(
         AgentModalityCalloutState::AgentMode => {
             if has_project {
                 Some(CalloutOptions {
-                    title: "You're in agent mode",
-                    text: "Agent mode gives your questions and tasks their own conversation, so you can ask follow-ups without leaving your terminal workflow.\n\nSubmit the query below to have the agent initialize this project, or ⊗ to clear the input and start your own!".to_string(),
+                    title: t!("onboarding.callout.agent_mode.title").to_string(),
+                    text: t!("onboarding.callout.agent_mode.body_with_project").to_string(),
                     step: StepStatus::new(1, total_steps),
                     left_button: Some(ButtonOptions {
-                        text: "Skip initialization",
+                        text: t!("onboarding.callout.agent_mode.skip_initialization").to_string(),
                         action: OnboardingCalloutViewAction::SkipClicked,
                         keystroke: Some(Keystroke::parse("delete").unwrap_or_default()),
                     }),
                     right_button: ButtonOptions {
-                        text: "Initialize",
+                        text: t!("onboarding.common.initialize").to_string(),
                         action: OnboardingCalloutViewAction::NextClicked,
                         keystroke: Some(Keystroke::parse("enter").unwrap_or_default()),
                     },
@@ -173,19 +192,20 @@ fn get_agent_modality_callout_options(
                 })
             } else {
                 Some(CalloutOptions {
-                    title: "You're in agent mode",
-                    text: format!(
-                        "Agent mode gives your questions and tasks their own conversation, so you can ask follow-ups without leaving your terminal workflow. Press {} to return to terminal mode at any point.",
-                        keybindings.return_to_terminal_mode
-                    ),
+                    title: t!("onboarding.callout.agent_mode.title").to_string(),
+                    text: t!(
+                        "onboarding.callout.agent_mode.body_without_project",
+                        keybinding = keybindings.return_to_terminal_mode.clone()
+                    )
+                    .to_string(),
                     step: StepStatus::new(1, total_steps),
                     left_button: Some(ButtonOptions {
-                        text: "Back to terminal",
+                        text: t!("onboarding.callout.agent_mode.back_to_terminal").to_string(),
                         action: OnboardingCalloutViewAction::BackToTerminalClicked,
                         keystroke: Some(Keystroke::parse("escape").unwrap_or_default()),
                     }),
                     right_button: ButtonOptions {
-                        text: "Finish",
+                        text: t!("onboarding.common.finish").to_string(),
                         action: OnboardingCalloutViewAction::NextClicked,
                         keystroke: Some(Keystroke::parse("enter").unwrap_or_default()),
                     },

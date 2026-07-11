@@ -29,6 +29,7 @@ use warpui::{AppContext, Entity, ModelContext, SingletonEntity, UpdateModel};
 
 use crate::ai::request_usage_model::RequestLimitInfo;
 use crate::auth::AuthStateProvider;
+use crate::i18n::t;
 use crate::settings::PrivacySettings;
 use crate::terminal::CLIAgent;
 use crate::workspaces::user_workspaces::UserWorkspaces;
@@ -373,19 +374,27 @@ settings::macros::implement_setting_for_enum!(
 
 impl ThinkingDisplayMode {
     /// Display name for the settings dropdown.
-    pub fn display_name(&self) -> &'static str {
+    pub fn display_name(&self) -> String {
         match self {
-            ThinkingDisplayMode::ShowAndCollapse => "Show & collapse",
-            ThinkingDisplayMode::AlwaysShow => "Always show",
-            ThinkingDisplayMode::NeverShow => "Never show",
+            ThinkingDisplayMode::ShowAndCollapse => {
+                t!("settings.ai.dropdown.show_and_collapse").to_string()
+            }
+            ThinkingDisplayMode::AlwaysShow => t!("settings.ai.dropdown.always_show").to_string(),
+            ThinkingDisplayMode::NeverShow => t!("settings.ai.dropdown.never_show").to_string(),
         }
     }
 
-    pub fn command_palette_description(&self) -> &'static str {
+    pub fn command_palette_description(&self) -> String {
         match self {
-            ThinkingDisplayMode::ShowAndCollapse => "Set agent thinking display: show & collapse",
-            ThinkingDisplayMode::AlwaysShow => "Set agent thinking display: always show",
-            ThinkingDisplayMode::NeverShow => "Set agent thinking display: never show",
+            ThinkingDisplayMode::ShowAndCollapse => {
+                t!("settings.ai.dropdown.set_agent_thinking_show_and_collapse").to_string()
+            }
+            ThinkingDisplayMode::AlwaysShow => {
+                t!("settings.ai.dropdown.set_agent_thinking_always_show").to_string()
+            }
+            ThinkingDisplayMode::NeverShow => {
+                t!("settings.ai.dropdown.set_agent_thinking_never_show").to_string()
+            }
         }
     }
 
@@ -484,24 +493,30 @@ impl TuiUsageDisplayMode {
 
 impl OrchestrationMessageDisplayMode {
     /// Display name for the settings dropdown.
-    pub fn display_name(&self) -> &'static str {
+    pub fn display_name(&self) -> String {
         match self {
-            OrchestrationMessageDisplayMode::ShowAndCollapse => "Show & collapse",
-            OrchestrationMessageDisplayMode::AlwaysShow => "Always show",
-            OrchestrationMessageDisplayMode::AlwaysCollapse => "Always collapse",
+            OrchestrationMessageDisplayMode::ShowAndCollapse => {
+                t!("settings.ai.dropdown.show_and_collapse").to_string()
+            }
+            OrchestrationMessageDisplayMode::AlwaysShow => {
+                t!("settings.ai.dropdown.always_show").to_string()
+            }
+            OrchestrationMessageDisplayMode::AlwaysCollapse => {
+                t!("settings.ai.dropdown.always_collapse").to_string()
+            }
         }
     }
 
-    pub fn command_palette_description(&self) -> &'static str {
+    pub fn command_palette_description(&self) -> String {
         match self {
             OrchestrationMessageDisplayMode::ShowAndCollapse => {
-                "Set child-agent message display: show & collapse"
+                t!("settings.ai.dropdown.set_child_agent_show_and_collapse").to_string()
             }
             OrchestrationMessageDisplayMode::AlwaysShow => {
-                "Set child-agent message display: always show"
+                t!("settings.ai.dropdown.set_child_agent_always_show").to_string()
             }
             OrchestrationMessageDisplayMode::AlwaysCollapse => {
-                "Set child-agent message display: always collapse"
+                t!("settings.ai.dropdown.set_child_agent_always_collapse").to_string()
             }
         }
     }
@@ -566,18 +581,24 @@ settings::macros::implement_setting_for_enum!(
 
 impl PromptSubmissionMode {
     /// Display name for the settings dropdown.
-    pub fn display_name(&self) -> &'static str {
+    pub fn display_name(&self) -> String {
         match self {
-            PromptSubmissionMode::Interrupt => "Interrupt response",
-            PromptSubmissionMode::Queue => "Queue until response finishes",
+            PromptSubmissionMode::Interrupt => {
+                t!("settings.ai.dropdown.interrupt_response").to_string()
+            }
+            PromptSubmissionMode::Queue => {
+                t!("settings.ai.dropdown.queue_until_response_finishes").to_string()
+            }
         }
     }
 
-    pub fn command_palette_description(&self) -> &'static str {
+    pub fn command_palette_description(&self) -> String {
         match self {
-            PromptSubmissionMode::Interrupt => "Set default prompt submission: interrupt response",
+            PromptSubmissionMode::Interrupt => {
+                t!("settings.ai.dropdown.set_default_prompt_interrupt").to_string()
+            }
             PromptSubmissionMode::Queue => {
-                "Set default prompt submission: queue until response finishes"
+                t!("settings.ai.dropdown.set_default_prompt_queue").to_string()
             }
         }
     }
@@ -628,22 +649,24 @@ settings::macros::implement_setting_for_enum!(
 
 impl LongRunningCommandSubmissionMode {
     /// Display name for the settings dropdown.
-    pub fn display_name(&self) -> &'static str {
+    pub fn display_name(&self) -> String {
         match self {
-            LongRunningCommandSubmissionMode::SendImmediately => "Send immediately",
+            LongRunningCommandSubmissionMode::SendImmediately => {
+                t!("settings.ai.dropdown.send_immediately").to_string()
+            }
             LongRunningCommandSubmissionMode::QueueUntilCommandCompletes => {
-                "Queue until command finishes"
+                t!("settings.ai.dropdown.queue_until_command_finishes").to_string()
             }
         }
     }
 
-    pub fn command_palette_description(&self) -> &'static str {
+    pub fn command_palette_description(&self) -> String {
         match self {
             LongRunningCommandSubmissionMode::SendImmediately => {
-                "Set long-running command submission: send immediately"
+                t!("settings.ai.dropdown.set_lrc_send_immediately").to_string()
             }
             LongRunningCommandSubmissionMode::QueueUntilCommandCompletes => {
-                "Set long-running command submission: queue until command finishes"
+                t!("settings.ai.dropdown.set_lrc_queue").to_string()
             }
         }
     }

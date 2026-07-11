@@ -21,6 +21,7 @@ use crate::ai::agent_conversations_model::{AgentConversationsModel, AgentConvers
 use crate::ai::ambient_agents::telemetry::{CloudAgentTelemetryEvent, CloudModeEntryPoint};
 use crate::ai::ambient_agents::AmbientAgentTaskId;
 use crate::ai::blocklist::agent_view::{render_block_container, AgentViewEntryOrigin};
+use crate::i18n::t;
 use crate::pane_group::pane::{PaneConfiguration, PaneConfigurationEvent, PaneStack};
 use crate::terminal::view::ambient_agent::AmbientAgentViewModel;
 use crate::terminal::{BlockListSettings, TerminalManager, TerminalView};
@@ -178,14 +179,18 @@ impl AmbientAgentEntryBlock {
     }
 
     /// Gets the detail text to display based on the ambient agent status.
-    fn detail_text(&self, app: &AppContext) -> Option<&'static str> {
+    fn detail_text(&self, app: &AppContext) -> Option<String> {
         match self.ambient_agent_view_model(app)?.status() {
             Status::Setup | Status::Composing => None,
-            Status::WaitingForSession { .. } => Some("Starting environment..."),
-            Status::AgentRunning => Some("Agent is working on task"),
-            Status::Failed { .. } => Some("Agent failed"),
-            Status::NeedsGithubAuth { .. } => Some("Authentication required"),
-            Status::Cancelled { .. } => Some("Cancelled"),
+            Status::WaitingForSession { .. } => {
+                Some(t!("ambient_agent.status.starting_environment").to_string())
+            }
+            Status::AgentRunning => Some(t!("ambient_agent.status.agent_working").to_string()),
+            Status::Failed { .. } => Some(t!("ambient_agent.status.agent_failed").to_string()),
+            Status::NeedsGithubAuth { .. } => {
+                Some(t!("ambient_agent.status.authentication_required").to_string())
+            }
+            Status::Cancelled { .. } => Some(t!("ambient_agent.status.cancelled").to_string()),
         }
     }
 
@@ -197,7 +202,7 @@ impl AmbientAgentEntryBlock {
             }
             Status::Failed { .. } => Some(ConversationStatus::Error),
             Status::NeedsGithubAuth { .. } => Some(ConversationStatus::Blocked {
-                blocked_action: "GitHub authentication required".to_owned(),
+                blocked_action: t!("ambient_agent.status.github_auth_required").to_string(),
             }),
             Status::Cancelled { .. } => Some(ConversationStatus::Cancelled),
         }

@@ -10,6 +10,7 @@ use warpui::Element;
 
 use super::render_block_banner;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::terminal::view::{RememberForWarpification, TerminalAction};
 use crate::themes::theme::Fill;
 use crate::ui_components::blended_colors;
@@ -84,7 +85,7 @@ pub fn render_warpification_banner(
                 ButtonVariant::Text,
                 state.dont_ask_button_mouse_state.clone(),
             )
-            .with_text_label("Do not show again".to_owned())
+            .with_text_label(t!("terminal.do_not_show_again").to_string())
             .build()
             .on_click(move |ctx, _, _| {
                 ctx.dispatch_typed_action(TerminalAction::DismissWarpifyBanner(

@@ -9,6 +9,7 @@ use warpui::{Element, EventContext};
 use crate::appearance::Appearance;
 use crate::drive::cloud_object_styling::warp_drive_icon_color;
 use crate::drive::DriveObjectType;
+use crate::i18n::t;
 use crate::search::{FilterChipRenderer as CommonFilterChipRenderer, QueryFilter};
 use crate::util::color::{ContrastingColor, MinimumAllowedContrast};
 
@@ -42,7 +43,7 @@ impl FilterChipRenderer for QueryFilter {
                     .with_cross_axis_alignment(CrossAxisAlignment::Center)
                     .with_child(
                         Text::new_inline(
-                            self.display_name(),
+                            self.localized_display_name(),
                             appearance.ui_font_family(),
                             font_size,
                         )
@@ -143,6 +144,28 @@ impl FilterChipRenderer for QueryFilter {
                 warp_drive_icon_color(appearance, DriveObjectType::AgentModeWorkflow)
             }
         }
+    }
+}
+
+fn localized_display_name(filter: QueryFilter) -> String {
+    match filter {
+        QueryFilter::Files => t!("command_palette.files").to_string(),
+        QueryFilter::Actions => t!("command_palette.actions").to_string(),
+        QueryFilter::Sessions => t!("command_palette.sessions").to_string(),
+        QueryFilter::LaunchConfigurations => {
+            t!("command_palette.launch_configurations").to_string()
+        }
+        _ => filter.display_name().to_string(),
+    }
+}
+
+trait LocalizedQueryFilterName {
+    fn localized_display_name(&self) -> String;
+}
+
+impl LocalizedQueryFilterName for QueryFilter {
+    fn localized_display_name(&self) -> String {
+        localized_display_name(*self)
     }
 }
 

@@ -6,6 +6,7 @@ use onboarding::components::onboarding_callout::{
     StepStatus,
 };
 use rust_embed::RustEmbed;
+use rust_i18n::t;
 use ui_components::Component as _;
 use warp_core::ui::appearance::Appearance;
 use warp_core::ui::theme::{AnsiColor, AnsiColors, Details, Fill, TerminalColors, WarpTheme};
@@ -85,11 +86,11 @@ impl View for RootView {
         let callout = self.callout.render(
             appearance,
             CalloutParams {
-                title: "Meet your Warp input".into(),
-                text: "Your terminal input can detect natural language as well as commands.".into(),
+                title: t!("onboarding.demo.callout.title").into(),
+                text: t!("onboarding.demo.callout.body").into(),
                 step: StepStatus::new(1, 2),
                 right_button: CalloutButton {
-                    text: "Submit".into(),
+                    text: t!("onboarding.demo.callout.submit").into(),
                     keystroke: None,
                     handler: Box::new(|_ctx, _app_ctx, _mouse_pos| {}),
                 },

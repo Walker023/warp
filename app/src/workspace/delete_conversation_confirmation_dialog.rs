@@ -13,6 +13,7 @@ use warpui::{
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 use crate::view_components::action_button::{
     ActionButton, DangerPrimaryTheme, KeystrokeSource, NakedTheme,
@@ -53,18 +54,21 @@ pub struct DeleteConversationConfirmationDialog {
 impl DeleteConversationConfirmationDialog {
     pub fn new(ctx: &mut ViewContext<Self>) -> Self {
         let cancel_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Cancel", NakedTheme).on_click(|ctx| {
+            ActionButton::new(t!("common.cancel").to_string(), NakedTheme).on_click(|ctx| {
                 ctx.dispatch_typed_action(DeleteConversationConfirmationAction::Cancel);
             })
         });
 
         let enter_keystroke = Keystroke::parse("enter").expect("Valid keystroke");
         let delete_button = ctx.add_typed_action_view(|ctx| {
-            ActionButton::new("Delete", DangerPrimaryTheme)
-                .with_keybinding(KeystrokeSource::Fixed(enter_keystroke), ctx)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(DeleteConversationConfirmationAction::Confirm);
-                })
+            ActionButton::new(
+                t!("workspace.delete_conversation.delete").to_string(),
+                DangerPrimaryTheme,
+            )
+            .with_keybinding(KeystrokeSource::Fixed(enter_keystroke), ctx)
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(DeleteConversationConfirmationAction::Confirm);
+            })
         });
 
         Self {
@@ -102,15 +106,18 @@ impl View for DeleteConversationConfirmationDialog {
         let title = self
             .source
             .as_ref()
-            .map(|s| format!("Delete '{}'?", s.conversation_title))
-            .unwrap_or_else(|| "Delete conversation?".into());
+            .map(|s| {
+                t!(
+                    "workspace.delete_conversation.title_named",
+                    title = s.conversation_title.clone()
+                )
+                .to_string()
+            })
+            .unwrap_or_else(|| t!("workspace.delete_conversation.title").to_string());
 
         let dialog = Dialog::new(
             title,
-            Some(
-                "This conversation will be permanently deleted. This action cannot be undone."
-                    .into(),
-            ),
+            Some(t!("workspace.delete_conversation.description").to_string()),
             UiComponentStyles {
                 width: Some(DIALOG_WIDTH),
                 ..dialog_styles(appearance)

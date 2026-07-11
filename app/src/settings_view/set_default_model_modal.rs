@@ -9,6 +9,7 @@ use warpui::{
 
 use crate::ai::llms::LLMId;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::view_components::action_button::{ActionButton, NakedTheme, PrimaryTheme};
 use crate::view_components::{DropdownItem, FilterableDropdown, FilterableDropdownEvent};
 
@@ -67,13 +68,21 @@ impl SetDefaultModelModalBody {
         });
 
         let cancel_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Not now", NakedTheme).on_click(|ctx| {
+            ActionButton::new(
+                t!("settings.custom_inference.not_now").to_string(),
+                NakedTheme,
+            )
+            .on_click(|ctx| {
                 ctx.dispatch_typed_action(SetDefaultModelModalBodyAction::Cancel);
             })
         });
 
         let save_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Change default model", PrimaryTheme).on_click(|ctx| {
+            ActionButton::new(
+                t!("settings.custom_inference.change_default_model").to_string(),
+                PrimaryTheme,
+            )
+            .on_click(|ctx| {
                 ctx.dispatch_typed_action(SetDefaultModelModalBodyAction::Save);
             })
         });

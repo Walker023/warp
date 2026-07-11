@@ -5,8 +5,9 @@ use warp_core::features::FeatureFlag;
 use warpui::{EntityId, UpdateView, ViewContext};
 
 use super::{group_member_indices, Workspace};
+use crate::i18n::t;
 use crate::menu::{MenuItem, MenuItemFields};
-use crate::tab::{TabData, MOVE_TO_GROUP_LABEL};
+use crate::tab::TabData;
 use crate::workspace::action::{TabContextMenuAnchor, WorkspaceAction};
 use crate::workspace::tab_group::{TabGroup, TabGroupId};
 use crate::workspace::util::PaneViewLocator;
@@ -464,14 +465,17 @@ impl Workspace {
     /// group" only when there's a destination group worth offering.
     fn tab_selection_menu_items(&self) -> Vec<MenuItem<WorkspaceAction>> {
         let shared_group = self.selection_shared_group();
-        let mut menu_items = vec![MenuItemFields::new("Create group from tabs")
-            .with_on_select_action(WorkspaceAction::NewTabGroupFromSelectedTabs)
-            .into_item()];
+        let mut menu_items =
+            vec![
+                MenuItemFields::new(t!("workspace.tabs.create_group_from_tabs").to_string())
+                    .with_on_select_action(WorkspaceAction::NewTabGroupFromSelectedTabs)
+                    .into_item(),
+            ];
 
         // Only single-group selections have an unambiguous group to leave.
         if shared_group.is_some() {
             menu_items.push(
-                MenuItemFields::new("Remove from group")
+                MenuItemFields::new(t!("workspace.tabs.remove_from_group").to_string())
                     .with_on_select_action(WorkspaceAction::RemoveSelectedTabsFromGroup)
                     .into_item(),
             );
@@ -483,7 +487,10 @@ impl Workspace {
             .keys()
             .any(|group_id| Some(*group_id) != shared_group);
         if has_destination_group {
-            menu_items.push(MenuItemFields::new_submenu(MOVE_TO_GROUP_LABEL).into_item());
+            menu_items.push(
+                MenuItemFields::new_submenu(t!("workspace.tabs.move_to_group").to_string())
+                    .into_item(),
+            );
         }
         menu_items
     }

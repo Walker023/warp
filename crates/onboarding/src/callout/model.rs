@@ -1,3 +1,4 @@
+use rust_i18n::t;
 use warp_core::send_telemetry_from_ctx;
 use warp_errors::report_error;
 use warpui_core::{Entity, ModelContext};
@@ -411,8 +412,7 @@ impl OnboardingCalloutModel {
             UniversalInputCalloutState::TalkToAgent
             | UniversalInputCalloutState::Complete(FinalState::Submit) => {
                 OnboardingQuery::AgentPrompt(
-                    "What tests exist in this repo, how are they structured, and what do they cover?"
-                        .to_string(),
+                    t!("onboarding.callout.prompt.tests_query").to_string(),
                 )
             }
             UniversalInputCalloutState::Complete(_) => OnboardingQuery::None,
@@ -422,14 +422,16 @@ impl OnboardingCalloutModel {
     fn prompt_for_agent_modality(&self, state: AgentModalityCalloutState) -> OnboardingQuery {
         match state {
             AgentModalityCalloutState::Off => OnboardingQuery::None,
-            AgentModalityCalloutState::TerminalMode => {
-                OnboardingQuery::TerminalCommand("Run a command...".to_string())
-            }
+            AgentModalityCalloutState::TerminalMode => OnboardingQuery::TerminalCommand(
+                t!("onboarding.callout.prompt.run_command").to_string(),
+            ),
             AgentModalityCalloutState::AgentMode => {
                 if self.has_project {
                     OnboardingQuery::AgentPrompt("/init".to_string())
                 } else {
-                    OnboardingQuery::AgentPrompt("Tell the agent what to build...".to_string())
+                    OnboardingQuery::AgentPrompt(
+                        t!("onboarding.callout.prompt.tell_agent").to_string(),
+                    )
                 }
             }
             // All completion states should return None so the input gets cleared

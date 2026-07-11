@@ -19,6 +19,7 @@ use warpui::{
 };
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::icons::Icon;
 
 const CLOSE_BUTTON_DIAMETER: f32 = 20.;
@@ -175,7 +176,7 @@ impl<T: Action + Clone> Banner<T> {
 
     fn permanent_dismissal_button() -> BannerTextButton {
         BannerTextButton::new(
-            String::from("Don't show me again"),
+            t!("common.dont_show_again").to_string(),
             Rc::new(|ctx, _, _| {
                 ctx.dispatch_typed_action(BannerAction::<T>::Dismiss(DismissalType::Permanent));
             }),

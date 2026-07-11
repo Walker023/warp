@@ -17,6 +17,7 @@ use warpui::{
 
 use super::WELCOME_TIP_FEATURE_LENGTH;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::resource_center::{Tip, TipAction, TipsCompleted};
 use crate::themes::theme::{Blend, Fill};
 use crate::util::bindings::trigger_to_keystroke;
@@ -125,33 +126,32 @@ impl TipsView {
 
         let tip_items = vec![
             TipItem::new(
-                "Command Palette".to_string(),
-                "Easily discover everything you can do in Warp without your hands leaving the keyboard.".to_string(),
+                t!("tips.command_palette.title").to_string(),
+                t!("tips.command_palette.description").to_string(),
                 TipAction::CommandPalette,
                 ctx,
             ),
             TipItem::new(
-                "Split Pane".to_string(),
-                "Split tabs into multiple panes to make your ideal layout."
-                    .to_string(),
+                t!("tips.split_pane.title").to_string(),
+                t!("tips.split_pane.description").to_string(),
                 TipAction::SplitPane,
                 ctx,
             ),
             TipItem::new(
-                "History Search".to_string(),
-                "Find, edit and re-run previously executed commands.".to_string(),
+                t!("tips.history_search.title").to_string(),
+                t!("tips.history_search.description").to_string(),
                 TipAction::HistorySearch,
                 ctx,
             ),
             TipItem::new(
-                "AI Command Search".to_string(),
-                "Generate shell commands with natural language.".to_string(),
+                t!("tips.ai_command_search.title").to_string(),
+                t!("tips.ai_command_search.description").to_string(),
                 TipAction::AiCommandSearch,
                 ctx,
             ),
             TipItem::new(
-                "Theme Picker".to_string(),
-                "Make Warp your own by choosing a built-in theme. Or create your own.".to_string(),
+                t!("tips.theme_picker.title").to_string(),
+                t!("tips.theme_picker.description").to_string(),
                 TipAction::ThemePicker,
                 ctx,
             ),
@@ -260,7 +260,7 @@ impl TipsView {
                 .with_child(
                     Container::new(
                         ui_builder
-                            .wrappable_text("Shortcut".to_string(), false)
+                            .wrappable_text(t!("tips.shortcut").to_string(), false)
                             .with_style(UiComponentStyles {
                                 font_family_id: Some(appearance.ui_font_family()),
                                 font_size: Some(appearance.monospace_font_size() * 0.8),
@@ -395,7 +395,7 @@ impl TipsView {
                         Align::new(
                             appearance
                                 .ui_builder()
-                                .paragraph("Skip Welcome Tips".to_string())
+                                .paragraph(t!("tips.skip_welcome_tips").to_string())
                                 .build()
                                 .finish(),
                         )
@@ -448,7 +448,7 @@ impl TipsView {
             .finish();
 
         let title = ui_builder
-            .span("Complete!")
+            .span(t!("tips.complete").to_string())
             .with_style(UiComponentStyles {
                 font_weight: Some(Weight::Bold),
                 // Set to white here as the background has 85% black overlay.
@@ -460,7 +460,7 @@ impl TipsView {
             .finish();
 
         let sub_text = ui_builder
-            .paragraph("Nice work on finishing the welcome tips!")
+            .paragraph(t!("tips.complete_description").to_string())
             .with_style(UiComponentStyles {
                 font_size: Some(12.),
                 font_color: Some(Fill::white().into()),
@@ -480,7 +480,7 @@ impl TipsView {
                     .set_width(152.)
                     .set_height(34.),
             )
-            .with_centered_text_label("Close Welcome Tips".to_string())
+            .with_centered_text_label(t!("tips.close_welcome_tips").to_string())
             .build()
             .on_click(|ctx, _, _| ctx.dispatch_typed_action(TipsAction::DismissTips))
             .finish();

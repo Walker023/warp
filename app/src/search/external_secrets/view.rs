@@ -17,6 +17,7 @@ use warpui::{
 
 use crate::appearance::Appearance;
 use crate::external_secrets::ExternalSecret;
+use crate::i18n::t;
 use crate::search::external_secrets::external_secret_data_source::ExternalSecretDataSource;
 use crate::search::external_secrets::searcher::{
     ExternalSecretSearchItemAction, ExternalSecretSearchMixer,
@@ -37,8 +38,6 @@ lazy_static! {
             ..Default::default()
         };
 }
-
-const DEFAULT_PLACEHOLDER_TEXT: &str = "Search for a secret";
 
 pub struct ExternalSecretsMenu {
     scroll_state: ScrollStateHandle,
@@ -85,7 +84,7 @@ impl ExternalSecretsMenu {
             SearchBar::new(
                 mixer.clone(),
                 search_bar_state.clone(),
-                DEFAULT_PLACEHOLDER_TEXT,
+                t!("external_secrets.search_placeholder").to_string(),
                 |result_index, result| {
                     QueryResultRenderer::new(
                         result,
@@ -180,7 +179,7 @@ impl ExternalSecretsMenu {
         // There are no results to display, so notify the user of that fact.
         let text = appearance
             .ui_builder()
-            .span("No results found.")
+            .span(t!("external_secrets.no_results").to_string())
             .with_style(UiComponentStyles {
                 font_size: Some(appearance.monospace_font_size()),
                 font_family_id: Some(appearance.ui_font_family()),

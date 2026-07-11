@@ -22,6 +22,7 @@ use warpui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 
+use crate::i18n::t;
 use crate::pricing::{PricingInfoModel, PricingInfoModelEvent};
 use crate::terminal::general_settings::GeneralSettings;
 use crate::ui_components::blended_colors;
@@ -193,7 +194,8 @@ impl BuildPlanMigrationModal {
             UserWorkspacesEvent::UpdateWorkspaceSettingsRejected(_err) => {
                 self.is_updating = false;
                 ctx.emit(BuildPlanMigrationModalEvent::ShowToast {
-                    message: "Failed to enable auto-reload. Please try updating your settings in Billing & usage.".to_string(),
+                    message: t!("workspace.build_plan_migration_modal.failed_enable_auto_reload")
+                        .to_string(),
                     flavor: ToastFlavor::Error,
                 });
                 ctx.notify();
@@ -223,11 +225,12 @@ impl BuildPlanMigrationModal {
                         .enumerate()
                         .map(|(i, option)| {
                             DropdownItem::new(
-                                format!(
-                                    "${} / {} credits",
-                                    option.price_usd_cents / 100,
-                                    option.credits.separate_with_commas(),
-                                ),
+                                t!(
+                                    "workspace.build_plan_migration_modal.dropdown_credits",
+                                    price = option.price_usd_cents / 100,
+                                    credits = option.credits.separate_with_commas()
+                                )
+                                .to_string(),
                                 BuildPlanMigrationModalViewAction::SelectReloadDenomination(i),
                             )
                         })
@@ -266,12 +269,16 @@ impl BuildPlanMigrationModal {
             })
             .finish();
 
-        let label = FormattedTextElement::from_str("Auto-reload", appearance.ui_font_family(), 12.)
-            .with_color(blended_colors::text_sub(
-                theme,
-                blended_colors::neutral_4(theme),
-            ))
-            .finish();
+        let label = FormattedTextElement::from_str(
+            t!("workspace.build_plan_migration_modal.auto_reload").to_string(),
+            appearance.ui_font_family(),
+            12.,
+        )
+        .with_color(blended_colors::text_sub(
+            theme,
+            blended_colors::neutral_4(theme),
+        ))
+        .finish();
 
         let checkbox_row = Flex::row()
             .with_child(checkbox)
@@ -304,9 +311,9 @@ impl BuildPlanMigrationModal {
 
     fn render_get_started_button(&self, appearance: &Appearance) -> Box<dyn Element> {
         let button_text = if self.is_updating {
-            "Saving...".to_string()
+            t!("workspace.build_plan_migration_modal.saving").to_string()
         } else {
-            "Get Started".to_string()
+            t!("workspace.build_plan_migration_modal.get_started").to_string()
         };
 
         let button_font_color = self.is_updating.then_some(
@@ -354,7 +361,7 @@ impl BuildPlanMigrationModal {
         let theme = appearance.theme();
 
         let title = Self::create_text(
-            "Use auto-reload to never miss a beat.".to_string(),
+            t!("workspace.build_plan_migration_modal.auto_reload_title").to_string(),
             appearance.ui_font_family(),
             16.,
             blended_colors::text_main(theme, blended_colors::neutral_2(theme)),
@@ -362,7 +369,7 @@ impl BuildPlanMigrationModal {
         );
 
         let description = Self::create_text(
-            "Auto-reload will automatically purchase credits at your selected rate when your account balance reaches 100 credits. Your monthly spend limit is set at your legacy plan's monthly cost and can be updated in Settings > Billing & usage.".to_string(),
+            t!("workspace.build_plan_migration_modal.auto_reload_description").to_string(),
             appearance.ui_font_family(),
             14.,
             blended_colors::text_sub(theme, blended_colors::neutral_4(theme)),
@@ -514,13 +521,13 @@ impl BuildPlanMigrationModal {
             .unwrap_or((2000, 1800));
 
         let title_text = if is_business {
-            "Welcome to the New Business Plan"
+            t!("workspace.build_plan_migration_modal.title_business").to_string()
         } else {
-            "Welcome to Warp Build"
+            t!("workspace.build_plan_migration_modal.title_build").to_string()
         };
 
         let title = Self::create_text(
-            title_text.to_string(),
+            title_text,
             font_family,
             24.,
             blended_colors::text_main(theme, blended_colors::neutral_2(theme)),
@@ -528,20 +535,19 @@ impl BuildPlanMigrationModal {
         );
 
         let intro_text = if is_business {
-            "Your workspace has been updated to the new Warp Business Plan as the legacy Business plan is sunset."
+            t!("workspace.build_plan_migration_modal.intro_business").to_string()
         } else {
-            "Your workspace has been updated to the Warp Build Plan as the legacy Pro, Turbo, and Lightspeed plans are sunset."
+            t!("workspace.build_plan_migration_modal.intro_build").to_string()
         };
 
-        let intro = Self::create_text(intro_text.to_string(), font_family, 14., text_color, None);
+        let intro = Self::create_text(intro_text, font_family, 14., text_color, None);
 
         let pricing_header = Self::create_text(
             if is_business {
-                "The new Business plan is a primarily usage-based plan, starting at:"
+                t!("workspace.build_plan_migration_modal.pricing_header_business").to_string()
             } else {
-                "Warp Build is a primarily usage-based plan, starting at:"
-            }
-            .to_string(),
+                t!("workspace.build_plan_migration_modal.pricing_header_build").to_string()
+            },
             font_family,
             14.,
             text_color,
@@ -549,17 +555,22 @@ impl BuildPlanMigrationModal {
         );
 
         let price_monthly = Self::create_bullet_item(
-            format!("${} per user per month", base_plan_prices.0 / 100),
+            t!(
+                "workspace.build_plan_migration_modal.price_monthly",
+                price = base_plan_prices.0 / 100
+            )
+            .to_string(),
             font_family,
             14.,
             text_color,
         );
 
         let price_annual = Self::create_bullet_item(
-            format!(
-                "${} per user per month for annual plans",
-                base_plan_prices.1 / 100
-            ),
+            t!(
+                "workspace.build_plan_migration_modal.price_annual",
+                price = base_plan_prices.1 / 100
+            )
+            .to_string(),
             font_family,
             14.,
             text_color,
@@ -567,11 +578,10 @@ impl BuildPlanMigrationModal {
 
         let features_header = Self::create_text(
             if is_business {
-                "The new Business plan comes with:"
+                t!("workspace.build_plan_migration_modal.features_header_business").to_string()
             } else {
-                "Build comes with:"
-            }
-            .to_string(),
+                t!("workspace.build_plan_migration_modal.features_header_build").to_string()
+            },
             font_family,
             14.,
             text_color,
@@ -579,24 +589,25 @@ impl BuildPlanMigrationModal {
         );
 
         let base_credits = Self::create_bullet_item(
-            format!(
-                "{} base credits per month",
-                base_credits_limit.separate_with_commas()
-            ),
+            t!(
+                "workspace.build_plan_migration_modal.base_credits",
+                credits = base_credits_limit.separate_with_commas()
+            )
+            .to_string(),
             font_family,
             14.,
             text_color,
         );
 
         let reload_credits = Self::create_bullet_item(
-            "Access to Reload credits and volume-based discounts".to_string(),
+            t!("workspace.build_plan_migration_modal.reload_credits").to_string(),
             font_family,
             14.,
             text_color,
         );
 
         let byok = Self::create_bullet_item(
-            "Bring your own API key".to_string(),
+            t!("workspace.build_plan_migration_modal.bring_own_api_key").to_string(),
             font_family,
             14.,
             text_color,
@@ -610,7 +621,7 @@ impl BuildPlanMigrationModal {
 
         if is_business {
             let sso = Self::create_bullet_item(
-                "SAML-based SSO".to_string(),
+                t!("workspace.build_plan_migration_modal.saml_sso").to_string(),
                 font_family,
                 14.,
                 text_color,
@@ -618,7 +629,7 @@ impl BuildPlanMigrationModal {
             features_list.add_child(sso);
 
             let zdr = Self::create_bullet_item(
-                "Automatically enforced team-wide Zero Data Retention".to_string(),
+                t!("workspace.build_plan_migration_modal.zero_data_retention").to_string(),
                 font_family,
                 14.,
                 text_color,
@@ -626,13 +637,22 @@ impl BuildPlanMigrationModal {
             features_list.add_child(zdr);
         }
 
-        let and_more =
-            Self::create_bullet_item("And more...".to_string(), font_family, 14., text_color);
+        let and_more = Self::create_bullet_item(
+            t!("workspace.build_plan_migration_modal.and_more").to_string(),
+            font_family,
+            14.,
+            text_color,
+        );
         features_list.add_child(and_more);
 
         let learn_more_fragments = vec![
-            FormattedTextFragment::plain_text("Learn more on our "),
-            FormattedTextFragment::hyperlink("pricing page", "https://www.warp.dev/pricing"),
+            FormattedTextFragment::plain_text(
+                t!("workspace.build_plan_migration_modal.learn_more_prefix").to_string(),
+            ),
+            FormattedTextFragment::hyperlink(
+                t!("workspace.build_plan_migration_modal.pricing_page").to_string(),
+                "https://www.warp.dev/pricing",
+            ),
             FormattedTextFragment::plain_text("."),
         ];
         let learn_more = Container::new(

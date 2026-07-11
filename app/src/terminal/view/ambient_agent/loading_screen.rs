@@ -19,6 +19,7 @@ use warpui::{AppContext, ModelHandle, SingletonEntity};
 
 use crate::ai::agent_tips::{AITip, AITipModel};
 use crate::ai::loading::shimmering_warp_loading_text;
+use crate::i18n::t;
 use crate::terminal::view::ambient_agent::CloudModeTip;
 use crate::ui_components::blended_colors;
 use crate::workspaces::user_workspaces::UserWorkspaces;
@@ -333,7 +334,7 @@ pub fn render_cloud_mode_github_auth_required_screen(
 
     // Message text - "Please authenticate with GitHub to continue"
     let message_text = Text::new(
-        "Please authenticate with GitHub to continue",
+        t!("terminal.please_authenticate_with_github").to_string(),
         appearance.ui_font_family(),
         appearance.monospace_font_size(),
     )
@@ -345,7 +346,7 @@ pub fn render_cloud_mode_github_auth_required_screen(
     let auth_button = appearance
         .ui_builder()
         .button(ButtonVariant::Accent, auth_button_mouse_state.clone())
-        .with_centered_text_label("Authenticate with GitHub".to_string())
+        .with_centered_text_label(t!("terminal.authenticate_with_github").to_string())
         .build()
         .on_click(move |_, app, _| {
             app.open_url(&auth_url_clone);

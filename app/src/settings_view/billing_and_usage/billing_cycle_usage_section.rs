@@ -17,6 +17,7 @@ use warpui::{
 
 use crate::ai::AIRequestUsageModel;
 use crate::auth::{AuthManager, AuthStateProvider};
+use crate::i18n::t;
 use crate::menu::{self, Menu, MenuItem, MenuItemFields};
 use crate::settings_view::admin_actions::AdminActions;
 use crate::settings_view::billing_and_usage::billing_cycle_usage_common::{
@@ -383,10 +384,14 @@ impl BillingCycleUsageSectionView {
             .with_main_axis_size(MainAxisSize::Max);
 
         row.add_child(
-            Text::new_inline("Usage", appearance.ui_font_family(), HEADER_FONT_SIZE)
-                .with_style(Properties::default().weight(Weight::Bold))
-                .with_color(theme.active_ui_text_color().into())
-                .finish(),
+            Text::new_inline(
+                t!("settings.billing.usage").to_string(),
+                appearance.ui_font_family(),
+                HEADER_FONT_SIZE,
+            )
+            .with_style(Properties::default().weight(Weight::Bold))
+            .with_color(theme.active_ui_text_color().into())
+            .finish(),
         );
 
         let mut right_side = Flex::row()

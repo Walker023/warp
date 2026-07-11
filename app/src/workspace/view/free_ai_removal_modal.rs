@@ -19,6 +19,7 @@ use warpui::ui_components::components::{UiComponent, UiComponentStyles};
 use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::auth::AuthStateProvider;
+use crate::i18n::t;
 use crate::settings_view::SettingsSection;
 use crate::ui_components::blended_colors;
 use crate::workspace::WorkspaceAction;
@@ -28,17 +29,6 @@ const MODAL_WIDTH: f32 = 480.;
 const CORNER_RADIUS: f32 = 12.;
 const PANEL_PADDING: f32 = 24.;
 const CLOSE_BUTTON_DIAMETER: f32 = 20.;
-
-const NOTICE_TITLE_TEXT: &str = "Warp is no longer providing inference on the free plan.";
-const NOTICE_BODY_TEXT: &str = "To keep using Warp's AI features, please upgrade to a paid plan, \
-     bring your own API key or endpoint, or log in with your Grok subscription.";
-const NOTICE_BONUS_CREDITS_TEXT: &str = "If you have any unused bonus credits, AI will keep \
-     working until these run out.";
-
-const PROMPT_SUGGESTIONS_TITLE_TEXT: &str = "How to use AI features in Warp";
-const PROMPT_SUGGESTIONS_BODY_TEXT: &str = "To use AI features in Warp, subscribe to a paid plan, \
-     add an API key (OpenAI, Anthropic, or Google), add a custom inference endpoint (OpenRouter, \
-     LiteLLM), or log in using your SuperGrok subscription.";
 
 /// Which surface opened the modal. Selects the copy and disambiguates telemetry;
 /// the layout and CTAs are identical across variants.
@@ -51,26 +41,32 @@ pub enum FreeAiRemovalModalVariant {
 }
 
 impl FreeAiRemovalModalVariant {
-    fn title(self) -> &'static str {
+    fn title(self) -> String {
         match self {
-            Self::Notice => NOTICE_TITLE_TEXT,
-            Self::PromptSuggestions => PROMPT_SUGGESTIONS_TITLE_TEXT,
+            Self::Notice => t!("workspace.free_ai_removal_modal.notice_title").to_string(),
+            Self::PromptSuggestions => {
+                t!("workspace.free_ai_removal_modal.prompt_suggestions_title").to_string()
+            }
         }
     }
 
-    fn body(self) -> &'static str {
+    fn body(self) -> String {
         match self {
-            Self::Notice => NOTICE_BODY_TEXT,
-            Self::PromptSuggestions => PROMPT_SUGGESTIONS_BODY_TEXT,
+            Self::Notice => t!("workspace.free_ai_removal_modal.notice_body").to_string(),
+            Self::PromptSuggestions => {
+                t!("workspace.free_ai_removal_modal.prompt_suggestions_body").to_string()
+            }
         }
     }
 
     /// Secondary note rendered under the body. The on-demand Prompt Suggestions
     /// variant only fires once the user is already out of credits, so the
     /// bonus-credits note doesn't apply there.
-    fn secondary(self) -> Option<&'static str> {
+    fn secondary(self) -> Option<String> {
         match self {
-            Self::Notice => Some(NOTICE_BONUS_CREDITS_TEXT),
+            Self::Notice => {
+                Some(t!("workspace.free_ai_removal_modal.notice_bonus_credits").to_string())
+            }
             Self::PromptSuggestions => None,
         }
     }
@@ -152,7 +148,9 @@ impl FreeAiRemovalModal {
                 height: Some(32.),
                 ..Default::default()
             })
-            .with_centered_text_label("Bring your own AI".to_string())
+            .with_centered_text_label(
+                t!("workspace.free_ai_removal_modal.bring_your_own_ai").to_string(),
+            )
             .build()
             .with_cursor(Cursor::PointingHand)
             .on_click(|ctx, _, _| {
@@ -171,7 +169,9 @@ impl FreeAiRemovalModal {
                 height: Some(32.),
                 ..Default::default()
             })
-            .with_centered_text_label("View pricing".to_string())
+            .with_centered_text_label(
+                t!("workspace.free_ai_removal_modal.view_pricing").to_string(),
+            )
             .build()
             .with_cursor(Cursor::PointingHand)
             .on_click(|ctx, _, _| {

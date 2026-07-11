@@ -18,12 +18,11 @@ use warpui::{
 use super::searcher::{EmbeddingSearchItemAction, EmbeddingSearchMixer};
 use crate::appearance::Appearance;
 use crate::cloud_object::Space;
+use crate::i18n::t;
 use crate::search::notebook_embedding::notebooks::CloudNotebooksDataSource;
 use crate::search::notebook_embedding::workflows::CloudWorkflowsDataSource;
 use crate::search::result_renderer::{QueryResultRenderer, QueryResultRendererStyles};
 use crate::search::search_bar::{SearchBar, SearchBarEvent, SearchBarState, SearchResultOrdering};
-
-const DEFAULT_PLACEHOLDER_TEXT: &str = "Search for a reference";
 
 lazy_static! {
     static ref QUERY_RESULT_RENDERER_STYLES: QueryResultRendererStyles =
@@ -83,7 +82,7 @@ impl EmbeddingSearchMenu {
             SearchBar::new(
                 mixer.clone(),
                 search_bar_state.clone(),
-                DEFAULT_PLACEHOLDER_TEXT,
+                t!("notebook_embedding.search_placeholder").to_string(),
                 |result_index, result| {
                     QueryResultRenderer::new(
                         result,
@@ -200,7 +199,7 @@ impl EmbeddingSearchMenu {
                 // There are no results to display, so notify the user of that fact.
                 let text = appearance
                     .ui_builder()
-                    .span("No results found.")
+                    .span(t!("notebook_embedding.no_results").to_string())
                     .with_style(UiComponentStyles {
                         font_size: Some(appearance.monospace_font_size()),
                         font_family_id: Some(appearance.ui_font_family()),

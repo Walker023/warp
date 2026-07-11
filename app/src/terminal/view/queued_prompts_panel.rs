@@ -43,6 +43,7 @@ use crate::editor::{
     EditorOptions, EditorView, Event as EditorEvent, PropagateAndNoOpEscapeKey,
     PropagateAndNoOpNavigationKeys, PropagateHorizontalNavigationKeys, TextOptions,
 };
+use crate::i18n::t;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::TelemetryEvent;
 use crate::terminal::cli_agent_sessions::{CLIAgentSessionsModel, CLIAgentSessionsModelEvent};
@@ -54,16 +55,8 @@ use crate::view_components::action_button::{ActionButton, ButtonSize, NakedTheme
 const MAX_PROMPT_LINES: f32 = 5.;
 /// Max characters shown in a row's single-line preview before truncation.
 const PROMPT_PREVIEW_MAX_CHARS: usize = 500;
-const INITIAL_CLOUD_MODE_PROMPT_TOOLTIP: &str = "The first cloud-mode prompt cannot be changed.";
-const SEND_NOW_DURING_CLOUD_SETUP_TOOLTIP: &str =
-    "Prompts cannot be sent until environment setup is complete.";
-const SEND_NOW_PENDING_LRC_TOOLTIP: &str =
-    "Prompts cannot be sent until the full terminal use agent is initialized.";
-const SEND_NOW_TO_FULL_TERMINAL_USE_AGENT_TOOLTIP: &str = "Send to full terminal use agent";
-const SEND_NOW_AS_READ_ONLY_VIEWER_TOOLTIP: &str = "Read-only viewers cannot send prompts.";
 /// Suffix on rows auto-queued during an agent-requested long-running command, which fire
 /// when that command completes rather than at the end of the full response.
-const LRC_AUTO_QUEUE_ROW_SUFFIX: &str = "(queued until the command finishes)";
 
 /// Returns the position-cache id used to look up a row's bounding rect during a drag.
 /// Indexed by the row's current visual index so swaps maintain stable lookups.
@@ -82,17 +75,20 @@ fn build_row_state(
     // "wait for the cloud agent" message while send-now is disabled; "Send now" is the default.
     let (edit_tooltip, delete_tooltip) = if is_initial_cloud_mode_prompt {
         (
-            INITIAL_CLOUD_MODE_PROMPT_TOOLTIP,
-            INITIAL_CLOUD_MODE_PROMPT_TOOLTIP,
+            t!("terminal.prompt_cannot_be_changed").to_string(),
+            t!("terminal.prompt_cannot_be_changed").to_string(),
         )
     } else {
-        ("Edit", "Delete")
+        (
+            t!("terminal.edit").to_string(),
+            t!("terminal.delete").to_string(),
+        )
     };
 
     let send_now_button = ctx.add_typed_action_view(move |_| {
         ActionButton::new("", NakedTheme)
             .with_icon(TerminalIcon::ArrowUp)
-            .with_tooltip("Send now")
+            .with_tooltip(t!("terminal.send_now").to_string())
             .with_size(ButtonSize::XSmall)
             .with_disabled_theme(NakedTheme)
             .on_click(move |ctx| {
@@ -424,15 +420,15 @@ impl QueuedPromptsPanelView {
             let disabled =
                 disabled_for_pending_lrc || disabled_for_cloud_setup || !self.can_send_prompt;
             let tooltip = if disabled_for_pending_lrc {
-                SEND_NOW_PENDING_LRC_TOOLTIP
+                t!("terminal.prompts_wait_for_full_terminal_agent").to_string()
             } else if disabled_for_cloud_setup {
-                SEND_NOW_DURING_CLOUD_SETUP_TOOLTIP
+                t!("terminal.prompts_wait_for_environment_setup").to_string()
             } else if !self.can_send_prompt {
-                SEND_NOW_AS_READ_ONLY_VIEWER_TOOLTIP
+                t!("terminal.read_only_viewers_cannot_send_prompts").to_string()
             } else if lrc_subagent_in_progress {
-                SEND_NOW_TO_FULL_TERMINAL_USE_AGENT_TOOLTIP
+                t!("terminal.send_to_full_terminal_agent").to_string()
             } else {
-                "Send now"
+                t!("terminal.send_now").to_string()
             };
             send_now_button.update(ctx, |button, ctx| {
                 button.set_disabled(disabled, ctx);
@@ -1050,14 +1046,18 @@ fn render_header(
             );
             row.add_child(Container::new(keycap).with_margin_left(4.).finish());
             row.add_child(
-                Text::new("to send", ui_font_family, ui_font_size)
-                    .with_style(Properties {
-                        style: Style::Normal,
-                        weight: Weight::Normal,
-                    })
-                    .with_color(sub_text_color)
-                    .with_selectable(false)
-                    .finish(),
+                Text::new(
+                    t!("terminal.to_send").to_string(),
+                    ui_font_family,
+                    ui_font_size,
+                )
+                .with_style(Properties {
+                    style: Style::Normal,
+                    weight: Weight::Normal,
+                })
+                .with_color(sub_text_color)
+                .with_selectable(false)
+                .finish(),
             );
         }
         let row = row.finish();
@@ -1192,7 +1192,7 @@ fn render_row(props: RenderRowProps<'_>, app: &AppContext) -> Box<dyn Element> {
             {
                 let suffix_color: ColorU = theme.sub_text_color(theme.surface_1()).into();
                 let suffix = Text::new(
-                    LRC_AUTO_QUEUE_ROW_SUFFIX.to_owned(),
+                    t!("terminal.queued_until_command_finishes").to_string(),
                     appearance.ui_font_family(),
                     queued_input_font_size,
                 )
@@ -1239,7 +1239,7 @@ fn render_row(props: RenderRowProps<'_>, app: &AppContext) -> Box<dyn Element> {
                 if drag_state.is_hovered() {
                     stack.add_positioned_overlay_child(
                         ui_builder
-                            .tool_tip(INITIAL_CLOUD_MODE_PROMPT_TOOLTIP.to_owned())
+                            .tool_tip(t!("terminal.prompt_cannot_be_changed").to_string())
                             .build()
                             .finish(),
                         OffsetPositioning::offset_from_parent(

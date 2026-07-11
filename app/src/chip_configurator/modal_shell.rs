@@ -18,6 +18,7 @@ use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use warpui::{Action, Element};
 
 use super::{ChipConfigurator, ChipConfiguratorAction};
+use crate::i18n::t;
 use crate::Appearance;
 
 const MODAL_WIDTH: f32 = 700.;
@@ -29,8 +30,6 @@ const PRIMARY_BUTTON_HEIGHT: f32 = 40.;
 const SECTION_UNIFORM_PADDING: f32 = 16.;
 const MARGIN_BETWEEN_MODAL_SECTIONS: f32 = 16.;
 const MODAL_CONTENT_FONT_SIZE: f32 = 14.;
-const RESTORE_DEFAULT_LABEL: &str = "Restore default";
-
 /// Mouse state handles for interactive controls in chip editor sections and modals.
 #[derive(Default)]
 pub struct ChipEditorMouseHandles {
@@ -40,8 +39,8 @@ pub struct ChipEditorMouseHandles {
 }
 /// Everything that varies between chip editor modal-shell consumers.
 pub struct ChipEditorModalConfig<'a, A> {
-    pub title: &'a str,
-    pub available_section_label: &'a str,
+    pub title: String,
+    pub available_section_label: String,
     pub is_at_defaults: bool,
     pub is_dirty: bool,
     pub cancel_action: A,
@@ -53,7 +52,7 @@ pub struct ChipEditorModalConfig<'a, A> {
 }
 /// Everything needed to render the editable chip sections without the modal shell.
 pub struct ChipEditorSectionsConfig<'a, A> {
-    pub available_section_label: &'a str,
+    pub available_section_label: String,
     pub is_at_defaults: bool,
     pub reset_action: A,
     pub activate_action: A,
@@ -73,7 +72,7 @@ pub fn render_chip_editor_modal<A: Action + Clone + Copy + 'static>(
     let column = Flex::column()
         .with_cross_axis_alignment(CrossAxisAlignment::Stretch)
         .with_child(
-            Container::new(render_header(config.title, appearance))
+            Container::new(render_header(&config.title, appearance))
                 .with_margin_bottom(MARGIN_BETWEEN_MODAL_SECTIONS)
                 .finish(),
         )
@@ -81,7 +80,7 @@ pub fn render_chip_editor_modal<A: Action + Clone + Copy + 'static>(
             Container::new(render_chip_editor_sections(
                 chip_configurator,
                 ChipEditorSectionsConfig {
-                    available_section_label: config.available_section_label,
+                    available_section_label: config.available_section_label.clone(),
                     is_at_defaults: config.is_at_defaults,
                     reset_action: config.reset_action,
                     activate_action: config.activate_action,
@@ -146,7 +145,7 @@ fn render_restore_default_button<A: Action + Clone + Copy + 'static>(
     let button = Hoverable::new(mouse_handle.clone(), |_state| {
         appearance
             .ui_builder()
-            .span(RESTORE_DEFAULT_LABEL.to_string())
+            .span(t!("common.reset_to_default").to_string())
             .with_style(UiComponentStyles {
                 font_size: Some(MODAL_CONTENT_FONT_SIZE),
                 ..Default::default()
@@ -185,7 +184,7 @@ pub fn render_chip_editor_sections<A: Action + Clone + Copy + 'static>(
 ) -> Box<dyn Element> {
     let header_row = Flex::row()
         .with_child(render_section_label(
-            config.available_section_label,
+            &config.available_section_label,
             appearance,
         ))
         .with_child(render_restore_default_button(
@@ -205,7 +204,10 @@ pub fn render_chip_editor_sections<A: Action + Clone + Copy + 'static>(
     );
 
     let left_section = Flex::column()
-        .with_child(render_section_label("Left side", appearance))
+        .with_child(render_section_label(
+            &t!("chip_configurator.left_side"),
+            appearance,
+        ))
         .with_child(
             Container::new(chip_configurator.render_left_drop_zone(
                 config.activate_action,
@@ -218,7 +220,10 @@ pub fn render_chip_editor_sections<A: Action + Clone + Copy + 'static>(
         .finish();
 
     let right_section = Flex::column()
-        .with_child(render_section_label("Right side", appearance))
+        .with_child(render_section_label(
+            &t!("chip_configurator.right_side"),
+            appearance,
+        ))
         .with_child(
             Container::new(chip_configurator.render_right_drop_zone(
                 config.activate_action,
@@ -293,7 +298,7 @@ fn render_buttons<A: Action + Clone + Copy + 'static>(
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let cancel_button = render_primary_button(
-        "Cancel".to_string(),
+        t!("common.cancel").to_string(),
         ButtonVariant::Outlined,
         false,
         &config.mouse_handles.cancel,
@@ -302,7 +307,7 @@ fn render_buttons<A: Action + Clone + Copy + 'static>(
     );
 
     let save_button = render_primary_button(
-        "Save changes".to_string(),
+        t!("chip_configurator.save_changes").to_string(),
         ButtonVariant::Accent,
         !config.is_dirty,
         &config.mouse_handles.save,

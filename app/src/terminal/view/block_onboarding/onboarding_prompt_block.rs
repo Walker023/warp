@@ -13,6 +13,7 @@ use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View
 
 use crate::appearance::Appearance;
 use crate::context_chips::prompt::Prompt;
+use crate::i18n::t;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::{PromptChoice, TelemetryEvent};
 use crate::settings::EnforceMinimumContrast;
@@ -117,7 +118,7 @@ impl OnboardingPromptBlock {
                 font_size: Some(14.),
                 ..Default::default()
             })
-            .with_centered_text_label("Confirm".to_owned());
+            .with_centered_text_label(t!("terminal.confirm").to_string());
         if self.selected_prompt.is_none() {
             confirm_button = confirm_button.disabled();
         }

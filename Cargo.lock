@@ -9403,6 +9403,7 @@ dependencies = [
  "pathfinder_color",
  "pathfinder_geometry",
  "rust-embed 8.7.2",
+ "rust-i18n",
  "serde",
  "serde_json",
  "strum 0.27.1",

@@ -13,6 +13,7 @@ use super::settings_page::{
 };
 use super::SettingsSection;
 use crate::auth::{AuthManager, AuthStateProvider};
+use crate::i18n::t;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 use crate::workspaces::workspace::Workspace;
 
@@ -47,7 +48,11 @@ impl BillingAndUsageDispatchView {
             ctx.notify();
         });
 
-        let page = PageType::new_monolith(BillingAndUsageWidget, Some("Billing and Usage"), true);
+        let page = PageType::new_monolith(
+            BillingAndUsageWidget,
+            Some(t!("settings.sections.billing_and_usage").as_ref()),
+            true,
+        );
 
         Self { page, v1, v2 }
     }

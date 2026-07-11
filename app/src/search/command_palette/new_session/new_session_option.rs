@@ -1,8 +1,8 @@
 use std::borrow::Cow;
-use std::fmt;
 
 use warpui::Action;
 
+use crate::i18n::t;
 use crate::server::telemetry::AddTabWithShellSource;
 use crate::terminal::available_shells::AvailableShell;
 use crate::terminal::view::TerminalAction;
@@ -25,18 +25,14 @@ pub(super) enum Direction {
     Left,
 }
 
-impl fmt::Display for Direction {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Direction::Down => "Down",
-                Direction::Right => "Right",
-                Direction::Up => "Up",
-                Direction::Left => "Left",
-            }
-        )
+impl Direction {
+    fn label(&self) -> String {
+        match self {
+            Direction::Down => t!("command_palette.new_session.direction_down").to_string(),
+            Direction::Right => t!("command_palette.new_session.direction_right").to_string(),
+            Direction::Up => t!("command_palette.new_session.direction_up").to_string(),
+            Direction::Left => t!("command_palette.new_session.direction_left").to_string(),
+        }
     }
 }
 
@@ -83,13 +79,22 @@ impl NewSessionOption {
 impl NewSessionOption {
     pub(super) fn new(id: NewSessionOptionId, config: NewSessionConfig) -> Self {
         let description = match &config {
-            NewSessionConfig::NewTab(shell) => format!("Create New Tab: {}", shell.short_name()),
-            NewSessionConfig::NewWindow(shell) => {
-                format!("Create New Window: {}", shell.short_name())
-            }
-            NewSessionConfig::Split(direction, shell) => {
-                format!("Split Pane {direction}: {}", shell.short_name())
-            }
+            NewSessionConfig::NewTab(shell) => t!(
+                "command_palette.new_session.create_new_tab_with_shell",
+                shell = shell.short_name()
+            )
+            .to_string(),
+            NewSessionConfig::NewWindow(shell) => t!(
+                "command_palette.new_session.create_new_window_with_shell",
+                shell = shell.short_name()
+            )
+            .to_string(),
+            NewSessionConfig::Split(direction, shell) => t!(
+                "command_palette.new_session.split_pane_with_shell",
+                direction = direction.label(),
+                shell = shell.short_name()
+            )
+            .to_string(),
         };
         Self {
             id,

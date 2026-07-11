@@ -45,6 +45,7 @@ use super::warp_drive_page::WarpDriveSettingsPageView;
 use super::warpify_page::WarpifyPageView;
 use super::SettingsSection;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::settings::CloudPreferencesSettings;
 use crate::themes::theme::Fill;
 use crate::ui_components::blended_colors;
@@ -385,12 +386,13 @@ pub fn render_separator(appearance: &Appearance) -> Box<dyn Element> {
 }
 
 pub fn render_full_pane_width_ai_button(
-    text: &str,
+    text: impl Into<String>,
     is_any_ai_enabled: bool,
     mouse_state: MouseStateHandle,
     action: AISettingsPageAction,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
+    let text = text.into();
     let (text_color, bg, icon_bg) = if is_any_ai_enabled {
         (
             appearance
@@ -419,7 +421,7 @@ pub fn render_full_pane_width_ai_button(
                         1.,
                         appearance
                             .ui_builder()
-                            .wrappable_text(text.to_string(), true)
+                            .wrappable_text(text.clone(), true)
                             .with_style(UiComponentStyles {
                                 font_size: Some(CONTENT_FONT_SIZE),
                                 font_color: Some(text_color),
@@ -919,7 +921,7 @@ pub fn render_dropdown_item_label(
 
 pub(crate) fn render_dropdown_item<T: DropdownItemAction>(
     appearance: &Appearance,
-    label: &str,
+    label: impl Into<String>,
     secondary_text: Option<&str>,
     dropdown_subtext: Option<Box<dyn Element>>,
     local_only_icon_state: LocalOnlyIconState,
@@ -929,8 +931,8 @@ pub(crate) fn render_dropdown_item<T: DropdownItemAction>(
     let row = Flex::row().with_cross_axis_alignment(CrossAxisAlignment::Center);
 
     let dropdown_item_label = Align::new(render_dropdown_item_label(
-        label.to_string(),
-        secondary_text.map(|secondary_text| secondary_text.to_string()),
+        label.into(),
+        secondary_text.map(ToOwned::to_owned),
         local_only_icon_state,
         color_override,
         appearance,
@@ -958,7 +960,7 @@ pub(crate) fn render_dropdown_item<T: DropdownItemAction>(
 }
 
 pub(crate) fn render_settings_info_banner(
-    text: &str,
+    text: impl Into<String>,
     subtext: Option<&str>,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
@@ -976,14 +978,11 @@ pub(crate) fn render_settings_info_banner(
     .finish();
 
     let text = {
+        let text = text.into();
         let mut children = vec![Container::new(
-            Text::new(
-                text.to_string(),
-                appearance.ui_font_family(),
-                appearance.ui_font_size(),
-            )
-            .with_color(appearance.theme().active_ui_text_color().into())
-            .finish(),
+            Text::new(text, appearance.ui_font_family(), appearance.ui_font_size())
+                .with_color(appearance.theme().active_ui_text_color().into())
+                .finish(),
         )
         .finish()];
 
@@ -1251,7 +1250,7 @@ pub(super) enum PageType<V: warpui::View> {
     /// handle and render their own scrollable elements.
     Monolith {
         widget: Box<dyn SettingsWidget<View = V>>,
-        title: Option<&'static str>,
+        title: Option<String>,
         filter: bool,
         vertical_scroll_state: Option<ClippedScrollStateHandle>,
         horizontal_scroll_state: Option<ClippedScrollStateHandle>,
@@ -1260,7 +1259,7 @@ pub(super) enum PageType<V: warpui::View> {
     /// A page which is a series of [`SettingsWidget`]s that don't fall under sub-categories.
     Uncategorized {
         widgets: Vec<Box<dyn SettingsWidget<View = V>>>,
-        title: Option<&'static str>,
+        title: Option<String>,
         filter: Vec<usize>,
         vertical_scroll_state: ClippedScrollStateHandle,
         horizontal_scroll_state: ClippedScrollStateHandle,
@@ -1270,7 +1269,7 @@ pub(super) enum PageType<V: warpui::View> {
     /// A page which is a series of [`SettingsWidget`]s that fall under sub-categories.
     Categorized {
         categories: Vec<Category<V>>,
-        title: Option<&'static str>,
+        title: Option<String>,
         filter: Vec<Vec<usize>>,
         vertical_scroll_state: ClippedScrollStateHandle,
         horizontal_scroll_state: ClippedScrollStateHandle,
@@ -1328,7 +1327,7 @@ impl<V: warpui::View> PageType<V> {
     /// [`SettingsWidget`].
     pub(super) fn new_monolith(
         widget: impl SettingsWidget<View = V> + 'static,
-        title: Option<&'static str>,
+        title: Option<&str>,
         is_dual_scrollable: bool,
     ) -> Self {
         let (vertical_scroll_state, horizontal_scroll_state) = if is_dual_scrollable {
@@ -1343,7 +1342,7 @@ impl<V: warpui::View> PageType<V> {
         Self::Monolith {
             filter: true,
             widget: Box::new(widget),
-            title,
+            title: title.map(ToOwned::to_owned),
             vertical_scroll_state,
             horizontal_scroll_state,
             min_page_width: MIN_PAGE_WIDTH,
@@ -1353,12 +1352,12 @@ impl<V: warpui::View> PageType<V> {
     /// A page which is a series of [`SettingsWidget`]s that don't fall under sub-categories.
     pub(super) fn new_uncategorized(
         widgets: Vec<Box<dyn SettingsWidget<View = V>>>,
-        title: Option<&'static str>,
+        title: Option<&str>,
     ) -> Self {
         Self::Uncategorized {
             filter: widgets.iter().enumerate().map(|(i, _)| i).collect(),
             widgets,
-            title,
+            title: title.map(ToOwned::to_owned),
             vertical_scroll_state: Default::default(),
             horizontal_scroll_state: Default::default(),
             highlighted_widget_id: Default::default(),
@@ -1367,10 +1366,7 @@ impl<V: warpui::View> PageType<V> {
     }
 
     /// A page which is a series of [`SettingsWidget`]s that fall under sub-categories.
-    pub(super) fn new_categorized(
-        categories: Vec<Category<V>>,
-        title: Option<&'static str>,
-    ) -> Self {
+    pub(super) fn new_categorized(categories: Vec<Category<V>>, title: Option<&str>) -> Self {
         Self::Categorized {
             filter: categories
                 .iter()
@@ -1384,7 +1380,7 @@ impl<V: warpui::View> PageType<V> {
                 })
                 .collect(),
             categories,
-            title,
+            title: title.map(ToOwned::to_owned),
             vertical_scroll_state: Default::default(),
             horizontal_scroll_state: Default::default(),
             highlighted_widget_id: Default::default(),
@@ -1525,7 +1521,7 @@ impl<V: warpui::View> PageType<V> {
                 ..
             } => FilteredPageType::Monolith {
                 widget: filter.then_some(widget.as_ref()),
-                title: *title,
+                title: title.as_deref(),
                 vertical_scroll_state: vertical_scroll_state.clone(),
                 horizontal_scroll_state: horizontal_scroll_state.clone(),
             },
@@ -1539,7 +1535,7 @@ impl<V: warpui::View> PageType<V> {
                 ..
             } => FilteredPageType::Uncategorized {
                 widgets: filter.iter().map(|i| widgets[*i].as_ref()).collect(),
-                title: *title,
+                title: title.as_deref(),
                 vertical_scroll_state: vertical_scroll_state.clone(),
                 horizontal_scroll_state: horizontal_scroll_state.clone(),
                 highlighted_widget_id: *highlighted_widget_id,
@@ -1560,8 +1556,8 @@ impl<V: warpui::View> PageType<V> {
                     .map(|(i, indices)| {
                         let category = &categories[i];
                         FilteredCategory {
-                            title: category.title,
-                            subtitle: category.subtitle,
+                            title: &category.title,
+                            subtitle: category.subtitle.as_deref(),
                             widgets: indices
                                 .iter()
                                 .map(|i| category.widgets[*i].as_ref())
@@ -1569,7 +1565,7 @@ impl<V: warpui::View> PageType<V> {
                         }
                     })
                     .collect(),
-                title: *title,
+                title: title.as_deref(),
                 vertical_scroll_state: vertical_scroll_state.clone(),
                 horizontal_scroll_state: horizontal_scroll_state.clone(),
                 highlighted_widget_id: *highlighted_widget_id,
@@ -1675,11 +1671,15 @@ impl<V: warpui::View> PageType<V> {
                         if let Some(subtitle) = category.subtitle {
                             page.add_child(render_sub_header_with_description(
                                 appearance,
-                                category.title,
-                                subtitle,
+                                category.title.to_string(),
+                                subtitle.to_string(),
                             ));
                         } else {
-                            page.add_child(render_sub_header(appearance, category.title, None));
+                            page.add_child(render_sub_header(
+                                appearance,
+                                category.title.to_string(),
+                                None,
+                            ));
                         }
                     }
                     for widget in &category.widgets {
@@ -1797,20 +1797,20 @@ impl<V: warpui::View> PageType<V> {
 pub(super) enum FilteredPageType<'a, V: warpui::View> {
     Monolith {
         widget: Option<&'a dyn SettingsWidget<View = V>>,
-        title: Option<&'static str>,
+        title: Option<&'a str>,
         vertical_scroll_state: Option<ClippedScrollStateHandle>,
         horizontal_scroll_state: Option<ClippedScrollStateHandle>,
     },
     Uncategorized {
         widgets: Vec<&'a dyn SettingsWidget<View = V>>,
-        title: Option<&'static str>,
+        title: Option<&'a str>,
         vertical_scroll_state: ClippedScrollStateHandle,
         horizontal_scroll_state: ClippedScrollStateHandle,
         highlighted_widget_id: Option<&'static str>,
     },
     Categorized {
         categories: Vec<FilteredCategory<'a, V>>,
-        title: Option<&'static str>,
+        title: Option<&'a str>,
         vertical_scroll_state: ClippedScrollStateHandle,
         horizontal_scroll_state: ClippedScrollStateHandle,
         highlighted_widget_id: Option<&'static str>,
@@ -1819,33 +1819,33 @@ pub(super) enum FilteredPageType<'a, V: warpui::View> {
 
 /// A grouping of related [`SettingsWidget`]s that fall under the same sub-header.
 pub(super) struct Category<V: warpui::View> {
-    title: &'static str,
-    subtitle: Option<&'static str>,
+    title: String,
+    subtitle: Option<String>,
     widgets: Vec<Box<dyn SettingsWidget<View = V>>>,
 }
 
 impl<V: warpui::View> Category<V> {
     pub(super) fn new(
-        title: &'static str,
+        title: impl Into<String>,
         widgets: Vec<Box<dyn SettingsWidget<View = V>>>,
     ) -> Self {
         Self {
-            title,
+            title: title.into(),
             subtitle: None,
             widgets,
         }
     }
 
-    pub(super) fn with_subtitle(mut self, subtitle: &'static str) -> Self {
-        self.subtitle = Some(subtitle);
+    pub(super) fn with_subtitle(mut self, subtitle: impl Into<String>) -> Self {
+        self.subtitle = Some(subtitle.into());
         self
     }
 }
 
 /// A [`Category`] with only the results which match a search query.
 pub(super) struct FilteredCategory<'a, V: warpui::View> {
-    pub(super) title: &'static str,
-    pub(super) subtitle: Option<&'static str>,
+    pub(super) title: &'a str,
+    pub(super) subtitle: Option<&'a str>,
     pub(super) widgets: Vec<&'a dyn SettingsWidget<View = V>>,
 }
 
@@ -1921,5 +1921,5 @@ pub(super) fn build_reset_button(
             font_size: Some(appearance.ui_font_size() * 0.8),
             ..Default::default()
         })
-        .with_text_label("Reset to default".to_owned())
+        .with_text_label(t!("common.reset_to_default").to_string())
 }

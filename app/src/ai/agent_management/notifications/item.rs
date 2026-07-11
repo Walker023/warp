@@ -5,6 +5,7 @@ use warpui::EntityId;
 
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::artifacts::Artifact;
+use crate::i18n::t;
 use crate::terminal::CLIAgent;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -33,11 +34,11 @@ pub enum NotificationFilter {
 }
 
 impl NotificationFilter {
-    pub(crate) fn label(&self) -> &'static str {
+    pub(crate) fn label(&self) -> String {
         match self {
-            NotificationFilter::All => "All tabs",
-            NotificationFilter::Unread => "Unread",
-            NotificationFilter::Errors => "Errors",
+            NotificationFilter::All => t!("notifications.filters.all_tabs").to_string(),
+            NotificationFilter::Unread => t!("notifications.filters.unread").to_string(),
+            NotificationFilter::Errors => t!("notifications.filters.errors").to_string(),
         }
     }
 }

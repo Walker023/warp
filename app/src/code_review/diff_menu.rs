@@ -26,6 +26,7 @@ use crate::code_review::diff_state::DiffMode;
 use crate::editor::{
     EditorOptions, EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, TextOptions,
 };
+use crate::i18n::t;
 use crate::ui_components::icons::Icon;
 
 const MENU_WIDTH: f32 = 280.;
@@ -112,7 +113,10 @@ impl CodeReviewDiffMenu {
                 ..Default::default()
             };
             let mut editor = EditorView::new(options, ctx);
-            editor.set_placeholder_text("Search diff sets or branches to compare…", ctx);
+            editor.set_placeholder_text(
+                t!("code_review.search_diff_sets_placeholder").to_string(),
+                ctx,
+            );
             editor
         });
 
@@ -279,7 +283,7 @@ impl CodeReviewDiffMenu {
         let theme = appearance.theme();
         Container::new(
             Text::new(
-                "No matches",
+                t!("code_review.no_matches").to_string(),
                 appearance.ui_font_family(),
                 appearance.ui_font_size(),
             )

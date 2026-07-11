@@ -15,6 +15,7 @@ use super::{
     ELLIPSE_SVG_PATH, ICON_PADDING, ITEM_PADDING_BOTTOM, SCROLLBAR_OFFSET, SECTION_SPACING,
 };
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::resource_center::main_page::ActionTarget;
 use crate::resource_center::{
     complete_tips_and_write_to_user_defaults, skip_tips_and_write_to_user_defaults, FeatureItem,
@@ -34,12 +35,18 @@ pub enum FeatureSection {
 }
 
 impl FeatureSection {
-    pub fn section_name_string(&self) -> &'static str {
+    pub fn section_name_string(&self) -> String {
         match self {
-            FeatureSection::WhatsNew => "What's New?",
-            FeatureSection::GettingStarted => "Getting Started",
-            FeatureSection::MaximizeWarp => "Maximize Warp",
-            FeatureSection::AdvancedSetup => "Advanced Setup",
+            FeatureSection::WhatsNew => t!("resource_center.sections.whats_new").to_string(),
+            FeatureSection::GettingStarted => {
+                t!("resource_center.sections.getting_started").to_string()
+            }
+            FeatureSection::MaximizeWarp => {
+                t!("resource_center.sections.maximize_warp").to_string()
+            }
+            FeatureSection::AdvancedSetup => {
+                t!("resource_center.sections.advanced_setup").to_string()
+            }
         }
     }
 }

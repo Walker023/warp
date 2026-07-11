@@ -1,0 +1,176 @@
+onboarding:
+  common:
+    back: "Back"
+    cancel: "Cancel"
+    continue: "Continue"
+    create: "Create"
+    finish: "Finish"
+    get_started: "Get started"
+    get_warping: "Get Warping"
+    initialize: "Initialize"
+    log_in: "Log in"
+    next: "Next"
+    reset_to_warp_defaults: "Reset to Warp defaults"
+    save: "Save"
+    skip: "Skip"
+    submit: "Submit"
+  features:
+    ai:
+      frontier_models: "Use frontier and open-weight models with Warp Agent"
+      cloud_agents: "Hand off agent work to cloud agents"
+      fix_terminal_errors: "Automatically diagnose and fix terminal errors"
+      long_running_commands: "Agentic control of long-running commands and TUIs"
+      code_review: "Review code diffs and send comments directly to agents"
+      remote_control: "Remote control for Claude Code, Codex, and other agents"
+    warp_drive:
+      session_sharing: "Session Sharing"
+  no_ai_dialog:
+    keep_ai: "Give me AI features"
+    confirm_no_ai: "I don't want AI"
+    title: "Are you sure you don't want AI?"
+    body: "Without AI, you'll still get Warp's terminal experience, but you'll miss our agentic features like automatic fixes for terminal errors."
+  ai_access:
+    title: "Get AI access"
+    subtitle: "Save with a recurring plan, or explore Warp's AI before committing."
+    plan_activated: "Plan successfully activated!"
+    subscription:
+      title: "Subscription"
+      badge: "Best value"
+      description: "Starting at $18 / mo, available with monthly or annual plans. Includes base credits, frontier models, cloud agents, collaboration, and more."
+    setup_later:
+      title: "Set up later"
+      description: "Explore Warp's built-in AI features before committing to a plan, or bring your own inference."
+    auth_prompt:
+      copy_url: "copy the URL"
+      click_here: "Click here"
+      browser_prefix: "If your browser hasn't launched, "
+      open_manually: " and open the page manually. "
+      paste_token: " to paste your token from the browser."
+  callout:
+    meet_input:
+      title: "Meet the Warp input"
+      body: "Your terminal input accepts both terminal commands and agent prompts and automatically detects which you're using. Use %{keybinding} to lock the input to Agent mode (natural language) or Terminal mode (commands)."
+    talk_to_agent:
+      title: "Talk to the agent"
+      body: "You can type in natural language to engage the agent. Submit the query below to start: What tests exist in this repo, how are they structured, and what do they cover?"
+    terminal_mode:
+      title: "Welcome to terminal mode"
+      title_existing: "You're in terminal mode"
+      body: "Run commands here, just like a regular terminal. If you type a question or task using natural language, Warp can suggest opening it in agent mode. You can always override using %{keybinding}."
+      enable_natural_language_detection: "Enable Natural Language Detection"
+    agent_mode:
+      title: "You're in agent mode"
+      body_with_project: "Agent mode gives your questions and tasks their own conversation, so you can ask follow-ups without leaving your terminal workflow.\n\nSubmit the query below to have the agent initialize this project, or ⊗ to clear the input and start your own!"
+      body_without_project: "Agent mode gives your questions and tasks their own conversation, so you can ask follow-ups without leaving your terminal workflow. Press %{keybinding} to return to terminal mode at any point."
+      skip_initialization: "Skip initialization"
+      back_to_terminal: "Back to terminal"
+    prompt:
+      tests_query: "What tests exist in this repo, how are they structured, and what do they cover?"
+      run_command: "Run a command..."
+      tell_agent: "Tell the agent what to build..."
+  intro:
+    already_have_account: "Already have an account?"
+    title: "Welcome to Warp"
+    subtitle: "The modern terminal with advanced agents built in."
+  intention:
+    title: "Welcome to Warp"
+    subtitle: "How do you want to work?"
+    agent:
+      title: "Build faster with agents"
+      description: "Get AI features to accelerate terminal and agent-driven workflows:"
+    terminal:
+      title: "Just use the terminal"
+      badge: "No AI features"
+      description: "A modern terminal optimized for speed, context, and control without AI."
+  ai_setup:
+    title: "Choose your AI setup"
+    subtitle: "Select whether you want to use Warp Agent or third-party agents."
+    warp_agent:
+      title: "Use Warp Agent"
+      badge: "Access more models"
+      description: "An advanced agent runtime deeply integrated into your terminal."
+      features:
+        models: "Use frontier and open-weight models"
+        cloud_agents: "Hand off work to cloud agents"
+        fixes: "Diagnose and fix terminal errors"
+        code_review: "Review code diffs with agents"
+    third_party:
+      title: "Use third party agents"
+      description: "Use agents like Claude Code, Codex, Gemini, and more."
+  customize:
+    title: "Customize Warp"
+    subtitle: "Tune the features and interface to match how you work."
+    tab_styling:
+      title: "Tab styling"
+      vertical: "Vertical"
+      horizontal: "Horizontal"
+    tools_panel:
+      title: "Tools panel"
+      enabled: "Enabled"
+      disabled: "Disabled"
+      chips:
+        files: "File explorer"
+        conversations: "Conversation history"
+        global_search: "Global file search"
+        warp_drive: "Warp Drive"
+    code_review:
+      title: "Code review"
+      enabled: "Enabled"
+      disabled: "Disabled"
+  agent:
+    title: "Customize your Warp Agent"
+    subtitle: "Select your Warp Agent's defaults."
+    default_model: "Default model"
+    recommended: "Recommended"
+    autonomy:
+      title: "Autonomy"
+      workspace_enforced:
+        title: "Set by Team Workspace"
+        description: "Autonomy settings are configured as part of your team workspace."
+      options:
+        full:
+          title: "Full"
+          description: "Warp Agent runs commands, writes code, and reads files without asking."
+        partial:
+          title: "Partial"
+          description: "Warp Agent can plan, read files, and execute low-risk commands. Asks before making any changes or executing sensitive commands."
+        none:
+          title: "None"
+          description: "Warp Agent takes no actions without your approval."
+  project:
+    title: "Open a project"
+    subtitle: "Set up a project to optimize your coding experience in Warp."
+    open_local_folder: "Open local folder"
+    initialize_auto:
+      title: "Initialize project automatically"
+      description: "Prepare your project environment, build a code index, and generate project rules so agents understand your project more deeply and produce better results."
+  theme_picker:
+    theme_fallback: "Theme %{index}"
+    title: "Choose a theme"
+    subtitle: "Click or use arrow keys to select, Enter to confirm."
+    sync_with_os: "Sync light/dark theme with OS"
+    disclaimer:
+      analytics_prefix: "If you'd like to opt out of analytics, you can adjust your "
+      privacy_settings: "Privacy Settings"
+      tos_prefix: "By continuing, you agree to Warp's "
+      terms_of_service: "Terms of Service"
+  third_party:
+    title: "Customize third-party agents"
+    subtitle: "Select default settings for agents like Claude Code, Codex, Gemini, and more."
+    cli_toolbar:
+      title: "CLI Agent toolbar"
+      enabled: "Enabled"
+      disabled: "Disabled"
+    notifications:
+      title: "Notifications"
+      enabled: "Enabled"
+      disabled: "Disabled"
+  demo:
+    finished: "Onboarding finished"
+    skipped: "Onboarding skipped"
+    selected_settings: "Selected settings:"
+    auto: "Auto"
+    callout:
+      title: "Meet the Warp input"
+      body: "Your terminal input can detect natural language and commands."
+      submit: "Submit"

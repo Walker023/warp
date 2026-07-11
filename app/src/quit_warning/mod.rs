@@ -7,6 +7,7 @@ use warpui::modals::{AlertDialogWithCallbacks, AppModalCallback, ModalButton};
 use warpui::{AppContext, EntityId, SingletonEntity, ViewContext, WeakViewHandle, WindowId};
 
 use crate::code::editor_management::{CodeEditorStatus, CodeEditorSummary};
+use crate::i18n::t;
 use crate::pane_group::{CodePane, PaneGroup, PaneId, TerminalPane};
 use crate::server::telemetry::CloseTarget;
 use crate::session_management::{RunningSessionSummary, SessionNavigationData};
@@ -290,48 +291,83 @@ impl<'a> UnsavedStateSummary<'a> {
         let mut info_text_lines = Vec::<String>::new();
 
         let scope_suffix = match self.scope {
-            QuitScope::Tabs(ref tabs) if tabs.len() == 1 => " in this tab.",
-            QuitScope::Window(_) => " in this window.",
-            QuitScope::Pane { .. } => " in this pane.",
-            QuitScope::App | QuitScope::Tabs(_) | QuitScope::EditorTab { .. } => ".",
+            QuitScope::Tabs(ref tabs) if tabs.len() == 1 => {
+                t!("quit_warning.scope.tab").to_string()
+            }
+            QuitScope::Window(_) => t!("quit_warning.scope.window").to_string(),
+            QuitScope::Pane { .. } => t!("quit_warning.scope.pane").to_string(),
+            QuitScope::App | QuitScope::Tabs(_) | QuitScope::EditorTab { .. } => {
+                t!("quit_warning.scope.default").to_string()
+            }
         };
 
         if self.total_long_running_commands > 0 {
-            let mut process_info_text = format!(
-                "You have {} {} running",
-                self.total_long_running_commands,
-                pluralize(self.total_long_running_commands, "process", "processes")
-            );
+            let processes = if self.total_long_running_commands == 1 {
+                t!("quit_warning.process_one")
+            } else {
+                t!("quit_warning.process_other")
+            };
+            let mut process_info_text = t!(
+                "quit_warning.processes_running",
+                count = self.total_long_running_commands,
+                processes = processes
+            )
+            .to_string();
             if self.windows_with_long_running_commands > 1 {
                 let _ = write!(
                     &mut process_info_text,
-                    " in {} windows",
-                    self.windows_with_long_running_commands
+                    "{}",
+                    t!(
+                        "quit_warning.processes_in_windows",
+                        count = self.windows_with_long_running_commands
+                    )
                 );
             } else if self.tabs_with_long_running_commands > 1 {
                 let _ = write!(
                     &mut process_info_text,
-                    " in {} tabs",
-                    self.tabs_with_long_running_commands
+                    "{}",
+                    t!(
+                        "quit_warning.processes_in_tabs",
+                        count = self.tabs_with_long_running_commands
+                    )
                 );
             }
-            process_info_text.push_str(scope_suffix);
+            process_info_text.push_str(&scope_suffix);
             info_text_lines.push(process_info_text);
         }
 
         if self.shared_sessions > 0 {
-            info_text_lines.push(format!(
-                "You are sharing {} {}{scope_suffix}",
-                self.shared_sessions,
-                pluralize(self.shared_sessions, "session", "sessions")
-            ));
+            let sessions = if self.shared_sessions == 1 {
+                t!("quit_warning.session_one")
+            } else {
+                t!("quit_warning.session_other")
+            };
+            info_text_lines.push(
+                t!(
+                    "quit_warning.shared_sessions",
+                    count = self.shared_sessions,
+                    sessions = sessions,
+                    scope = scope_suffix.clone()
+                )
+                .to_string(),
+            );
         }
 
         if self.unsaved_code_changes {
             if let QuitScope::EditorTab { ref file_name, .. } = self.scope {
-                info_text_lines.push(format!("Do you want to save the changes you made to {}? Your changes will be discarded if you don't save them.", file_name.clone().unwrap_or("this file".to_string())));
+                info_text_lines.push(
+                    t!(
+                        "quit_warning.save_file_changes",
+                        file = file_name
+                            .clone()
+                            .unwrap_or_else(|| t!("quit_warning.this_file").to_string())
+                    )
+                    .to_string(),
+                );
             } else {
-                info_text_lines.push(format!("You have unsaved file changes{scope_suffix}"));
+                info_text_lines.push(
+                    t!("quit_warning.unsaved_file_changes", scope = scope_suffix).to_string(),
+                );
             }
         }
 
@@ -397,25 +433,33 @@ impl<'a> QuitWarningDialog<'a> {
 
         if let Some(callback) = on_confirm {
             let confirm_title = match state.scope {
-                QuitScope::Window(_) | QuitScope::Tabs(_) | QuitScope::Pane { .. } => "Yes, close",
-                QuitScope::App => "Yes, quit",
-                _ => "",
+                QuitScope::Window(_) | QuitScope::Tabs(_) | QuitScope::Pane { .. } => {
+                    t!("quit_warning.yes_close").to_string()
+                }
+                QuitScope::App => t!("quit_warning.yes_quit").to_string(),
+                _ => String::new(),
             };
-            buttons.push(ModalButton::for_app(confirm_title.to_string(), callback));
+            buttons.push(ModalButton::for_app(confirm_title, callback));
         }
 
         if let Some(callback) = on_save_changes {
-            buttons.push(ModalButton::for_app("Save".to_string(), callback));
+            buttons.push(ModalButton::for_app(
+                t!("common.save").to_string(),
+                callback,
+            ));
         }
 
         if let Some(callback) = on_discard_changes {
-            buttons.push(ModalButton::for_app("Don't Save".to_string(), callback));
+            buttons.push(ModalButton::for_app(
+                t!("quit_warning.dont_save").to_string(),
+                callback,
+            ));
         }
 
         if let Some(callback) = on_show_processes {
             if state.total_long_running_commands > 0 {
                 buttons.push(ModalButton::for_app(
-                    "Show running processes".to_string(),
+                    t!("quit_warning.show_running_processes").to_string(),
                     move |app| {
                         callback(app);
                     },
@@ -424,20 +468,23 @@ impl<'a> QuitWarningDialog<'a> {
         }
 
         if let Some(callback) = on_cancel {
-            buttons.push(ModalButton::for_app("Cancel".to_string(), callback));
+            buttons.push(ModalButton::for_app(
+                t!("common.cancel").to_string(),
+                callback,
+            ));
         }
 
         let title = match &state.scope {
-            QuitScope::Pane { .. } => "Close pane?",
-            QuitScope::Tabs(tabs) if tabs.len() == 1 => "Close tab?",
-            QuitScope::Tabs(_) => "Close tabs?",
-            QuitScope::Window(_) => "Close window?",
-            QuitScope::App => "Quit Warp?",
-            QuitScope::EditorTab { .. } => "Save changes?",
+            QuitScope::Pane { .. } => t!("quit_warning.close_pane").to_string(),
+            QuitScope::Tabs(tabs) if tabs.len() == 1 => t!("quit_warning.close_tab").to_string(),
+            QuitScope::Tabs(_) => t!("quit_warning.close_tabs").to_string(),
+            QuitScope::Window(_) => t!("quit_warning.close_window").to_string(),
+            QuitScope::App => t!("quit_warning.quit_warp").to_string(),
+            QuitScope::EditorTab { .. } => t!("quit_warning.save_changes").to_string(),
         };
 
         AlertDialogWithCallbacks::for_app(
-            title,
+            &title,
             state.warning_text(),
             buttons,
             on_disable_warning_modal,
@@ -487,14 +534,6 @@ impl<'a> QuitWarningDialog<'a> {
             }
         }
         shown
-    }
-}
-
-fn pluralize<'a>(count: usize, singular: &'a str, plural: &'a str) -> &'a str {
-    if count > 1 {
-        plural
-    } else {
-        singular
     }
 }
 

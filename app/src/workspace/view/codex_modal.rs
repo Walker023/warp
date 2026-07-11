@@ -17,6 +17,7 @@ use warpui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 
+use crate::i18n::t;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
 use crate::view_components::action_button::{ActionButton, ActionButtonTheme};
@@ -71,12 +72,15 @@ pub struct CodexModal {
 impl CodexModal {
     pub fn new(ctx: &mut ViewContext<Self>) -> Self {
         let cta_button = ctx.add_view(|_| {
-            ActionButton::new("Use latest codex model", WhiteButtonTheme)
-                .with_icon(Icon::OpenAILogo)
-                .with_full_width(true)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(CodexModalAction::UseCodex);
-                })
+            ActionButton::new(
+                t!("workspace.codex_modal.use_latest_model").to_string(),
+                WhiteButtonTheme,
+            )
+            .with_icon(Icon::OpenAILogo)
+            .with_full_width(true)
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(CodexModalAction::UseCodex);
+            })
         });
 
         CodexModal {
@@ -90,9 +94,13 @@ impl CodexModal {
         // Magenta/pink color for the badge
         let magenta: ColorU = theme.terminal_colors().normal.magenta.into();
         Container::new(
-            Text::new("New", appearance.ui_font_family(), 12.)
-                .with_color(magenta)
-                .finish(),
+            Text::new(
+                t!("common.new").to_string(),
+                appearance.ui_font_family(),
+                12.,
+            )
+            .with_color(magenta)
+            .finish(),
         )
         .with_vertical_padding(4.)
         .with_horizontal_padding(10.)
@@ -110,7 +118,7 @@ impl CodexModal {
 
         // Title
         let title = FormattedTextElement::from_str(
-            "Use Codex models in Warp",
+            t!("workspace.codex_modal.title").to_string(),
             appearance.ui_font_family(),
             24.,
         )
@@ -123,7 +131,7 @@ impl CodexModal {
 
         // Description - first paragraph
         let description_1 = FormattedTextElement::from_str(
-            "Codex is OpenAI's most advanced agentic coding model for real-world engineering.",
+            t!("workspace.codex_modal.description_1").to_string(),
             appearance.ui_font_family(),
             14.,
         )
@@ -135,8 +143,7 @@ impl CodexModal {
 
         // Description - second paragraph
         let description_2 = FormattedTextElement::from_str(
-            "Use Codex directly in Oz and leverage \
-            features like in-app code review, agent session sharing and file editing.",
+            t!("workspace.codex_modal.description_2").to_string(),
             appearance.ui_font_family(),
             14.,
         )

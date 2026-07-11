@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
+use rust_i18n::t;
 use ui_components::button::Button as ButtonComponent;
 use ui_components::{button, Component, MouseEventHandler, Options as _};
 use warp_core::ui::appearance::Appearance;
@@ -92,7 +93,7 @@ pub struct Button {
 impl Button {
     pub fn next(handler: MouseEventHandler) -> Self {
         Self {
-            text: Cow::Borrowed("Next"),
+            text: Cow::Owned(t!("onboarding.common.next").to_string()),
             keystroke: Some(Keystroke {
                 key: "enter".into(),
                 ..Default::default()

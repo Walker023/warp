@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use ai::LLMId;
 use instant::Instant;
+use rust_i18n::t;
 use warp_core::features::FeatureFlag;
 use warp_core::send_telemetry_from_ctx;
 use warpui_core::assets::asset_cache::AssetSource;
@@ -393,7 +394,7 @@ impl AgentOnboardingView {
         let cancel_button = self.no_ai_cancel_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label("Give me AI features".into()),
+                content: button::Content::Label(t!("onboarding.no_ai_dialog.keep_ai").into()),
                 theme: &button::themes::Naked,
                 options: button::Options {
                     on_click: Some(Box::new(|ctx, _app, _pos| {
@@ -408,7 +409,7 @@ impl AgentOnboardingView {
         let confirm_button = self.no_ai_confirm_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label("I don't want AI".into()),
+                content: button::Content::Label(t!("onboarding.no_ai_dialog.confirm_no_ai").into()),
                 theme: &button::themes::Primary,
                 options: button::Options {
                     keystroke: Some(enter),
@@ -423,10 +424,9 @@ impl AgentOnboardingView {
         render_feature_optout_dialog(
             appearance,
             FeatureOptOutDialog {
-                title: "Are you sure you don't want AI?",
-                body: "Without AI, you'll still get Warp's terminal experience, but you'll miss \
-                       our agentic features like automatic fixes for terminal errors.",
-                features: &[],
+                title: t!("onboarding.no_ai_dialog.title").to_string(),
+                body: t!("onboarding.no_ai_dialog.body").to_string(),
+                features: Vec::new(),
                 close_button,
                 cancel_button,
                 confirm_button,
@@ -490,7 +490,7 @@ impl AgentOnboardingView {
         .finish();
 
         let text = ui_builder
-            .span("Plan successfully activated!")
+            .span(t!("onboarding.ai_access.plan_activated").to_string())
             .with_style(UiComponentStyles {
                 font_color: Some(text_color),
                 font_size: Some(FONT_SIZE),
@@ -620,7 +620,7 @@ impl View for AgentOnboardingView {
             let close_button = self.close_button.render(
                 appearance,
                 button::Params {
-                    content: button::Content::Label("Skip".into()),
+                    content: button::Content::Label(t!("onboarding.common.skip").into()),
                     theme: &button::themes::Naked,
                     options: button::Options {
                         size: button::Size::Small,

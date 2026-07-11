@@ -13,6 +13,7 @@ use warpui::{
 use crate::ai::blocklist::agent_view::AgentViewController;
 use crate::ai::blocklist::inline_action::inline_action_icons;
 use crate::ai::blocklist::{BlocklistAIHistoryEvent, BlocklistAIHistoryModel};
+use crate::i18n::t;
 use crate::terminal::view::ambient_agent::{AmbientAgentViewModel, AmbientAgentViewModelEvent};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -184,9 +185,9 @@ impl View for CloudModeSetupTextBlock {
                             .setup_command_state()
                             .is_running(self.group_id)
                         {
-                            "Running setup commands..."
+                            t!("ambient_agent.setup_commands.running").to_string()
                         } else {
-                            "Ran setup commands"
+                            t!("ambient_agent.setup_commands.ran").to_string()
                         },
                         appearance.ai_font_family(),
                         appearance.monospace_font_size(),

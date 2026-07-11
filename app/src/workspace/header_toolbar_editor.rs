@@ -8,13 +8,12 @@ use crate::chip_configurator::{
     ChipConfiguratorAction, ChipConfiguratorLayout, ChipEditorModalConfig, ChipEditorMouseHandles,
     ChipEditorSectionsConfig, ConfigurableItem, ControlItemRenderer,
 };
+use crate::i18n::t;
 use crate::workspace::header_toolbar_item::HeaderToolbarItemKind;
 use crate::workspace::tab_settings::{
     HeaderToolbarChipSelection, TabSettings, TabSettingsChangedEvent,
 };
 use crate::Appearance;
-
-const MODAL_TITLE: &str = "Edit toolbar";
 
 pub fn init(app: &mut AppContext) {
     use warpui::keymap::macros::*;
@@ -246,7 +245,7 @@ impl View for HeaderToolbarInlineEditor {
         render_chip_editor_sections(
             &self.chip_configurator,
             ChipEditorSectionsConfig {
-                available_section_label: "Available items",
+                available_section_label: t!("chip_configurator.available_items").to_string(),
                 is_at_defaults: is_toolbar_editor_at_defaults(&self.chip_configurator),
                 reset_action: HeaderToolbarInlineEditorAction::ResetDefault,
                 activate_action: HeaderToolbarInlineEditorAction::Activate,
@@ -340,8 +339,8 @@ impl View for HeaderToolbarEditorModal {
         render_chip_editor_modal(
             &self.chip_configurator,
             ChipEditorModalConfig {
-                title: MODAL_TITLE,
-                available_section_label: "Available items",
+                title: t!("chip_configurator.edit_toolbar").to_string(),
+                available_section_label: t!("chip_configurator.available_items").to_string(),
                 is_at_defaults: self.is_at_defaults(),
                 is_dirty: self.is_dirty,
                 cancel_action: HeaderToolbarEditorAction::Cancel,

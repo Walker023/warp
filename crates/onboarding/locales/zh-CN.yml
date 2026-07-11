@@ -1,0 +1,176 @@
+onboarding:
+  common:
+    back: "返回"
+    cancel: "取消"
+    continue: "继续"
+    create: "创建"
+    finish: "完成"
+    get_started: "开始使用"
+    get_warping: "开始使用 Warp"
+    initialize: "初始化"
+    log_in: "登录"
+    next: "下一个"
+    reset_to_warp_defaults: "重置为 Warp 默认值"
+    save: "保存"
+    skip: "跳过"
+    submit: "提交"
+  features:
+    ai:
+      frontier_models: "使用 Warp Agent 调用前沿和开放权重模型"
+      cloud_agents: "将智能体任务交给云智能体"
+      fix_terminal_errors: "自动诊断并修复终端错误"
+      long_running_commands: "由智能体控制长时间运行的命令和 TUI"
+      code_review: "审查代码 diff，并将评论直接发送给智能体"
+      remote_control: "远程控制 Claude Code、Codex 等智能体"
+    warp_drive:
+      session_sharing: "会话共享"
+  no_ai_dialog:
+    keep_ai: "我要 AI 功能"
+    confirm_no_ai: "我不想使用 AI"
+    title: "确定不使用 AI 吗？"
+    body: "没有 AI，你仍可使用 Warp 的终端体验，但会错过自动修复终端错误等智能体功能。"
+  ai_access:
+    title: "获取 AI 访问权限"
+    subtitle: "使用订阅方案节省费用，或先体验 Warp 的 AI 再决定。"
+    plan_activated: "订阅方案已成功激活！"
+    subscription:
+      title: "订阅"
+      badge: "最划算"
+      description: "每月 18 美元起，可选择月付或年付。包含基础额度、前沿模型、云智能体、协作等功能。"
+    setup_later:
+      title: "稍后设置"
+      description: "先体验 Warp 内置 AI 功能再决定方案，或接入你自己的推理服务。"
+    auth_prompt:
+      copy_url: "复制 URL"
+      click_here: "点击此处"
+      browser_prefix: "如果浏览器尚未打开，"
+      open_manually: "并手动打开页面。"
+      paste_token: "以粘贴浏览器中的令牌。"
+  callout:
+    meet_input:
+      title: "认识 Warp 输入框"
+      body: "终端输入框既可输入终端命令，也可输入智能体提示，并会自动检测你正在使用哪一种。使用 %{keybinding} 可将输入框锁定为智能体模式（自然语言）或终端模式（命令）。"
+    talk_to_agent:
+      title: "与智能体对话"
+      body: "你可以输入自然语言来调用智能体。提交下方查询开始：这个仓库有哪些测试、它们如何组织、覆盖了哪些内容？"
+    terminal_mode:
+      title: "欢迎使用终端模式"
+      title_existing: "你正在使用终端模式"
+      body: "在这里运行命令，就像使用普通终端一样。如果你输入自然语言的问题或任务，Warp 可以建议在智能体模式中打开。你随时可以使用 %{keybinding} 手动切换。"
+      enable_natural_language_detection: "启用自然语言检测"
+    agent_mode:
+      title: "你正在使用智能体模式"
+      body_with_project: "智能体模式会为你的问题和任务创建独立对话，因此你可以在不离开终端工作流的情况下继续追问。\n\n提交下方查询，让智能体初始化此项目；也可以按 ⊗ 清空输入并开始自己的任务！"
+      body_without_project: "智能体模式会为你的问题和任务创建独立对话，因此你可以在不离开终端工作流的情况下继续追问。随时按 %{keybinding} 返回终端模式。"
+      skip_initialization: "跳过初始化"
+      back_to_terminal: "返回终端"
+    prompt:
+      tests_query: "这个仓库有哪些测试、它们如何组织、覆盖了哪些内容？"
+      run_command: "运行命令..."
+      tell_agent: "告诉智能体要构建什么..."
+  intro:
+    already_have_account: "已有账号？"
+    title: "欢迎使用 Warp"
+    subtitle: "内置先进智能体的现代终端。"
+  intention:
+    title: "欢迎使用 Warp"
+    subtitle: "你想怎样工作？"
+    agent:
+      title: "使用智能体更快构建"
+      description: "启用 AI 功能，加速终端和智能体驱动的工作流："
+    terminal:
+      title: "只使用终端"
+      badge: "不启用 AI 功能"
+      description: "一个针对速度、上下文和控制力优化的现代终端，不包含 AI。"
+  ai_setup:
+    title: "选择 AI 设置"
+    subtitle: "选择使用 Warp Agent 还是第三方智能体。"
+    warp_agent:
+      title: "使用 Warp Agent"
+      badge: "使用更多模型"
+      description: "深度集成到终端中的先进智能体运行环境。"
+      features:
+        models: "使用前沿和开放权重模型"
+        cloud_agents: "将任务交给云智能体"
+        fixes: "诊断并修复终端错误"
+        code_review: "使用智能体审查代码 diff"
+    third_party:
+      title: "使用第三方智能体"
+      description: "使用 Claude Code、Codex、Gemini 等智能体。"
+  customize:
+    title: "自定义 Warp"
+    subtitle: "按你的工作方式调整功能和界面。"
+    tab_styling:
+      title: "标签页样式"
+      vertical: "垂直"
+      horizontal: "水平"
+    tools_panel:
+      title: "工具面板"
+      enabled: "启用"
+      disabled: "禁用"
+      chips:
+        files: "文件浏览器"
+        conversations: "对话历史"
+        global_search: "全局文件搜索"
+        warp_drive: "Warp Drive"
+    code_review:
+      title: "代码审查"
+      enabled: "启用"
+      disabled: "禁用"
+  agent:
+    title: "自定义 Warp Agent"
+    subtitle: "选择 Warp Agent 的默认设置。"
+    default_model: "默认模型"
+    recommended: "推荐"
+    autonomy:
+      title: "自主权限"
+      workspace_enforced:
+        title: "由团队工作区设置"
+        description: "自主权限设置由你的团队工作区统一配置。"
+      options:
+        full:
+          title: "完全"
+          description: "Warp Agent 可不经询问运行命令、编写代码并读取文件。"
+        partial:
+          title: "部分"
+          description: "Warp Agent 可以规划、读取文件并执行低风险命令；在做出任何更改或执行敏感命令前会先询问。"
+        none:
+          title: "无"
+          description: "Warp Agent 未经你的批准不会执行任何操作。"
+  project:
+    title: "打开项目"
+    subtitle: "设置项目，以便在 Warp 中优化编码体验。"
+    open_local_folder: "打开本地文件夹"
+    initialize_auto:
+      title: "自动初始化项目"
+      description: "准备项目环境、构建代码索引并生成项目规则，让智能体更深入理解项目并获得更好效果。"
+  theme_picker:
+    theme_fallback: "主题 %{index}"
+    title: "选择主题"
+    subtitle: "点击或使用方向键选择，按 Enter 确认。"
+    sync_with_os: "跟随系统同步浅色/深色主题"
+    disclaimer:
+      analytics_prefix: "如果你想停用分析，可以调整你的"
+      privacy_settings: "隐私设置"
+      tos_prefix: "继续即表示你同意 Warp 的"
+      terms_of_service: "服务条款"
+  third_party:
+    title: "自定义第三方智能体"
+    subtitle: "为 Claude Code、Codex、Gemini 等智能体选择默认设置。"
+    cli_toolbar:
+      title: "CLI 智能体工具栏"
+      enabled: "启用"
+      disabled: "禁用"
+    notifications:
+      title: "通知"
+      enabled: "启用"
+      disabled: "禁用"
+  demo:
+    finished: "已完成引导"
+    skipped: "已跳过引导"
+    selected_settings: "已选设置："
+    auto: "自动"
+    callout:
+      title: "认识 Warp 输入框"
+      body: "你的终端输入框可以检测自然语言和命令。"
+      submit: "提交"

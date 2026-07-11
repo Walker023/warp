@@ -28,6 +28,7 @@ use warpui::{
 };
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::safe_triangle::SafeTriangle;
 use crate::themes::theme::Fill;
 use crate::ui_components::buttons::icon_button_with_color;
@@ -715,9 +716,9 @@ impl<A: Action + Clone> MenuItemFields<A> {
 
     pub fn toggle_pane_action(is_maximized: bool) -> Self {
         Self::new(if is_maximized {
-            "Minimize pane"
+            t!("menu.minimize_pane").to_string()
         } else {
-            "Maximize pane"
+            t!("menu.maximize_pane").to_string()
         })
     }
 
@@ -2549,10 +2550,10 @@ impl<A: Action + Clone> SubMenu<A> {
                         }
                         MenuItem::Separator => String::from(""),
                         MenuItem::Submenu { fields, .. } => {
-                            format!("{} Expanded", fields.get_a11y_text())
+                            t!("menu.a11y.expanded", item = fields.get_a11y_text()).to_string()
                         }
                         MenuItem::Header { fields, .. } => {
-                            format!("{} Selected", fields.get_a11y_text())
+                            t!("menu.a11y.selected", item = fields.get_a11y_text()).to_string()
                         }
                     },
                     None => String::from(""),
@@ -2560,9 +2561,9 @@ impl<A: Action + Clone> SubMenu<A> {
 
                 let instructions = if matches!(self.selected_item(), Some(MenuItem::Submenu { .. }))
                 {
-                    "Press the up key or the down key to select a menu item. Press the right key to open the submenu"
+                    t!("menu.a11y.select_item_open_submenu").to_string()
                 } else {
-                    "Press the up key or the down key to select a menu item"
+                    t!("menu.a11y.select_item").to_string()
                 };
 
                 Custom(AccessibilityContent::new(
@@ -2572,23 +2573,23 @@ impl<A: Action + Clone> SubMenu<A> {
                 ))
             }
             OpenSubmenu => Custom(AccessibilityContent::new(
-                String::from("Submenu Expanded"),
-                "Press the right key to open the selected submenu",
+                t!("menu.a11y.submenu_expanded").to_string(),
+                t!("menu.a11y.open_submenu").to_string(),
                 WarpA11yRole::TextRole,
             )),
             CloseSubmenu(_) => Custom(AccessibilityContent::new(
-                String::from("Submenu Closed"),
-                "Removing focus from a submenu will close the submenu",
+                t!("menu.a11y.submenu_closed").to_string(),
+                t!("menu.a11y.close_submenu").to_string(),
                 WarpA11yRole::TextRole,
             )),
             Close(_) => Custom(AccessibilityContent::new(
-                String::from("Menu Closed"),
-                "Press the escape key to close the menu",
+                t!("menu.a11y.menu_closed").to_string(),
+                t!("menu.a11y.close_menu").to_string(),
                 WarpA11yRole::TextRole,
             )),
             Enter => Custom(AccessibilityContent::new(
-                String::from("Action Selected"),
-                "Press the enter key to execute the selected menu item action",
+                t!("menu.a11y.action_selected").to_string(),
+                t!("menu.a11y.execute_action").to_string(),
                 WarpA11yRole::TextRole,
             )),
             HoverSubmenuLeafNode { .. }

@@ -4,6 +4,7 @@ use warpui::SingletonEntity;
 use super::editor::AgentToolbarEditorMode;
 use crate::context_chips::{agent_footer_available_chips, available_chips, ContextChipKind};
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::settings::AISettings;
 use crate::terminal::shared_session::SharedSessionStatus;
 use crate::ui_components::icons::Icon;
@@ -114,20 +115,20 @@ impl AgentToolbarItemKind {
         }
     }
 
-    pub fn display_label(&self) -> &'static str {
+    pub fn display_label(&self) -> String {
         match self {
-            Self::ContextChip(_) => "Context Chip",
-            Self::ModelSelector => "Model Selector",
-            Self::NLDToggle => "Autodetection",
-            Self::VoiceInput => "Voice Input",
-            Self::FileAttach => "Attach File",
-            Self::ContextWindowUsage => "Context Usage",
-            Self::FileExplorer => "File Explorer",
-            Self::RichInput => "Rich Input",
-            Self::ShareSession => "/remote-control",
-            Self::Settings => "Settings",
-            Self::FastForwardToggle => "Fast Forward",
-            Self::HandoffToCloud => "Hand off to cloud",
+            Self::ContextChip(_) => t!("agent_toolbar.items.context_chip").to_string(),
+            Self::ModelSelector => t!("agent_toolbar.items.model_selector").to_string(),
+            Self::NLDToggle => t!("agent_toolbar.items.autodetection").to_string(),
+            Self::VoiceInput => t!("agent_toolbar.items.voice_input").to_string(),
+            Self::FileAttach => t!("agent_toolbar.items.attach_file").to_string(),
+            Self::ContextWindowUsage => t!("agent_toolbar.items.context_usage").to_string(),
+            Self::FileExplorer => t!("agent_toolbar.items.file_explorer").to_string(),
+            Self::RichInput => t!("agent_toolbar.items.rich_input").to_string(),
+            Self::ShareSession => "/remote-control".to_string(),
+            Self::Settings => t!("workspace.user_menu.settings").to_string(),
+            Self::FastForwardToggle => t!("agent_toolbar.items.fast_forward").to_string(),
+            Self::HandoffToCloud => t!("agent_toolbar.items.hand_off_to_cloud").to_string(),
         }
     }
 

@@ -15,6 +15,7 @@ use crate::ai_assistant::execution_context::WarpAiExecutionContext;
 use crate::ai_assistant::{GenerateCommandsFromNaturalLanguageError, AI_ASSISTANT_LOGO_COLOR};
 use crate::appearance::Appearance;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::search::command_search::searcher::CommandSearchItemAction;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::item::SearchItem;
@@ -29,9 +30,6 @@ use crate::ui_components::icons::Icon as UIIcon;
 use crate::util::color::{ContrastingColor, MinimumAllowedContrast};
 use crate::workflows::{AIWorkflowOrigin, WorkflowSource, WorkflowType};
 
-const OPEN_WARP_AI_ITEM_BODY_TEXT: &str = "Ask Warp AI for command suggestions";
-const TRANSLATE_WITH_WARP_AI_ITEM_BODY_TEXT: &str = "Translate into shell command using Warp AI";
-
 #[derive(Clone, Debug)]
 pub enum WarpAISearchItem {
     /// Translates the query within command search.
@@ -42,10 +40,10 @@ pub enum WarpAISearchItem {
 }
 
 impl WarpAISearchItem {
-    fn item_body_text(&self) -> &'static str {
+    fn item_body_text(&self) -> String {
         match self {
-            WarpAISearchItem::Translate => TRANSLATE_WITH_WARP_AI_ITEM_BODY_TEXT,
-            WarpAISearchItem::Open => OPEN_WARP_AI_ITEM_BODY_TEXT,
+            WarpAISearchItem::Translate => t!("command_search.warp_ai.translate_body").to_string(),
+            WarpAISearchItem::Open => t!("command_search.warp_ai.open_body").to_string(),
         }
     }
 }
@@ -235,12 +233,11 @@ impl AsyncDataSource for WarpAIDataSource {
 impl DataSourceRunError for GenerateCommandsFromNaturalLanguageError {
     fn user_facing_error(&self) -> String {
         match self {
-            Self::BadPrompt => "No results found. Please try again with a more specific query.",
-            Self::AiProviderError => "Something went wrong. Please try again.",
-            Self::RateLimited => "Looks like you're out of AI credits. Please try again later.",
-            Self::Other => "Something went wrong. Please try again.",
+            Self::BadPrompt => t!("command_search.warp_ai.bad_prompt").to_string(),
+            Self::AiProviderError => t!("command_search.warp_ai.generic_error").to_string(),
+            Self::RateLimited => t!("command_search.warp_ai.rate_limited").to_string(),
+            Self::Other => t!("command_search.warp_ai.generic_error").to_string(),
         }
-        .to_string()
     }
 
     fn telemetry_payload(&self) -> serde_json::Value {

@@ -14,6 +14,7 @@ use warpui::{
 };
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::icons::Icon;
 use crate::view_components::action_button::{
     ActionButton, ActionButtonTheme, ButtonSize, PrimaryTheme, SecondaryTheme,
@@ -84,14 +85,14 @@ impl AutoHandoffSleepModal {
         });
 
         let enable_button = ctx.add_view(|_ctx| {
-            ActionButton::new("Enable", PrimaryTheme)
+            ActionButton::new(t!("common.enable").to_string(), PrimaryTheme)
                 .with_full_width(true)
                 .with_size(ButtonSize::Default)
                 .on_click(|ctx| ctx.dispatch_typed_action(AutoHandoffSleepModalAction::Enable))
         });
 
         let dismiss_button = ctx.add_view(|_ctx| {
-            ActionButton::new("Dismiss", SecondaryTheme)
+            ActionButton::new(t!("common.dismiss").to_string(), SecondaryTheme)
                 .with_full_width(true)
                 .with_size(ButtonSize::Default)
                 .on_click(|ctx| ctx.dispatch_typed_action(AutoHandoffSleepModalAction::Dismiss))
@@ -145,7 +146,7 @@ impl AutoHandoffSleepModal {
         let text_color: ColorU = red.into();
         let background_color = appearance.theme().ansi_overlay_2(red);
         let text = Text::new_inline(
-            "Run Connection Lost".to_string(),
+            t!("workspace.auto_handoff_sleep_modal.badge").to_string(),
             appearance.ui_font_family(),
             14.,
         )
@@ -169,21 +170,24 @@ impl AutoHandoffSleepModal {
     }
 
     fn render_title(appearance: &Appearance) -> Box<dyn Element> {
-        Text::new("Enable auto-handoff?", appearance.ui_font_family(), 20.)
-            .with_color(
-                appearance
-                    .theme()
-                    .main_text_color(appearance.theme().surface_3())
-                    .into_solid(),
-            )
-            .with_style(Properties::default().weight(Weight::Semibold))
-            .finish()
+        Text::new(
+            t!("workspace.auto_handoff_sleep_modal.title").to_string(),
+            appearance.ui_font_family(),
+            20.,
+        )
+        .with_color(
+            appearance
+                .theme()
+                .main_text_color(appearance.theme().surface_3())
+                .into_solid(),
+        )
+        .with_style(Properties::default().weight(Weight::Semibold))
+        .finish()
     }
 
     fn render_description(appearance: &Appearance) -> Box<dyn Element> {
         Text::new(
-            "Give Warp the option to automatically move active local agents to the cloud when \
-             your computer sleeps.",
+            t!("workspace.auto_handoff_sleep_modal.description").to_string(),
             appearance.ui_font_family(),
             14.,
         )

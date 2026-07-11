@@ -19,6 +19,7 @@ use crate::ai::ambient_agents::github_auth_url::{AuthSource, GithubAuthRedirectT
 use crate::ai::request_usage_model::AMBIENT_AGENT_TRIAL_CREDIT_THRESHOLD;
 use crate::ai::{cloud_environments, AIRequestUsageModel};
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::ids::ClientId;
 use crate::settings_view::update_environment_form::{
@@ -210,10 +211,14 @@ impl FirstTimeCloudAgentSetupView {
 
         // Badge with blue border
         let badge = Container::new(
-            Text::new("Free credits", appearance.ui_font_family(), 12.)
-                .with_style(Properties::default().weight(Weight::Semibold))
-                .with_color(theme.accent().into())
-                .finish(),
+            Text::new(
+                t!("terminal.free_credits").to_string(),
+                appearance.ui_font_family(),
+                12.,
+            )
+            .with_style(Properties::default().weight(Weight::Semibold))
+            .with_color(theme.accent().into())
+            .finish(),
         )
         .with_horizontal_padding(6.)
         .with_vertical_padding(4.)

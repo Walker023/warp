@@ -6,6 +6,7 @@ use super::{
     ContentItem, ContentSectionData, FeatureItem, FeatureSection, FeatureSectionData,
     ResourceCenterMainView, Section, Tip, TipAction, TipHint,
 };
+use crate::i18n::t;
 
 pub fn sections(ctx: &mut ViewContext<ResourceCenterMainView>) -> Vec<Section> {
     let mut sections = vec![Section::Changelog()];
@@ -18,32 +19,32 @@ pub fn sections(ctx: &mut ViewContext<ResourceCenterMainView>) -> Vec<Section> {
         section_name: FeatureSection::GettingStarted,
         items: vec![
             FeatureItem::new(
-                "Create your first block",
-                "Run a command to see your command and output grouped.",
+                t!("resource_center.items.create_first_block.title"),
+                t!("resource_center.items.create_first_block.description"),
                 Tip::Hint(TipHint::CreateBlock),
                 ctx,
             ),
             FeatureItem::new(
-                "Navigate blocks",
-                "Click to select a block and navigate with arrow keys.",
+                t!("resource_center.items.navigate_blocks.title"),
+                t!("resource_center.items.navigate_blocks.description"),
                 Tip::Hint(TipHint::BlockSelect),
                 ctx,
             ),
             FeatureItem::new(
-                "Take an action on block",
-                "Right click on a block to copy/paste, share, more.",
+                t!("resource_center.items.block_action.title"),
+                t!("resource_center.items.block_action.description"),
                 Tip::Hint(TipHint::BlockAction),
                 ctx,
             ),
             FeatureItem::new(
-                "Open command palette",
-                "Access all of Warp via the keyboard.",
+                t!("resource_center.items.command_palette.title"),
+                t!("resource_center.items.command_palette.description"),
                 Tip::Action(TipAction::CommandPalette),
                 ctx,
             ),
             FeatureItem::new(
-                "Set your theme",
-                "Make Warp your own by choosing a theme.",
+                t!("resource_center.items.theme_picker.title"),
+                t!("resource_center.items.theme_picker.description"),
                 Tip::Action(TipAction::ThemePicker),
                 ctx,
             ),
@@ -61,22 +62,22 @@ pub fn sections(ctx: &mut ViewContext<ResourceCenterMainView>) -> Vec<Section> {
         section_name: FeatureSection::AdvancedSetup,
         items: vec![
             ContentItem {
-                title: "Use your custom prompt",
-                description: "Set up Warp to honor your PS1 setting",
+                title: t!("resource_center.items.custom_prompt.title").to_string(),
+                description: t!("resource_center.items.custom_prompt.description").to_string(),
                 url: "https://docs.warp.dev/terminal/appearance/prompt",
-                button_label: "View documentation",
+                button_label: t!("resource_center.view_documentation").to_string(),
             },
             ContentItem {
-                title: "Integrate Warp with your IDE",
-                description: "Configure Warp to launch from your most used development tools",
+                title: t!("resource_center.items.ide_integration.title").to_string(),
+                description: t!("resource_center.items.ide_integration.description").to_string(),
                 url: "https://docs.warp.dev/terminal/integrations-and-plugins",
-                button_label: "View documentation",
+                button_label: t!("resource_center.view_documentation").to_string(),
             },
             ContentItem {
-                title: "How Warp uses Warp",
-                description: "Learn how Warp's engineering team uses their favorite features",
+                title: t!("resource_center.items.how_warp_uses_warp.title").to_string(),
+                description: t!("resource_center.items.how_warp_uses_warp.description").to_string(),
                 url: "https://www.warp.dev/blog/how-warp-uses-warp",
-                button_label: "Read article",
+                button_label: t!("resource_center.read_article").to_string(),
             },
         ],
     };
@@ -89,23 +90,23 @@ fn maximize_warp_items(ctx: &mut ViewContext<ResourceCenterMainView>) -> Vec<Fea
     let mut maximize_warp_items = vec![];
 
     maximize_warp_items.push(FeatureItem::new(
-        "Command search",
-        "Find and run previously executed commands, workflows, and more.",
+        t!("resource_center.items.command_search.title"),
+        t!("resource_center.items.command_search.description"),
         Tip::Action(TipAction::CommandSearch),
         ctx,
     ));
 
     maximize_warp_items.push(FeatureItem::new(
-        "AI command search",
-        "Generate shell commands with natural language.",
+        t!("resource_center.items.ai_command_search.title"),
+        t!("resource_center.items.ai_command_search.description"),
         Tip::Action(TipAction::AiCommandSearch),
         ctx,
     ));
 
     if ContextFlag::CreateNewSession.is_enabled() {
         maximize_warp_items.push(FeatureItem::new(
-            "Split panes",
-            "Split tabs into multiple panes to make your ideal layout.",
+            t!("resource_center.items.split_panes.title"),
+            t!("resource_center.items.split_panes.description"),
             Tip::Action(TipAction::SplitPane),
             ctx,
         ));
@@ -113,8 +114,8 @@ fn maximize_warp_items(ctx: &mut ViewContext<ResourceCenterMainView>) -> Vec<Fea
 
     if ContextFlag::LaunchConfigurations.is_enabled() {
         maximize_warp_items.push(FeatureItem::new(
-            "Launch configuration",
-            "Save your current configuration of windows, tabs, and panes.",
+            t!("resource_center.items.launch_configuration.title"),
+            t!("resource_center.items.launch_configuration.description"),
             Tip::Action(TipAction::SaveNewLaunchConfig),
             ctx,
         ));

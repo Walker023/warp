@@ -15,6 +15,7 @@ use warpui::ui_components::components::{Coords, UiComponent as _, UiComponentSty
 use warpui::{AppContext, Element, Entity, SingletonEntity as _, View, ViewContext, ViewHandle};
 
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::menu::MenuItemFields;
 use crate::modal::{Modal, ModalEvent, MODAL_PADDING, MODAL_WIDTH};
 use crate::pricing::{PricingInfoModel, PricingInfoModelEvent};
@@ -274,7 +275,7 @@ impl EnableAutoReloadModalBody {
                 }),
                 ..Default::default()
             })
-            .with_text_label("Cancel".to_string())
+            .with_text_label(t!("terminal.cancel").to_string())
             .build()
             .on_click(|ctx, _, _| {
                 ctx.dispatch_typed_action(Action::Cancel);

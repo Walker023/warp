@@ -1,3 +1,4 @@
+use rust_i18n::t;
 use ui_components::{button, Component as _, Options as _};
 use warp_core::ui::appearance::Appearance;
 use warp_core::ui::theme::color::internal_colors;
@@ -22,14 +23,6 @@ use warpui_core::{
 use super::OnboardingSlide;
 use crate::model::{AiSetupChoice, OnboardingStateModel};
 use crate::slides::{bottom_nav, layout, slide_content};
-
-/// Checklist shown on the "Use Warp agent" card.
-const WARP_AGENT_FEATURES: &[&str] = &[
-    "Best harness for terminal tasks and agentic coding",
-    "Frontier models from OpenAI, Anthropic, and Google",
-    "Model routing across frontier and open-weight models",
-    "Multi-agent orchestration",
-];
 
 #[derive(Debug, Clone)]
 pub enum AiSetupSlideAction {
@@ -106,7 +99,7 @@ impl AiSetupSlide {
 
         let title = appearance
             .ui_builder()
-            .paragraph("Choose your AI setup")
+            .paragraph(t!("onboarding.ai_setup.title").to_string())
             .with_style(UiComponentStyles {
                 font_size: Some(36.),
                 font_weight: Some(Weight::Medium),
@@ -116,7 +109,7 @@ impl AiSetupSlide {
             .finish();
 
         let subtitle = FormattedTextElement::from_str(
-            "Choose if you'd like to use Warp Agent or third party agents.",
+            t!("onboarding.ai_setup.subtitle").to_string(),
             appearance.ui_font_family(),
             16.,
         )
@@ -227,7 +220,7 @@ impl AiSetupSlide {
         let header_row = {
             let label = appearance
                 .ui_builder()
-                .paragraph("Use Warp Agent")
+                .paragraph(t!("onboarding.ai_setup.warp_agent.title").to_string())
                 .with_style(UiComponentStyles {
                     font_size: Some(16.),
                     font_weight: Some(Weight::Semibold),
@@ -241,7 +234,7 @@ impl AiSetupSlide {
                 let green = theme.ansi_fg_green();
                 let badge_text = appearance
                     .ui_builder()
-                    .paragraph("Access more models")
+                    .paragraph(t!("onboarding.ai_setup.warp_agent.badge").to_string())
                     .with_style(UiComponentStyles {
                         font_size: Some(12.),
                         font_weight: Some(Weight::Normal),
@@ -268,7 +261,7 @@ impl AiSetupSlide {
         };
 
         let description = FormattedTextElement::from_str(
-            "State of the art agent harness deeply integrated into the terminal.",
+            t!("onboarding.ai_setup.warp_agent.description").to_string(),
             appearance.ui_font_family(),
             14.,
         )
@@ -289,14 +282,19 @@ impl AiSetupSlide {
             let mut col = Flex::column()
                 .with_main_axis_size(MainAxisSize::Min)
                 .with_cross_axis_alignment(CrossAxisAlignment::Start);
-            for &item in WARP_AGENT_FEATURES {
+            for item in [
+                t!("onboarding.ai_setup.warp_agent.features.models").to_string(),
+                t!("onboarding.ai_setup.warp_agent.features.cloud_agents").to_string(),
+                t!("onboarding.ai_setup.warp_agent.features.fixes").to_string(),
+                t!("onboarding.ai_setup.warp_agent.features.code_review").to_string(),
+            ] {
                 let icon_el = ConstrainedBox::new(Icon::Check.to_warpui_icon(check_fill).finish())
                     .with_width(16.)
                     .with_height(16.)
                     .finish();
                 let text_el = appearance
                     .ui_builder()
-                    .paragraph(item.to_string())
+                    .paragraph(item)
                     .with_style(UiComponentStyles {
                         font_size: Some(14.),
                         font_weight: Some(Weight::Normal),
@@ -354,7 +352,7 @@ impl AiSetupSlide {
 
         let label = appearance
             .ui_builder()
-            .paragraph("Use third party agents")
+            .paragraph(t!("onboarding.ai_setup.third_party.title").to_string())
             .with_style(UiComponentStyles {
                 font_size: Some(16.),
                 font_weight: Some(Weight::Semibold),
@@ -365,7 +363,7 @@ impl AiSetupSlide {
             .finish();
 
         let description = FormattedTextElement::from_str(
-            "Use agents like Claude Code, Codex, and Gemini.",
+            t!("onboarding.ai_setup.third_party.description").to_string(),
             appearance.ui_font_family(),
             14.,
         )
@@ -395,7 +393,7 @@ impl AiSetupSlide {
         let back_button = self.back_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label("Back".into()),
+                content: button::Content::Label(t!("onboarding.common.back").into()),
                 theme: &button::themes::Naked,
                 options: button::Options {
                     on_click: Some(Box::new(|ctx, _app, _pos| {
@@ -410,7 +408,7 @@ impl AiSetupSlide {
         let next_button = self.next_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label("Next".into()),
+                content: button::Content::Label(t!("onboarding.common.next").into()),
                 theme: &button::themes::Primary,
                 options: button::Options {
                     keystroke: Some(enter),

@@ -26,6 +26,7 @@ use super::styles;
 use crate::appearance::Appearance;
 use crate::debounce;
 use crate::drive::settings::WarpDriveSettings;
+use crate::i18n::t;
 #[cfg(not(target_family = "wasm"))]
 use crate::search::ai_context_menu::blocks::data_source::BlockDataSource;
 #[cfg(not(target_family = "wasm"))]
@@ -102,28 +103,53 @@ pub enum AIContextMenuCategory {
 }
 
 impl AIContextMenuCategory {
-    pub fn name(&self) -> &'static str {
+    pub fn name(&self) -> String {
         match self {
-            AIContextMenuCategory::CurrentFolderFiles => "Files and folders",
-            AIContextMenuCategory::RepoFiles => "Files and folders",
-            AIContextMenuCategory::Commands => "Commands",
-            AIContextMenuCategory::Blocks => "Blocks",
-            AIContextMenuCategory::Workflows => "Workflows",
-            AIContextMenuCategory::Notebooks => "Notebooks",
-            AIContextMenuCategory::Plans => "Plans",
-            AIContextMenuCategory::Diffs => "Diffs",
-            AIContextMenuCategory::Docs => "Docs",
-            AIContextMenuCategory::Tasks => "Past tasks",
-            AIContextMenuCategory::Rules => "Rules",
-            AIContextMenuCategory::Servers => "Servers and integrations",
-            AIContextMenuCategory::Terminal => "Terminal",
-            AIContextMenuCategory::Web => "Web",
-            AIContextMenuCategory::RecentDiff => "Most recent diff",
-            AIContextMenuCategory::RecentBlock => "Most recent block",
-            AIContextMenuCategory::Code => "Code",
-            AIContextMenuCategory::DiffSet => "Diff sets",
-            AIContextMenuCategory::Conversations => "Conversations",
-            AIContextMenuCategory::Skills => "Skills",
+            AIContextMenuCategory::CurrentFolderFiles | AIContextMenuCategory::RepoFiles => {
+                t!("command_palette.ai_context_menu.files_and_folders").to_string()
+            }
+            AIContextMenuCategory::Commands => {
+                t!("command_palette.ai_context_menu.commands").to_string()
+            }
+            AIContextMenuCategory::Blocks => {
+                t!("command_palette.ai_context_menu.blocks").to_string()
+            }
+            AIContextMenuCategory::Workflows => {
+                t!("command_palette.ai_context_menu.workflows").to_string()
+            }
+            AIContextMenuCategory::Notebooks => {
+                t!("command_palette.ai_context_menu.notebooks").to_string()
+            }
+            AIContextMenuCategory::Plans => t!("command_palette.ai_context_menu.plans").to_string(),
+            AIContextMenuCategory::Diffs => t!("command_palette.ai_context_menu.diffs").to_string(),
+            AIContextMenuCategory::Docs => t!("command_palette.ai_context_menu.docs").to_string(),
+            AIContextMenuCategory::Tasks => {
+                t!("command_palette.ai_context_menu.past_tasks").to_string()
+            }
+            AIContextMenuCategory::Rules => t!("command_palette.ai_context_menu.rules").to_string(),
+            AIContextMenuCategory::Servers => {
+                t!("command_palette.ai_context_menu.servers_and_integrations").to_string()
+            }
+            AIContextMenuCategory::Terminal => {
+                t!("command_palette.ai_context_menu.terminal").to_string()
+            }
+            AIContextMenuCategory::Web => t!("command_palette.ai_context_menu.web").to_string(),
+            AIContextMenuCategory::RecentDiff => {
+                t!("command_palette.ai_context_menu.most_recent_diff").to_string()
+            }
+            AIContextMenuCategory::RecentBlock => {
+                t!("command_palette.ai_context_menu.most_recent_block").to_string()
+            }
+            AIContextMenuCategory::Code => t!("command_palette.ai_context_menu.code").to_string(),
+            AIContextMenuCategory::DiffSet => {
+                t!("command_palette.ai_context_menu.diff_sets").to_string()
+            }
+            AIContextMenuCategory::Conversations => {
+                t!("command_palette.ai_context_menu.conversations").to_string()
+            }
+            AIContextMenuCategory::Skills => {
+                t!("command_palette.ai_context_menu.skills").to_string()
+            }
         }
     }
 
@@ -1372,7 +1398,7 @@ impl AIContextMenu {
         let theme = appearance.theme();
         Container::new(
             Text::new(
-                "No results found",
+                t!("command_palette.no_results").to_string(),
                 appearance.ui_font_family(),
                 appearance.monospace_font_size(),
             )
@@ -1388,7 +1414,7 @@ impl AIContextMenu {
         let theme = appearance.theme();
         Container::new(
             Text::new(
-                "Loading results...",
+                t!("command_palette.ai_context_menu.loading_results").to_string(),
                 appearance.ui_font_family(),
                 appearance.monospace_font_size(),
             )
@@ -1405,7 +1431,7 @@ impl AIContextMenu {
         let theme = appearance.theme();
         Container::new(
             Text::new(
-                "Code symbols indexing...",
+                t!("command_palette.ai_context_menu.code_symbols_indexing").to_string(),
                 appearance.ui_font_family(),
                 appearance.monospace_font_size(),
             )

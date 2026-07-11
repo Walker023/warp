@@ -27,6 +27,7 @@ use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpEscapeKey, PropagateAndNoOpNavigationKeys,
     SingleLineEditorOptions, TextOptions,
 };
+use crate::i18n::t;
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields, MenuVariant};
 use crate::terminal::input::{MenuPositioning, MenuPositioningProvider};
 use crate::terminal::view::ambient_agent::{AmbientAgentViewModel, AmbientAgentViewModelEvent};
@@ -567,7 +568,7 @@ impl ModelSelector {
         let mut items: Vec<MenuItem<ModelSelectorAction>> = Vec::new();
         if query.is_empty() || "default".contains(query) {
             items.push(MenuItem::Item(
-                MenuItemFields::new("default")
+                MenuItemFields::new(t!("terminal.default").to_string())
                     .with_icon(icon)
                     .with_icon_size_override(ITEM_ICON_SIZE)
                     .with_font_size_override(ITEM_FONT_SIZE)

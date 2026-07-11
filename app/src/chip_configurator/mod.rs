@@ -27,6 +27,7 @@ use crate::appearance::Appearance;
 use crate::context_chips::display_chip::{chip_container, udi_font_size};
 use crate::context_chips::renderer::{ChipDragState, Renderer as ContextChipRenderer};
 use crate::context_chips::{spacing, ChipAvailability, ContextChipKind};
+use crate::i18n::t;
 use crate::ui_components::icons;
 
 const USED_CHIPS_POSITION_ID: &str = "chip_cfg_used";
@@ -196,13 +197,13 @@ impl ControlItemRenderer {
             .finish()
     }
 
-    pub(crate) fn display_label(&self) -> &str {
+    pub(crate) fn display_label(&self) -> String {
         if let Some(label) = &self.custom_label {
-            label
+            label.clone()
         } else if let Some(kind) = &self.kind {
             kind.display_label()
         } else {
-            "Unknown"
+            t!("settings.execution_profile.unknown").to_string()
         }
     }
 

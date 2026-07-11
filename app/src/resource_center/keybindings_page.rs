@@ -28,6 +28,7 @@ use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, SingleLineEditorOptions,
     TextOptions,
 };
+use crate::i18n::t;
 use crate::search_bar::SearchBar;
 use crate::settings_view;
 use crate::settings_view::keybindings::{KeybindingChangedEvent, KeybindingChangedNotifier};
@@ -90,7 +91,7 @@ impl KeybindingsView {
 
         search_editor.update(ctx, |editor, ctx| {
             editor.clear_buffer_and_reset_undo_stack(ctx);
-            editor.set_placeholder_text(settings_view::keybindings::SEARCH_PLACEHOLDER, ctx);
+            editor.set_placeholder_text(settings_view::keybindings::search_placeholder(), ctx);
         });
 
         let search_bar = {
@@ -346,7 +347,11 @@ impl KeybindingsView {
                         .build()
                         .finish(),
                 )
-                .with_child(self.render_text("To toggle this panel".into(), None, appearance))
+                .with_child(self.render_text(
+                    t!("resource_center.keybindings.toggle_panel_hint").to_string(),
+                    None,
+                    appearance,
+                ))
                 .with_cross_axis_alignment(CrossAxisAlignment::Center)
                 .finish();
 
@@ -361,7 +366,7 @@ impl KeybindingsView {
             appearance
                 .ui_builder()
                 .link(
-                    "here.".into(),
+                    t!("resource_center.keybindings.settings_link").to_string(),
                     None,
                     Some(Box::new(|ctx| {
                         ctx.dispatch_typed_action(WorkspaceAction::ConfigureKeybindingSettings {
@@ -384,7 +389,7 @@ impl KeybindingsView {
         Container::new(
             column
                 .with_child(self.render_text(
-                    "Go to settings > keyboard shortcuts to configure custom keybindings".into(),
+                    t!("resource_center.keybindings.configure_hint").to_string(),
                     None,
                     appearance,
                 ))
@@ -412,15 +417,19 @@ impl KeybindingsView {
             Flex::column().with_cross_axis_alignment(CrossAxisAlignment::Stretch);
 
         let title = match section {
-            KeybindingSection::Essentials => "Essentials",
-            KeybindingSection::Blocks => "Blocks",
-            KeybindingSection::InputEditor => "Input Editor",
-            KeybindingSection::Terminal => "Terminal",
-            KeybindingSection::Fundamentals => "Fundamentals",
+            KeybindingSection::Essentials => t!("resource_center.keybindings.sections.essentials"),
+            KeybindingSection::Blocks => t!("resource_center.keybindings.sections.blocks"),
+            KeybindingSection::InputEditor => {
+                t!("resource_center.keybindings.sections.input_editor")
+            }
+            KeybindingSection::Terminal => t!("resource_center.keybindings.sections.terminal"),
+            KeybindingSection::Fundamentals => {
+                t!("resource_center.keybindings.sections.fundamentals")
+            }
         };
 
         let mut section_header = self.render_text(
-            title.into(),
+            title.to_string(),
             Some(UiComponentStyles {
                 font_color: Some(appearance.theme().active_ui_text_color().into()),
                 font_size: Some(SECTION_HEADER_FONT_SIZE),

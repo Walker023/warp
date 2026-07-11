@@ -28,6 +28,7 @@ use crate::auth::AuthStateProvider;
 use crate::changelog_model::ChangelogModel;
 use crate::channel::ChannelState;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::resource_center::skip_tips_and_write_to_user_defaults;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::TelemetryEvent;
@@ -390,7 +391,7 @@ impl ResourceCenterMainView {
                 .with_text_and_icon_label(
                     TextAndIcon::new(
                         TextAndIconAlignment::IconFirst,
-                        "Invite a friend to Warp",
+                        t!("resource_center.invite_friend"),
                         Icon::new(SEND_SVG_PATH, appearance.theme().accent()),
                         MainAxisSize::Max,
                         MainAxisAlignment::Center,
@@ -429,7 +430,7 @@ impl ResourceCenterMainView {
 
                     appearance
                         .ui_builder()
-                        .wrappable_text("Mark all as read", false)
+                        .wrappable_text(t!("resource_center.mark_all_as_read").to_string(), false)
                         .with_style(style)
                         .build()
                         .finish()

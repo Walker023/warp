@@ -5,6 +5,7 @@ use warpui::{
 };
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 use crate::view_components::action_button::{ActionButton, DangerPrimaryTheme, NakedTheme};
 
@@ -56,24 +57,30 @@ impl From<&DestructiveMCPConfirmationDialogVariant>
 {
     fn from(variant: &DestructiveMCPConfirmationDialogVariant) -> Self {
         match *variant {
-            DestructiveMCPConfirmationDialogVariant::DeleteLocal => DestructiveMCPConfirmationDialogDisplayOptions::new(
-                "Delete MCP server?".to_string(),
-                "This will uninstall and remove this MCP server from all your devices.".to_string(),
-                "Delete MCP".to_string(),
-                "Cancel".to_string(),
-            ),
-            DestructiveMCPConfirmationDialogVariant::DeleteShared => DestructiveMCPConfirmationDialogDisplayOptions::new(
-                "Delete shared MCP server?".to_string(),
-                "This will not only delete this MCP server for yourself, but also uninstall and remove this MCP server from Warp and across all of your teammates' devices.".to_string(),
-                "Delete MCP".to_string(),
-                "Cancel".to_string(),
-            ),
-            DestructiveMCPConfirmationDialogVariant::Unshare => DestructiveMCPConfirmationDialogDisplayOptions::new(
-                "Remove shared MCP server from team?".to_string(),
-                "This will uninstall and remove this MCP server from Warp and across all of your teammates' devices.".to_string(),
-                "Remove from team".to_string(),
-                "Cancel".to_string(),
-            ),
+            DestructiveMCPConfirmationDialogVariant::DeleteLocal => {
+                DestructiveMCPConfirmationDialogDisplayOptions::new(
+                    t!("settings.mcp_servers.destructive.delete_local_title").to_string(),
+                    t!("settings.mcp_servers.destructive.delete_local_description").to_string(),
+                    t!("settings.mcp_servers.destructive.delete_mcp").to_string(),
+                    t!("common.cancel").to_string(),
+                )
+            }
+            DestructiveMCPConfirmationDialogVariant::DeleteShared => {
+                DestructiveMCPConfirmationDialogDisplayOptions::new(
+                    t!("settings.mcp_servers.destructive.delete_shared_title").to_string(),
+                    t!("settings.mcp_servers.destructive.delete_shared_description").to_string(),
+                    t!("settings.mcp_servers.destructive.delete_mcp").to_string(),
+                    t!("common.cancel").to_string(),
+                )
+            }
+            DestructiveMCPConfirmationDialogVariant::Unshare => {
+                DestructiveMCPConfirmationDialogDisplayOptions::new(
+                    t!("settings.mcp_servers.destructive.unshare_title").to_string(),
+                    t!("settings.mcp_servers.destructive.unshare_description").to_string(),
+                    t!("settings.mcp_servers.edit.remove_from_team").to_string(),
+                    t!("common.cancel").to_string(),
+                )
+            }
         }
     }
 }

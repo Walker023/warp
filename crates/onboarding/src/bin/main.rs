@@ -10,6 +10,7 @@ use onboarding::{
 };
 use pathfinder_color::ColorU;
 use rust_embed::RustEmbed;
+use rust_i18n::t;
 use warp_core::ui::appearance::Appearance;
 use warp_core::ui::icons::Icon;
 use warp_core::ui::theme::{
@@ -88,7 +89,7 @@ impl OnboardingMainView {
         let models = vec![
             OnboardingModelInfo {
                 id: LLMId::from("auto"),
-                title: "Auto".to_string(),
+                title: t!("onboarding.demo.auto").to_string(),
                 icon: Icon::Oz,
                 is_default: true,
             },
@@ -198,9 +199,9 @@ impl View for FinishedOnboardingView {
         let appearance = Appearance::as_ref(app);
 
         let header_text = if self.selected_settings.is_some() {
-            "Finished Onboarding"
+            t!("onboarding.demo.finished").to_string()
         } else {
-            "Skipped Onboarding"
+            t!("onboarding.demo.skipped").to_string()
         };
 
         let header = appearance
@@ -215,8 +216,13 @@ impl View for FinishedOnboardingView {
             .finish();
 
         let details_text = match &self.selected_settings {
-            Some(selected_settings) => format!("SelectedSettings: {selected_settings:?}"),
-            None => "SelectedSettings: (none)".to_string(),
+            Some(selected_settings) => {
+                format!(
+                    "{} {selected_settings:?}",
+                    t!("onboarding.demo.selected_settings")
+                )
+            }
+            None => format!("{} (none)", t!("onboarding.demo.selected_settings")),
         };
 
         let details = appearance

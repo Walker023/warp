@@ -1,3 +1,4 @@
+use rust_i18n::t;
 use ui_components::{button, keyboard_shortcut, Component as _, Options as _};
 use warp_core::send_telemetry_from_ctx;
 use warp_core::ui::appearance::Appearance;
@@ -124,7 +125,7 @@ impl ProjectSlide {
     fn render_header(&self, appearance: &Appearance) -> Box<dyn Element> {
         let title = appearance
             .ui_builder()
-            .paragraph("Open a project")
+            .paragraph(t!("onboarding.project.title").to_string())
             .with_style(UiComponentStyles {
                 font_size: Some(36.),
                 font_weight: Some(Weight::Medium),
@@ -135,7 +136,7 @@ impl ProjectSlide {
 
         let subtitle = appearance
             .ui_builder()
-            .paragraph("Set up a project to optimize it for coding in Warp.")
+            .paragraph(t!("onboarding.project.subtitle").to_string())
             .with_style(UiComponentStyles {
                 font_size: Some(20.),
                 font_weight: Some(Weight::Normal),
@@ -213,7 +214,7 @@ impl ProjectSlide {
                 let folder_text = Container::new(
                     appearance
                         .ui_builder()
-                        .paragraph("Open local folder")
+                        .paragraph(t!("onboarding.project.open_local_folder").to_string())
                         .with_style(UiComponentStyles {
                             font_color: Some(text_color),
                             ..Default::default()
@@ -280,7 +281,7 @@ impl ProjectSlide {
         let back_button = self.back_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label("Back".into()),
+                content: button::Content::Label(t!("onboarding.common.back").into()),
                 theme: &button::themes::Naked,
                 options: button::Options {
                     on_click: Some(Box::new(|ctx, _app, _pos| {
@@ -297,15 +298,15 @@ impl ProjectSlide {
         let (label, keystroke, action) = match settings {
             ProjectOnboardingSettings::Project { .. } => (
                 if theme_picker_last {
-                    "Next"
+                    t!("onboarding.common.next").to_string()
                 } else {
-                    "Get Warping"
+                    t!("onboarding.common.get_warping").to_string()
                 },
                 Keystroke::parse("enter").unwrap_or_default(),
                 ProjectSlideAction::NextClicked,
             ),
             ProjectOnboardingSettings::NoProject => (
-                "Skip",
+                t!("onboarding.common.skip").to_string(),
                 Keystroke::parse("cmdorctrl-enter").unwrap_or_default(),
                 ProjectSlideAction::SkipClicked,
             ),
@@ -343,8 +344,8 @@ impl ProjectSlide {
         appearance: &Appearance,
         mouse_state: MouseStateHandle,
         checked: bool,
-        title: &'static str,
-        description: &'static str,
+        title: String,
+        description: String,
         action: ProjectSlideAction,
     ) -> Box<dyn Element> {
         let theme = appearance.theme();
@@ -408,8 +409,8 @@ impl ProjectSlide {
             appearance,
             self.initialize_projects_automatically_mouse_state.clone(),
             initialize_projects_automatically,
-            "Initialize project automatically",
-            "Prepares the project environment, builds an index of your code, and generates project rules—giving the agent deeper understanding and better performance.",
+            t!("onboarding.project.initialize_auto.title").to_string(),
+            t!("onboarding.project.initialize_auto.description").to_string(),
             ProjectSlideAction::ToggleInitializeProjectsAutomatically,
         );
 

@@ -5,6 +5,7 @@ use warpui::{
 };
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::server::ids::SyncId;
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 use crate::view_components::action_button::{ActionButton, DangerPrimaryTheme, NakedTheme};
@@ -33,13 +34,17 @@ pub struct DeleteEnvironmentConfirmationDialog {
 impl DeleteEnvironmentConfirmationDialog {
     pub fn new(ctx: &mut ViewContext<Self>) -> Self {
         let cancel_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Cancel", NakedTheme).on_click(|ctx| {
+            ActionButton::new(t!("common.cancel").to_string(), NakedTheme).on_click(|ctx| {
                 ctx.dispatch_typed_action(DeleteEnvironmentConfirmationDialogAction::Cancel);
             })
         });
 
         let confirm_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Delete environment", DangerPrimaryTheme).on_click(|ctx| {
+            ActionButton::new(
+                t!("settings.environments.delete_environment").to_string(),
+                DangerPrimaryTheme,
+            )
+            .on_click(|ctx| {
                 ctx.dispatch_typed_action(DeleteEnvironmentConfirmationDialogAction::Confirm);
             })
         });

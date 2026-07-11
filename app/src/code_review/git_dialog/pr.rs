@@ -19,6 +19,7 @@ use crate::code_review::git_dialog::{
 use crate::code_review::telemetry_event::{
     CodeReviewTelemetryEvent, GitDialogStatus, GitOperationKind,
 };
+use crate::i18n::t;
 use crate::ui_components::icons::Icon;
 use crate::util::git::{FileChangeEntry, PrInfo};
 use crate::view_components::{DismissibleToast, ToastLink};
@@ -38,16 +39,16 @@ pub struct PrState {
     changes_scroll_state: ClippedScrollStateHandle,
 }
 
-pub(super) fn confirm_label_for() -> &'static str {
-    "Create PR"
+pub(super) fn confirm_label_for() -> String {
+    t!("code_review.create_pr").to_string()
 }
 
 pub(super) fn confirm_icon_for() -> Icon {
     Icon::Github
 }
 
-fn loading_label_for() -> &'static str {
-    "Creating\u{2026}"
+fn loading_label_for() -> String {
+    t!("code_review.creating").to_string()
 }
 
 /// PR mode has no prerequisites beyond a branch with commits; confirm is
@@ -166,9 +167,9 @@ pub(super) fn show_pr_created_toast(pr_info: &PrInfo, ctx: &mut ViewContext<GitD
     let window_id = ctx.window_id();
     let url = pr_info.url.clone();
     ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-        let link = ToastLink::new("Open PR".to_string()).with_href(url);
+        let link = ToastLink::new(t!("code_review.open_pr").to_string()).with_href(url);
         let toast =
-            DismissibleToast::default("PR successfully created.".to_string()).with_link(link);
+            DismissibleToast::default(t!("code_review.pr_created").to_string()).with_link(link);
         toast_stack.add_ephemeral_toast(toast, window_id, ctx);
     });
 }
@@ -181,7 +182,8 @@ pub(super) fn render_body(
     let base_branch = state
         .base_branch_name
         .as_deref()
-        .unwrap_or("default branch");
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| t!("code_review.default_branch").to_string());
     let branch_name = format!("{branch_name} \u{2192} {base_branch}");
     Flex::column()
         .with_child(
@@ -198,7 +200,7 @@ fn render_changes_section(state: &PrState, appearance: &Appearance) -> Box<dyn E
     let main_color = theme.main_text_color(theme.surface_1()).into_solid();
 
     let label = Text::new(
-        "Changes",
+        t!("code_review.changes").to_string(),
         appearance.ui_font_family(),
         appearance.ui_font_size(),
     )

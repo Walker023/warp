@@ -3,6 +3,7 @@
 
 use warpui::keymap::Keystroke;
 
+use crate::i18n::t;
 use crate::util::bindings::CommandBinding;
 
 pub const BLOCKS_KEYBINDINGS: &[&str] = &[
@@ -119,27 +120,27 @@ pub fn get_additional_keybindings() -> Vec<CommandBinding> {
     vec![
         CommandBinding::new(
             "workspace:new_window".into(),
-            "Open New Window".into(),
+            t!("menu.new_window").to_string(),
             Some(Keystroke::parse("cmd-n").expect("Valid keystroke")),
         ),
         CommandBinding::new(
             "workspace:hide_warp".into(),
-            "Hide Warp".into(),
+            t!("menu.hide").to_string(),
             Some(Keystroke::parse("cmd-h").expect("Valid keystroke")),
         ),
         CommandBinding::new(
             "workspace:hide_others".into(),
-            "Hide Others".into(),
+            t!("menu.hide_others").to_string(),
             Some(Keystroke::parse("alt-cmd-h").expect("Valid keystroke")),
         ),
         CommandBinding::new(
             "workspace:quit_warp".into(),
-            "Quit Warp".into(),
+            t!("menu.quit").to_string(),
             Some(Keystroke::parse("cmd-q").expect("Valid keystroke")),
         ),
         CommandBinding::new(
             "workspace:minimize".into(),
-            "Minimize".into(),
+            t!("menu.minimize").to_string(),
             Some(Keystroke::parse("cmd-m").expect("Valid keystroke")),
         ),
     ]

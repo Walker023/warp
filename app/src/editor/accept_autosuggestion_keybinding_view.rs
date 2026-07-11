@@ -17,6 +17,7 @@ use warpui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewCon
 use super::EditorElement;
 use crate::appearance::Appearance;
 use crate::editor::ACCEPT_AUTOSUGGESTION_KEYBINDING_NAME;
+use crate::i18n::t;
 use crate::menu::{Menu, MenuItemFields};
 use crate::settings_view::keybindings::{KeybindingChangedEvent, KeybindingChangedNotifier};
 use crate::terminal::input::OPEN_COMPLETIONS_KEYBINDING_NAME;
@@ -93,7 +94,7 @@ impl AcceptAutosuggestionKeybinding {
                     },
                 )
                 .into_item(),
-            MenuItemFields::new("Custom...")
+            MenuItemFields::new(t!("editor.autosuggestion.custom").to_string())
                 .with_on_select_action(
                     AcceptAutosuggestionKeybindingAction::OpenSettingsForCustomKeybinding,
                 )
@@ -215,7 +216,7 @@ impl TypedActionView for AcceptAutosuggestionKeybinding {
             }
             AcceptAutosuggestionKeybindingAction::OpenSettingsForCustomKeybinding => ctx
                 .dispatch_typed_action(&WorkspaceAction::ConfigureKeybindingSettings {
-                    keybinding_name: Some("Accept Autosuggestion".to_owned()),
+                    keybinding_name: Some(ACCEPT_AUTOSUGGESTION_KEYBINDING_NAME.to_owned()),
                 }),
             AcceptAutosuggestionKeybindingAction::OpenMenu => {
                 self.is_menu_open = true;
@@ -338,7 +339,7 @@ impl View for AcceptAutosuggestionKeybinding {
             if !is_menu_open && state.is_hovered() {
                 let tool_tip = appearance
                     .ui_builder()
-                    .autosuggestion_tool_tip("Change keybinding".into())
+                    .autosuggestion_tool_tip(t!("editor.autosuggestion.change_keybinding").into())
                     .build()
                     .finish();
                 stack.add_positioned_overlay_child(

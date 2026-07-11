@@ -19,6 +19,7 @@ use warpui::{
 use crate::ai::blocklist::inline_action::orchestration_controls::ORCHESTRATION_WARP_WORKER_HOST;
 use crate::ai::cloud_agent_settings::CloudAgentSettings;
 use crate::ai::connected_self_hosted_workers::ConnectedSelfHostedWorkersModel;
+use crate::i18n::t;
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields};
 use crate::terminal::input::{MenuPositioning, MenuPositioningProvider};
 use crate::view_components::action_button::{
@@ -36,16 +37,6 @@ const ITEM_VERTICAL_PADDING: f32 = 8.;
 const HEADER_VERTICAL_PADDING: f32 = 6.;
 
 const MENU_WIDTH: f32 = 208.;
-
-const BUTTON_TOOLTIP: &str = "Execution host";
-
-const MENU_HEADER_LABEL: &str = "Execution host";
-
-const DEFAULT_BADGE: &str = "Default";
-
-const CONNECTED_BADGE: &str = "Connected";
-
-const DISCONNECTED_BADGE: &str = "Disconnected";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Host {
@@ -107,7 +98,7 @@ impl HostSelector {
             ActionButton::new(initial_label, NakedHeaderButtonTheme)
                 .with_size(ButtonSize::AgentInputButton)
                 .with_menu(true)
-                .with_tooltip(BUTTON_TOOLTIP)
+                .with_tooltip(t!("ambient_agent.host_selector.execution_host").to_string())
                 .with_tooltip_alignment(TooltipAlignment::Left)
                 .on_click(|ctx| {
                     ctx.dispatch_typed_action(HostSelectorAction::ToggleMenu);
@@ -282,8 +273,11 @@ fn build_menu_items(
     selected: &Host,
     ctx: &mut ViewContext<HostSelector>,
 ) -> Vec<MenuItem<HostSelectorAction>> {
+    let default_badge = t!("ambient_agent.host_selector.default").to_string();
+    let connected_badge = t!("ambient_agent.host_selector.connected").to_string();
+    let disconnected_badge = t!("ambient_agent.host_selector.disconnected").to_string();
     let header = MenuItem::Header {
-        fields: MenuItemFields::new(MENU_HEADER_LABEL)
+        fields: MenuItemFields::new(t!("ambient_agent.host_selector.execution_host").to_string())
             .with_font_size_override(HEADER_FONT_SIZE)
             .with_override_text_color(header_text_color)
             .with_padding_override(HEADER_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
@@ -292,7 +286,7 @@ fn build_menu_items(
         right_side_fields: None,
     };
 
-    let item_for = |host: Host, badge: Option<&str>| {
+    let item_for = |host: Host, badge: Option<String>| {
         let label = host.display_name().to_string();
         let mut fields = MenuItemFields::new(label)
             .with_font_size_override(ITEM_FONT_SIZE)
@@ -313,7 +307,7 @@ fn build_menu_items(
 
     let mut items = vec![header];
     if let Some(host) = default_host {
-        items.push(item_for(host.clone(), Some(DEFAULT_BADGE)));
+        items.push(item_for(host.clone(), Some(default_badge)));
     }
     items.push(item_for(Host::Warp, None));
     let default_slug = match default_host {
@@ -329,7 +323,7 @@ fn build_menu_items(
     for host in &connected_hosts {
         items.push(item_for(
             Host::SelfHosted { slug: host.clone() },
-            Some(CONNECTED_BADGE),
+            Some(connected_badge.clone()),
         ));
     }
     if let Host::SelfHosted { slug } = selected {
@@ -340,7 +334,7 @@ fn build_menu_items(
         if !is_default && !is_connected {
             items.push(item_for(
                 Host::SelfHosted { slug: slug.clone() },
-                Some(DISCONNECTED_BADGE),
+                Some(disconnected_badge),
             ));
         }
     }

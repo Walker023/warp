@@ -46,6 +46,7 @@ use crate::editor::{
     EditorOptions, EditorView, Event as EditorEvent, InteractionState,
     PropagateAndNoOpNavigationKeys, PropagateHorizontalNavigationKeys, TextOptions,
 };
+use crate::i18n::t;
 use crate::search::ItemHighlightState as SearchHighlightState;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon as UiIcon;
@@ -657,7 +658,10 @@ impl GlobalSearchView {
             };
 
             let mut editor = EditorView::new(options, ctx);
-            editor.set_placeholder_text("Search in files", ctx);
+            editor.set_placeholder_text(
+                &t!("workspace.global_search.search_in_files").to_string(),
+                ctx,
+            );
             editor
         });
 
@@ -671,7 +675,7 @@ impl GlobalSearchView {
         let case_sensitivity_button = ctx.add_typed_action_view(|_ctx| {
             ActionButton::new_with_boxed_theme(String::new(), Arc::new(NakedTheme))
                 .with_icon(UiIcon::CaseSensitivity)
-                .with_tooltip("Toggle Case Sensitivity")
+                .with_tooltip(t!("workspace.global_search.toggle_case_sensitivity").to_string())
                 .with_size(ButtonSize::Small)
                 .on_click(|ctx| {
                     ctx.dispatch_typed_action(GlobalSearchAction::ToggleCaseSensitivity);
@@ -681,7 +685,7 @@ impl GlobalSearchView {
         let regex_button = ctx.add_typed_action_view(|_ctx| {
             ActionButton::new_with_boxed_theme(String::new(), Arc::new(NakedTheme))
                 .with_icon(UiIcon::Regex)
-                .with_tooltip("Toggle Regex")
+                .with_tooltip(t!("workspace.global_search.toggle_regex").to_string())
                 .with_size(ButtonSize::Small)
                 .on_click(|ctx| {
                     ctx.dispatch_typed_action(GlobalSearchAction::ToggleRegexSearch);
@@ -2090,9 +2094,13 @@ impl View for GlobalSearchView {
         let appearance = Appearance::as_ref(app);
         let theme = appearance.theme();
 
-        let search_label = Text::new_inline("Search", appearance.ui_font_family(), 14.)
-            .with_color(blended_colors::text_sub(theme, theme.background()))
-            .finish();
+        let search_label = Text::new_inline(
+            t!("common.search").to_string(),
+            appearance.ui_font_family(),
+            14.,
+        )
+        .with_color(blended_colors::text_sub(theme, theme.background()))
+        .finish();
 
         let editor_line_height = self
             .query_editor
@@ -2144,18 +2152,22 @@ impl View for GlobalSearchView {
             .with_child(query_row);
 
         let files = self.unique_match_count();
-        let file_word = if files == 1 { "file" } else { "files" };
 
         let message = if let Some(error) = &self.last_error {
             error.clone()
         } else if self.is_search_in_progress && self.total_match_count == 0 {
-            "Searching…".to_string()
+            t!("workspace.global_search.searching").to_string()
         } else if !self.is_search_in_progress && self.total_match_count == 0 {
-            "No results found. Review your gitignore files.".to_string()
+            t!("workspace.global_search.no_results_review_gitignore").to_string()
         } else {
             match self.total_match_count {
-                1 => format!("1 result in {files} {file_word}"),
-                n => format!("{n} results in {files} {file_word}"),
+                1 => t!("workspace.global_search.one_result", files = files).to_string(),
+                n => t!(
+                    "workspace.global_search.results_count",
+                    count = n,
+                    files = files
+                )
+                .to_string(),
             }
         };
 
@@ -2328,8 +2340,8 @@ impl GlobalSearchView {
     fn render_pre_search_state(&self, app: &AppContext) -> Box<dyn Element> {
         self.render_zero_state(
             Icon::Search,
-            "Global search",
-            "Search in files across your current directories.",
+            t!("workspace.global_search.title").to_string(),
+            t!("workspace.global_search.subtitle").to_string(),
             app,
         )
     }
@@ -2337,8 +2349,8 @@ impl GlobalSearchView {
     fn render_unavailable_state(&self, app: &AppContext) -> Box<dyn Element> {
         self.render_zero_state(
             Icon::AlertTriangle,
-            "Global search unavailable",
-            "Global search requires access to your local workspace. Open a new session or navigate to an active session to view.",
+            t!("workspace.global_search.unavailable_title").to_string(),
+            t!("workspace.global_search.unavailable_no_workspace").to_string(),
             app,
         )
     }
@@ -2346,16 +2358,16 @@ impl GlobalSearchView {
     fn render_remote_state(&self, app: &AppContext) -> Box<dyn Element> {
         self.render_zero_state(
             Icon::AlertTriangle,
-            "Global search unavailable",
-            "Global search isn't available for this remote session.",
+            t!("workspace.global_search.unavailable_title").to_string(),
+            t!("workspace.global_search.unavailable_remote").to_string(),
             app,
         )
     }
     fn render_remote_loading_state(&self, app: &AppContext) -> Box<dyn Element> {
         self.render_zero_state(
             Icon::Loading,
-            "Connecting to remote session",
-            "Global search will be available once the connection is ready.",
+            t!("workspace.global_search.connecting_remote").to_string(),
+            t!("workspace.global_search.unavailable_connection").to_string(),
             app,
         )
     }
@@ -2363,8 +2375,8 @@ impl GlobalSearchView {
     fn render_unsupported_session_state(&self, app: &AppContext) -> Box<dyn Element> {
         self.render_zero_state(
             Icon::AlertTriangle,
-            "Global search unavailable",
-            "Global search doesn't currently work in Git Bash or WSL.",
+            t!("workspace.global_search.unavailable_title").to_string(),
+            t!("workspace.global_search.unavailable_git_bash_wsl").to_string(),
             app,
         )
     }

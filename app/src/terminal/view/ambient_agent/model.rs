@@ -35,6 +35,7 @@ use crate::ai::harness_availability::HarnessAvailabilityModel;
 use crate::ai::llms::{LLMId, LLMPreferences};
 use crate::cloud_object::model::persistence::{CloudModel, CloudModelEvent};
 use crate::cloud_object::CloudObjectLookup as _;
+use crate::i18n::t;
 use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::ids::{ServerId, SyncId};
 #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
@@ -1449,7 +1450,7 @@ impl AmbientAgentViewModel {
                         | AmbientAgentTaskState::Unknown => {
                             let error = status_message
                                 .map(|msg| msg.message)
-                                .unwrap_or_else(|| "Cloud agent failed".to_string());
+                                .unwrap_or_else(|| t!("terminal.cloud_agent_failed").to_string());
                             self.handle_spawn_error(error, ctx);
                         }
                     }

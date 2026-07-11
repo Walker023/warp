@@ -114,7 +114,7 @@ pub struct SearchBar<T: Action + Clone> {
     mixer: ModelHandle<SearchMixer<T>>,
     /// The placeholder text that is rendered in the search bar when no query has been run or
     /// filters have been applied.
-    placeholder_text: &'static str,
+    placeholder_text: String,
     create_query_result_renderer_fn: CreateQueryResultRendererFn<T>,
     /// Font family to use when rendering the editor and query filters. If `None` the monospace font
     /// family is used.
@@ -339,7 +339,7 @@ impl<T: Action + Clone> SearchBar<T> {
     pub fn new(
         mixer: ModelHandle<SearchMixer<T>>,
         state: ModelHandle<SearchBarState<T>>,
-        placeholder_text: &'static str,
+        placeholder_text: impl Into<String>,
         create_query_result_renderer_fn: CreateQueryResultRendererFn<T>,
         ctx: &mut ViewContext<Self>,
     ) -> Self {
@@ -366,7 +366,7 @@ impl<T: Action + Clone> SearchBar<T> {
         let me = Self {
             editor_handle,
             mixer,
-            placeholder_text,
+            placeholder_text: placeholder_text.into(),
             state,
             create_query_result_renderer_fn,
             font_family_override: None,
@@ -777,7 +777,7 @@ impl<T: Action + Clone> SearchBar<T> {
                         editor.set_placeholder_text(filter.placeholder_text(), ctx);
                     }
                     None => {
-                        editor.set_placeholder_text(self.placeholder_text, ctx);
+                        editor.set_placeholder_text(self.placeholder_text.clone(), ctx);
                     }
                 }
             }

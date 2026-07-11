@@ -15,6 +15,7 @@ use crate::context_chips::display_chip::{
 };
 use crate::context_chips::prompt_snapshot::PromptSnapshot;
 use crate::context_chips::{ChipValue, ContextChipKind};
+use crate::i18n::t;
 use crate::search::command_palette::navigation::search::SessionHighlightIndices;
 use crate::search::result_renderer::ItemHighlightState;
 use crate::session_management::{CommandContext, SessionNavigationData};
@@ -105,7 +106,7 @@ fn render_current_session_pill(
 ) -> Box<dyn Element> {
     let current_session_pill = appearance
         .ui_builder()
-        .span("Current".to_string())
+        .span(t!("command_palette.current").to_string())
         .with_style(UiComponentStyles {
             font_family_id: Some(appearance.monospace_font_family()),
             // The font size is scaled down to make sure the pill fits in the row with its padding.

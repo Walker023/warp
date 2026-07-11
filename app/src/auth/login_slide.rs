@@ -4,7 +4,7 @@ use onboarding::components::feature_optout_dialog::{
     render_feature_optout_dialog, FeatureOptOutDialog,
 };
 use onboarding::slides::{layout, slide_content};
-use onboarding::{OnboardingIntention, WARP_DRIVE_FEATURES};
+use onboarding::OnboardingIntention;
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
 use ui_components::{button, Component as _, Options as _};
@@ -37,6 +37,7 @@ use crate::auth::auth_view_shared_helpers::{
 };
 use crate::auth::login_failure_notification::{self, LoginFailureReason};
 use crate::editor::{EditorView, SingleLineEditorOptions, TextColors, TextOptions};
+use crate::i18n::t;
 use crate::server::telemetry::{LoginEventSource, TelemetryEvent};
 use crate::settings::PrivacySettings;
 use crate::themes::theme::Fill as ThemeFill;
@@ -949,25 +950,25 @@ impl LoginSlideView {
     // ------------------------------------------------------------------
 
     fn render_skip_dialog(&self, appearance: &Appearance) -> Box<dyn Element> {
-        let (title, body, features, cancel_label): (
-            &'static str,
-            &'static str,
-            &'static [&'static str],
-            &'static str,
-        ) = match self.login_purpose() {
-            LoginPurpose::WarpDrive => (
-                "Are you sure you want to disable Warp Drive?",
-                "Warp Drive lets you save workflows and knowledge across devices and share them with your team. By continuing, you won't have access to the following features:",
-                WARP_DRIVE_FEATURES,
-                "Enable Warp Drive",
-            ),
-            LoginPurpose::WarpAgent | LoginPurpose::ThirdParty => (
-                "Continue without signing in?",
-                "Without an account, you won't have access to Warp's AI features. Sign in anytime to unlock agents and other AI features.",
-                &[],
-                "Sign in",
-            ),
-        };
+        let (title, body, features, cancel_label): (String, String, Vec<String>, String) =
+            match self.login_purpose() {
+                LoginPurpose::WarpDrive => (
+                    t!("auth.login_slide.skip_dialog.disable_warp_drive_title").to_string(),
+                    t!("auth.login_slide.skip_dialog.disable_warp_drive_body").to_string(),
+                    vec![
+                        t!("auth.login_slide.skip_dialog.warp_drive").to_string(),
+                        t!("auth.login_slide.skip_dialog.session_sharing").to_string(),
+                    ],
+                    t!("auth.login_slide.skip_dialog.enable_warp_drive").to_string(),
+                ),
+                LoginPurpose::WarpAgent | LoginPurpose::ThirdParty => (
+                    t!("auth.login_slide.skip_dialog.continue_without_signing_in_title")
+                        .to_string(),
+                    t!("auth.login_slide.skip_dialog.continue_without_signing_in_body").to_string(),
+                    Vec::new(),
+                    t!("auth.login_slide.skip_dialog.sign_in").to_string(),
+                ),
+            };
 
         // Close button with ESC keyboard-shortcut badge.
         let escape = Keystroke::parse("escape").unwrap_or_default();
@@ -1004,7 +1005,9 @@ impl LoginSlideView {
         let confirm_button = self.dialog_skip_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label("Skip for now".into()),
+                content: button::Content::Label(
+                    t!("auth.login_slide.skip_dialog.skip_for_now").into(),
+                ),
                 theme: &button::themes::Primary,
                 options: button::Options {
                     keystroke: Some(dialog_enter),

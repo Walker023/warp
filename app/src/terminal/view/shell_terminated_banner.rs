@@ -12,6 +12,7 @@ use warpui::ui_components::button::ButtonVariant;
 use warpui::ui_components::components::UiComponent as _;
 use warpui::{Entity, SingletonEntity as _, TypedActionView, View, ViewContext};
 
+use crate::i18n::t;
 use crate::terminal::model::terminal_model::ExitReason;
 use crate::ui_components;
 
@@ -240,7 +241,7 @@ impl TerminationType {
                 vec![
                     ui_builder
                         .button(ButtonVariant::Text, handles[0].clone())
-                        .with_text_label("Copy error".to_string())
+                        .with_text_label(t!("terminal.copy_error").to_string())
                         .build()
                         .on_click(move |evt_ctx, _ctx, _position| {
                             evt_ctx.dispatch_typed_action(Action::CopyPtySpawnError(

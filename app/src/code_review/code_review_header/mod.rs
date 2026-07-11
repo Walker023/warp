@@ -20,6 +20,7 @@ use crate::code_review::code_review_view::{
     LoadedState, CONTENT_TOP_MARGIN,
 };
 use crate::code_review::diff_state::DiffStateModel;
+use crate::i18n::t;
 use crate::menu::Menu;
 use crate::ui_components::icons::Icon;
 use crate::view_components::action_button::ActionButton;
@@ -320,7 +321,7 @@ impl CodeReviewHeader {
             .with_text_and_icon_label(
                 TextAndIcon::new(
                     TextAndIconAlignment::IconFirst,
-                    "Discard all".to_string(),
+                    t!("code_review.discard_all").to_string(),
                     Icon::ReverseLeft.to_warpui_icon(warp_core::ui::theme::Fill::Solid(
                         sub_text_color.into_solid(),
                     )),
@@ -433,7 +434,7 @@ impl CodeReviewHeader {
             }))
             .with_tooltip(move || {
                 ui_builder
-                    .tool_tip("Add diff set as context".to_owned())
+                    .tool_tip(t!("code_review.add_diff_set_as_context").to_string())
                     .build()
                     .finish()
             })
@@ -489,6 +490,6 @@ impl CodeReviewHeader {
     fn get_header_text(diff_state_model: &ModelHandle<DiffStateModel>, app: &AppContext) -> String {
         let branch_name =
             diff_state_model.read(app, |model, ctx| model.get_current_branch_name(ctx));
-        branch_name.unwrap_or("Reviewing open changes".to_string())
+        branch_name.unwrap_or_else(|| t!("code_review.reviewing_open_changes").to_string())
     }
 }
