@@ -32,6 +32,7 @@ use crate::ai::mcp::TemplatableMCPServerManager;
 use crate::ai::request_usage_model::{
     AIRequestUsageModel, AIRequestUsageModelEvent, AMBIENT_AGENT_TRIAL_CREDIT_THRESHOLD,
 };
+use crate::i18n::t;
 use crate::search::slash_command_menu::static_commands::commands;
 use crate::settings::AISettings;
 use crate::terminal::input::buffer_model::{InputBufferModel, InputBufferUpdateEvent};
@@ -566,7 +567,7 @@ impl MessageProvider<AgentMessageArgs<'_>> for ZeroStateMessageProducer {
                         background_color: bg_color_override_for_shortcuts_and_commands,
                     },
                     MessageItem::Text {
-                        content: "for help".into(),
+                        content: t!("agent_view.message_bar.for_help").to_string().into(),
                         color: color_override_for_shortcuts_and_commands,
                     },
                 ],
@@ -590,7 +591,7 @@ impl MessageProvider<AgentMessageArgs<'_>> for ZeroStateMessageProducer {
                         background_color: bg_color_override_for_shortcuts_and_commands,
                     },
                     MessageItem::Text {
-                        content: "for commands".into(),
+                        content: t!("agent_view.message_bar.for_commands").to_string().into(),
                         color: color_override_for_shortcuts_and_commands,
                     },
                 ],
@@ -620,7 +621,9 @@ impl MessageProvider<AgentMessageArgs<'_>> for ZeroStateMessageProducer {
                             background_color: bg_color_override_for_shortcuts_and_commands,
                         },
                         MessageItem::Text {
-                            content: "send task to the cloud".into(),
+                            content: t!("agent_view.message_bar.send_task_to_cloud")
+                                .to_string()
+                                .into(),
                             color: color_override_for_shortcuts_and_commands,
                         },
                     ],
@@ -647,7 +650,9 @@ impl MessageProvider<AgentMessageArgs<'_>> for ZeroStateMessageProducer {
                 items.push(MessageItem::clickable(
                     vec![
                         MessageItem::keystroke(conversations_keystroke),
-                        MessageItem::text("open conversation"),
+                        MessageItem::text(
+                            t!("agent_view.message_bar.open_conversation").to_string(),
+                        ),
                     ],
                     |ctx| {
                         ctx.dispatch_typed_action(InputAction::ToggleConversationsMenu);

@@ -3227,7 +3227,11 @@ impl SettingsWidget for WindowOpacityWidget {
 
         let opacity_value = *window_settings.background_opacity;
         let mut col = Flex::column().with_child(render_body_item::<AppearancePageAction>(
-            format!("Window Opacity: {opacity_value}"),
+            t!(
+                "settings.appearance_page.window_opacity_value",
+                value = opacity_value
+            )
+            .to_string(),
             // TODO(CORE-3384) add AdditionalInfo here.
             None,
             LocalOnlyIconState::for_setting(
@@ -3263,9 +3267,8 @@ impl SettingsWidget for WindowOpacityWidget {
             // Skip showing the warning for OpenGL since WGPU often incorrectly reports it as not
             // supporting alpha.
             if !window.supports_transparency() && window.graphics_backend() != GraphicsBackend::Gl {
-                let mut message = Cow::Borrowed(
-                    "The selected graphics settings may not support rendering transparent windows.",
-                );
+                let mut message: Cow<'_, str> =
+                    Cow::Owned(t!("settings.appearance_page.transparency_warning").to_string());
                 let gpu_settings = GPUSettings::as_ref(app);
                 if (gpu_settings
                     .prefer_low_power_gpu
@@ -3276,8 +3279,7 @@ impl SettingsWidget for WindowOpacityWidget {
                         .is_supported_on_current_platform()
                 {
                     message.to_mut().push_str(
-                        " Try changing the settings for the graphics backend or integrated GPU in \
-                        Features > System.",
+                        &t!("settings.appearance_page.transparency_settings_hint").to_string(),
                     );
                 }
 
@@ -3332,7 +3334,11 @@ impl SettingsWidget for WindowBlurWidget {
 
         Flex::column()
             .with_child(render_body_item::<AppearancePageAction>(
-                format!("Window Blur Radius: {blur_value}"),
+                t!(
+                    "settings.appearance_page.window_blur_radius_value",
+                    value = blur_value
+                )
+                .to_string(),
                 Some(label_info),
                 LocalOnlyIconState::for_setting(
                     BackgroundBlurRadius::storage_key(),
@@ -3453,7 +3459,7 @@ impl SettingsWidget for ToolsPanelStateScopeWidget {
         let is_enabled = *window_settings.left_panel_visibility_across_tabs;
 
         render_body_item::<AppearancePageAction>(
-            "Tools panel visibility is consistent across tabs".to_string(),
+            t!("settings.appearance_page.tools_panel_visibility_across_tabs").to_string(),
             None,
             LocalOnlyIconState::for_setting(
                 LeftPanelVisibilityAcrossTabs::storage_key(),
@@ -3509,7 +3515,7 @@ impl SettingsWidget for InputTypeWidget {
                 self.radio_buttons_states.clone(),
                 vec![
                     RadioButtonItem::text("Warp"),
-                    RadioButtonItem::text("Shell (PS1)"),
+                    RadioButtonItem::text(t!("settings.appearance_page.shell_ps1").to_string()),
                 ],
                 view.input_type_radio_state.clone(),
                 Some(input_type as usize),

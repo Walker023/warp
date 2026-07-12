@@ -386,6 +386,14 @@ external_secrets:
 
 terminal:
   for_terminal: "for terminal"
+  zero_state:
+    new_terminal_session: "New terminal session"
+    start_agent_conversation: "start a new agent conversation"
+    start_cloud_agent_conversation: "start a new cloud agent conversation"
+    cycle_past_commands_and_conversations: "cycle past commands and conversations"
+    open_code_review: "open code review"
+    autodetect_agent_prompts: "autodetect agent prompts in terminal sessions"
+    dont_show_again: "Don't show again"
   copy_url: "Copy URL"
   copy_path: "Copy path"
   show_in_finder: "Show in Finder"
@@ -1148,9 +1156,27 @@ settings:
     active_screen: "Active Screen"
     new_tab_after_all_tabs: "After all tabs"
     new_tab_after_current_tab: "After current tab"
+    restore_windows_tabs_panes: "Restore windows, tabs, and panes on startup"
+    wayland_restore_warning: "Window positions won't be restored on Wayland. "
+    see_docs: "See docs."
+    show_sticky_command_header: "Show sticky command header"
+    show_tooltip_on_click_links: "Show tooltip on click on links"
+    show_warning_before_quitting: "Show warning before quitting/logging out"
+    start_warp_at_login: "Start Warp at login"
+    start_warp_at_login_macos: "Start Warp at login (requires macOS 13+)"
+    quit_when_all_windows_closed: "Quit when all windows are closed"
+    maximum_rows_in_block: "Maximum rows in a block"
+    maximum_rows_description: "Setting the limit above 100k lines may impact performance. Maximum rows supported is %{max_rows}."
+    default_shell_new_sessions: "Default shell for new sessions"
+    working_directory_new_sessions: "Working directory for new sessions"
+    default_mode_new_sessions: "Default mode for new sessions"
 
   mcp:
     search_servers: "Search MCP Servers"
+    list_description: "Add MCP servers to extend the Warp Agent's capabilities. MCP servers expose data sources or tools to agents through a standardized interface, essentially acting like plugins. Add a custom server, or use the presets to get started with popular servers. You can also find team servers that have been shared with you here. "
+    auto_spawn_description: "Automatically detect and spawn MCP servers from globally-scoped third-party AI agent configuration files (e.g. in your home directory). Servers detected inside a repository are never spawned automatically and must be enabled individually in the \"Detected from\" sections below. "
+    empty_state: "Once you add a MCP server, it will be shown here."
+    no_search_results: "No search results found"
 
   shared_blocks:
     copy_link: "Copy link"
@@ -1412,6 +1438,10 @@ settings:
     columns: "Columns"
     rows: "Rows"
     window_opacity: "Window Opacity:"
+    window_opacity_value: "Window Opacity: %{value}"
+    window_blur_radius_value: "Window Blur Radius: %{value}"
+    transparency_warning: "The selected graphics settings may not support rendering transparent windows."
+    transparency_settings_hint: " Try changing the settings for the graphics backend or integrated GPU in Features > System."
     transparency_unsupported: "Transparency is not supported with your graphics drivers."
     input_type: "Input type"
     input_position: "Input position"
@@ -1443,6 +1473,8 @@ settings:
     hide_search_bar_vertical_tabs_description: "When using the vertical tab layout, hide the search bar in the title bar. Search stays available via the command palette and keyboard shortcuts."
     use_latest_prompt_tab_title: "Use latest user prompt as conversation title in tab names"
     use_latest_prompt_tab_title_description: "Show the latest user prompt instead of the generated conversation title for Oz and third-party agent sessions in vertical tabs."
+    tools_panel_visibility_across_tabs: "Tools panel visibility is consistent across tabs"
+    shell_ps1: "Shell (PS1)"
 
   keybindings:
     search_placeholder: "Search by name or by keys (ex. \"cmd d\")"
@@ -1454,6 +1486,21 @@ settings:
     use_shortcut_prefix: "Use"
     use_shortcut_suffix: "to open keyboard shortcuts."
     command_column: "Command"
+    accept_prompt_suggestion: "Accept Prompt Suggestion"
+    open_completions_menu: "Open Completions Menu"
+    attach_selected_block_agent_context: "Attach Selected Block as Agent Context"
+    attach_selected_text_agent_context: "Attach Selected Text as Agent Context"
+    attach_selection_agent_context: "Attach Selection as Agent Context"
+    open_settings_keyboard_shortcuts: "Open Settings: Keyboard Shortcuts"
+    configure_keyboard_shortcuts_menu: "Configure Keyboard Shortcuts..."
+
+  external_editor:
+    choose_editor_for_file_links: "Choose an editor to open file links"
+    choose_editor_for_code_panels: "Choose an editor to open files from the code review panel, project explorer, and global search"
+    choose_layout_for_warp_files: "Choose a layout to open files in Warp"
+    group_files_single_editor_pane: "Group files into single editor pane"
+    group_files_single_editor_pane_description: "When this setting is on, any files opened in the same tab will be automatically grouped into a single editor pane."
+    open_markdown_in_viewer: "Open Markdown files in Warp's Markdown Viewer by default"
 
   warp_drive:
     enable: "Enable Warp Drive"
@@ -1937,3 +1984,19 @@ errors:
   permission_denied: "Permission denied"
   file_not_found: "File not found"
   failed_to_persist_setting: "Failed to persist setting"
+
+agent_view:
+  zero_state:
+    new_oz_agent_conversation: "New Oz agent conversation"
+    new_oz_cloud_agent_conversation: "New Oz cloud agent conversation"
+    send_prompt_to_start: "Send a prompt below to start a new conversation"
+    send_prompt_to_start_in_location: "Send a prompt below to start a new conversation in `%{location}`"
+    start_agent_conversation: "start a new agent conversation"
+    start_cloud_agent_conversation: "start a new cloud agent conversation"
+    switch_model: "switch model"
+    go_back_to_terminal: "go back to terminal"
+  message_bar:
+    for_help: "for help"
+    for_commands: "for commands"
+    send_task_to_cloud: "send task to the cloud"
+    open_conversation: "open conversation"

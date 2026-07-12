@@ -16,6 +16,7 @@ use crate::ai::blocklist::agent_view::{
 use crate::ai::predict::prompt_suggestions::ACCEPT_PROMPT_SUGGESTION_KEYBINDING;
 use crate::channel::{Channel, ChannelState};
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::server::telemetry::{InteractionSource, ToggleBlockFilterSource};
 use crate::settings_view::flags;
 use crate::terminal::input::{
@@ -332,7 +333,9 @@ pub fn init(app: &mut AppContext) {
         ),
         EditableBinding::new(
             ACCEPT_PROMPT_SUGGESTION_KEYBINDING,
-            "Accept Prompt Suggestion",
+            BindingDescription::new_preserve_case(
+                t!("settings.keybindings.accept_prompt_suggestion").to_string(),
+            ),
             TerminalAction::ResolvePromptSuggestion(PromptSuggestionResolution::Accept {
                 interaction_source: InteractionSource::Keybinding,
             }),
@@ -748,11 +751,13 @@ pub fn init(app: &mut AppContext) {
     app.register_editable_bindings([
         EditableBinding::new(
             "terminal:ask_ai_assistant",
-            BindingDescription::new("Attach Selected Block as Agent Context")
-                .with_custom_description(
-                    bindings::MAC_MENUS_CONTEXT,
-                    "Attach Selection as Agent Context",
-                ),
+            BindingDescription::new_preserve_case(
+                t!("settings.keybindings.attach_selected_block_agent_context").to_string(),
+            )
+            .with_custom_description(
+                bindings::MAC_MENUS_CONTEXT,
+                t!("settings.keybindings.attach_selection_agent_context").to_string(),
+            ),
             TerminalAction::ContextMenu(ContextMenuAction::AskAI(AskAISource::SelectedBlocks)),
         )
         .with_enabled(|| FeatureFlag::AgentMode.is_enabled())
@@ -769,11 +774,13 @@ pub fn init(app: &mut AppContext) {
         ),
         EditableBinding::new(
             "terminal:ask_ai_assistant",
-            BindingDescription::new("Attach Selected Text as Agent Context")
-                .with_custom_description(
-                    bindings::MAC_MENUS_CONTEXT,
-                    "Attach Selection as Agent Context",
-                ),
+            BindingDescription::new_preserve_case(
+                t!("settings.keybindings.attach_selected_text_agent_context").to_string(),
+            )
+            .with_custom_description(
+                bindings::MAC_MENUS_CONTEXT,
+                t!("settings.keybindings.attach_selection_agent_context").to_string(),
+            ),
             TerminalAction::ContextMenu(ContextMenuAction::AskAI(
                 AskAISource::SelectedTerminalText,
             )),

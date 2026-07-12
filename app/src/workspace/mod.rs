@@ -1561,9 +1561,12 @@ fn add_open_setting_pages_as_editable_binding(app: &mut AppContext) {
         .with_custom_action(CustomAction::ViewSharedBlocks),
         EditableBinding::new(
             "workspace:show_settings_keyboard_shortcuts_page",
-            BindingDescription::new("Open Settings: Keyboard Shortcuts").with_custom_description(
+            BindingDescription::new_preserve_case(
+                t!("settings.keybindings.open_settings_keyboard_shortcuts").to_string(),
+            )
+            .with_custom_description(
                 bindings::MAC_MENUS_CONTEXT,
-                "Configure Keyboard Shortcuts...",
+                t!("settings.keybindings.configure_keyboard_shortcuts_menu").to_string(),
             ),
             WorkspaceAction::ShowSettingsPage(SettingsSection::Keybindings),
         )

@@ -70,8 +70,6 @@ use crate::workspace::Workspace;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 use crate::ToastStack;
 
-const DESCRIPTION_TEXT: &str = "Add MCP servers to extend the Warp Agent's capabilities. MCP servers expose data sources or tools to agents through a standardized interface, essentially acting like plugins. Add a custom server, or use the presets to get started with popular servers. You can also find team servers that have been shared with you here. ";
-
 #[derive(Debug, Clone)]
 pub enum MCPServersListPageViewEvent {
     Add,
@@ -95,9 +93,6 @@ pub enum MCPServersListPageViewAction {
     Add,
     ToggleFileBasedMcp,
 }
-
-const EMPTY_STATE_TEXT: &str = "Once you add a MCP server, it will be shown here.";
-const NO_SEARCH_RESULTS_TEXT: &str = "No search results found";
 
 pub struct MCPServersListPageView {
     server_cards: HashMap<ServerCardItemId, ViewHandle<ServerCardView>>,
@@ -1094,7 +1089,7 @@ impl MCPServersListPageView {
         let is_any_ai_enabled = ai_settings.is_any_ai_enabled(app);
 
         let label = render_body_item_label::<MCPServersListPageViewAction>(
-            "Auto-spawn servers from third-party agents".to_string(),
+            t!("settings.ai.mcp_servers.auto_spawn_from_third_party").to_string(),
             None,
             None,
             LocalOnlyIconState::Hidden,
@@ -1123,24 +1118,16 @@ impl MCPServersListPageView {
 
         let toggle_row = build_toggle_element(label, switch, appearance, None);
 
-        static FILE_BASED_MCP_DESCRIPTION_FRAGMENTS: std::sync::LazyLock<
-            Vec<FormattedTextFragment>,
-        > = std::sync::LazyLock::new(|| {
-            vec![
+        let description = FormattedTextElement::new(
+            FormattedText::new([FormattedTextLine::Line(vec![
                 FormattedTextFragment::plain_text(
-                    "Automatically detect and spawn MCP servers from globally-scoped third-party AI agent configuration files (e.g. in your home directory). Servers detected inside a repository are never spawned automatically and must be enabled individually in the \"Detected from\" sections below. ",
+                    t!("settings.mcp.auto_spawn_description").to_string(),
                 ),
                 FormattedTextFragment::hyperlink(
-                    "See supported providers.",
+                    t!("settings.ai.mcp_servers.supported_providers").to_string(),
                     "https://docs.warp.dev/agent-platform/capabilities/mcp#file-based-mcp-servers",
                 ),
-            ]
-        });
-
-        let description = FormattedTextElement::new(
-            FormattedText::new([FormattedTextLine::Line(
-                (*FILE_BASED_MCP_DESCRIPTION_FRAGMENTS).clone(),
-            )]),
+            ])]),
             style::CONTENT_FONT_SIZE,
             appearance.ui_font_family(),
             appearance.ui_font_family(),
@@ -1167,9 +1154,9 @@ impl MCPServersListPageView {
 
     fn render_page_body(&self, appearance: &Appearance, app: &AppContext) -> Box<dyn Element> {
         let description_fragments = vec![
-            FormattedTextFragment::plain_text(DESCRIPTION_TEXT),
+            FormattedTextFragment::plain_text(t!("settings.mcp.list_description").to_string()),
             FormattedTextFragment::hyperlink(
-                "Learn more.",
+                t!("common.learn_more").to_string(),
                 "https://docs.warp.dev/agent-platform/capabilities/mcp",
             ),
         ];
@@ -1482,7 +1469,7 @@ impl MCPServersListPageView {
                         .with_child(
                             appearance
                                 .ui_builder()
-                                .wrappable_text(EMPTY_STATE_TEXT, true)
+                                .wrappable_text(t!("settings.mcp.empty_state").to_string(), true)
                                 .with_style(style::description_text(appearance))
                                 .build()
                                 .finish(),
@@ -1513,7 +1500,10 @@ impl MCPServersListPageView {
                         .with_child(
                             appearance
                                 .ui_builder()
-                                .wrappable_text(NO_SEARCH_RESULTS_TEXT, true)
+                                .wrappable_text(
+                                    t!("settings.mcp.no_search_results").to_string(),
+                                    true,
+                                )
                                 .with_style(style::description_text(appearance))
                                 .build()
                                 .finish(),

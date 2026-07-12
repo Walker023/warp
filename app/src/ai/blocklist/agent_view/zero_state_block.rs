@@ -36,6 +36,7 @@ use crate::ai::blocklist::history_model::{BlocklistAIHistoryEvent, BlocklistAIHi
 use crate::ai::conversation_navigation::ConversationNavigationData;
 use crate::appearance::Appearance;
 use crate::changelog_model::{self, ChangelogModel};
+use crate::i18n::t;
 use crate::settings::{AISettings, AISettingsChangedEvent};
 use crate::terminal::event::BlockType;
 use crate::terminal::input::message_bar::common::render_standard_message;
@@ -403,23 +404,30 @@ impl View for AgentViewZeroStateBlock {
 
         let header_props = if self.origin.is_cloud_agent() {
             HeaderProps {
-                title: "New Oz cloud agent conversation".into(),
+                title: t!("agent_view.zero_state.new_oz_cloud_agent_conversation")
+                    .to_string()
+                    .into(),
                 description: AgentViewDescription::CloudModeWithDocsLink,
                 icon: Icon::OzCloud,
             }
         } else {
-            let mut local_description =
-                "Send a prompt below to start a new conversation".to_owned();
             let active_session = self.active_session(app);
             let location_label = active_session.as_deref().and_then(|session| {
                 format_session_location(session, self.current_working_directory.as_deref())
             });
-            if let Some(location_label) = location_label {
-                local_description += &format!(" in `{location_label}`");
-            }
+            let local_description = match location_label {
+                Some(location) => t!(
+                    "agent_view.zero_state.send_prompt_to_start_in_location",
+                    location = location
+                )
+                .to_string(),
+                None => t!("agent_view.zero_state.send_prompt_to_start").to_string(),
+            };
 
             HeaderProps {
-                title: "New Oz agent conversation".into(),
+                title: t!("agent_view.zero_state.new_oz_agent_conversation")
+                    .to_string()
+                    .into(),
                 description: AgentViewDescription::PlainText(vec![local_description.into()]),
                 icon: Icon::Oz,
             }
@@ -732,7 +740,9 @@ fn render_body(props: ZeroStateBodyProps<'_>, app: &AppContext) -> Vec<Box<dyn E
                 Message::new(vec![MessageItem::clickable(
                     vec![
                         MessageItem::keystroke(ENTER_AGENT_VIEW_NEW_CONVERSATION_KEYSTROKE.clone()),
-                        MessageItem::text("start a new agent conversation"),
+                        MessageItem::text(
+                            t!("agent_view.zero_state.start_agent_conversation").to_string(),
+                        ),
                     ],
                     |ctx| {
                         ctx.dispatch_typed_action(TerminalAction::StartNewAgentConversation {
@@ -751,7 +761,9 @@ fn render_body(props: ZeroStateBodyProps<'_>, app: &AppContext) -> Vec<Box<dyn E
                         MessageItem::keystroke(
                             ENTER_CLOUD_AGENT_VIEW_NEW_CONVERSATION_KEYSTROKE.clone(),
                         ),
-                        MessageItem::text("start a new cloud agent conversation"),
+                        MessageItem::text(
+                            t!("agent_view.zero_state.start_cloud_agent_conversation").to_string(),
+                        ),
                     ],
                     |ctx| {
                         ctx.dispatch_typed_action(TerminalAction::EnterCloudAgentView);
@@ -767,7 +779,7 @@ fn render_body(props: ZeroStateBodyProps<'_>, app: &AppContext) -> Vec<Box<dyn E
                             key: "/model".to_owned(),
                             ..Default::default()
                         }),
-                        MessageItem::text("switch model"),
+                        MessageItem::text(t!("agent_view.zero_state.switch_model").to_string()),
                     ],
                     |ctx| {
                         ctx.dispatch_typed_action(TerminalAction::OpenModelSelector);
@@ -787,7 +799,9 @@ fn render_body(props: ZeroStateBodyProps<'_>, app: &AppContext) -> Vec<Box<dyn E
                             key: "escape".to_owned(),
                             ..Default::default()
                         }),
-                        MessageItem::text("go back to terminal"),
+                        MessageItem::text(
+                            t!("agent_view.zero_state.go_back_to_terminal").to_string(),
+                        ),
                     ],
                     |ctx| {
                         ctx.dispatch_typed_action(TerminalAction::ExitAgentView);

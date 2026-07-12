@@ -386,6 +386,14 @@ external_secrets:
 
 terminal:
   for_terminal: "用于终端"
+  zero_state:
+    new_terminal_session: "新建终端会话"
+    start_agent_conversation: "开始新的智能体对话"
+    start_cloud_agent_conversation: "开始新的云端智能体对话"
+    cycle_past_commands_and_conversations: "切换历史命令和对话"
+    open_code_review: "打开代码审查"
+    autodetect_agent_prompts: "自动检测终端会话中的智能体提示词"
+    dont_show_again: "不再显示"
   copy_url: "复制 URL"
   copy_path: "复制路径"
   show_in_finder: "在 Finder 中显示"
@@ -1148,9 +1156,27 @@ settings:
     active_screen: "活动屏幕"
     new_tab_after_all_tabs: "在所有标签页之后"
     new_tab_after_current_tab: "在当前标签页之后"
+    restore_windows_tabs_panes: "启动时恢复窗口、标签页和窗格"
+    wayland_restore_warning: "Wayland 上不会恢复窗口位置。"
+    see_docs: "查看文档。"
+    show_sticky_command_header: "显示粘性命令标题"
+    show_tooltip_on_click_links: "点击链接时显示工具提示"
+    show_warning_before_quitting: "退出或登出前显示警告"
+    start_warp_at_login: "登录时启动 Warp"
+    start_warp_at_login_macos: "登录时启动 Warp（需要 macOS 13+）"
+    quit_when_all_windows_closed: "关闭所有窗口时退出"
+    maximum_rows_in_block: "代码块最大行数"
+    maximum_rows_description: "将限制设置为超过 10 万行可能会影响性能。支持的最大行数为 %{max_rows}。"
+    default_shell_new_sessions: "新会话的默认 Shell"
+    working_directory_new_sessions: "新会话的工作目录"
+    default_mode_new_sessions: "新会话的默认模式"
 
   mcp:
     search_servers: "搜索 MCP 服务器"
+    list_description: "添加 MCP 服务器以扩展 Warp 智能体的能力。MCP 服务器通过标准化接口向智能体暴露数据源或工具，本质上类似插件。你可以添加自定义服务器，或使用预设快速开始使用热门服务器。也可以在这里找到团队共享给你的服务器。"
+    auto_spawn_description: "自动检测并启动全局范围第三方 AI 智能体配置文件中的 MCP 服务器（例如你的主目录中）。在仓库内检测到的服务器不会自动启动，必须在下方“检测来源”区域中逐个启用。"
+    empty_state: "添加 MCP 服务器后，它会显示在这里。"
+    no_search_results: "未找到搜索结果"
 
   shared_blocks:
     copy_link: "复制链接"
@@ -1412,6 +1438,10 @@ settings:
     columns: "列"
     rows: "行"
     window_opacity: "窗口不透明度："
+    window_opacity_value: "窗口不透明度：%{value}"
+    window_blur_radius_value: "窗口模糊半径：%{value}"
+    transparency_warning: "所选图形设置可能不支持渲染透明窗口。"
+    transparency_settings_hint: " 请尝试在“功能 > 系统”中更改图形后端或集成 GPU 设置。"
     transparency_unsupported: "你的图形驱动不支持透明效果。"
     input_type: "输入类型"
     input_position: "输入位置"
@@ -1443,6 +1473,8 @@ settings:
     hide_search_bar_vertical_tabs_description: "使用垂直标签页布局时，隐藏标题栏中的搜索栏。仍可通过命令面板和键盘快捷键搜索。"
     use_latest_prompt_tab_title: "用最近的用户提示作为标签页对话标题"
     use_latest_prompt_tab_title_description: "在 Oz 和第三方智能体会话的垂直标签页中显示最近的用户提示，而不是生成的对话标题。"
+    tools_panel_visibility_across_tabs: "工具面板可见性在标签页间保持一致"
+    shell_ps1: "Shell (PS1)"
 
   keybindings:
     search_placeholder: "按名称或按键搜索（例如 \"cmd d\"）"
@@ -1454,6 +1486,21 @@ settings:
     use_shortcut_prefix: "使用"
     use_shortcut_suffix: "打开键盘快捷键。"
     command_column: "命令"
+    accept_prompt_suggestion: "接受提示词建议"
+    open_completions_menu: "打开补全菜单"
+    attach_selected_block_agent_context: "将选中的代码块作为智能体上下文"
+    attach_selected_text_agent_context: "将选中的文本作为智能体上下文"
+    attach_selection_agent_context: "将所选内容作为智能体上下文"
+    open_settings_keyboard_shortcuts: "打开设置：键盘快捷键"
+    configure_keyboard_shortcuts_menu: "配置键盘快捷键..."
+
+  external_editor:
+    choose_editor_for_file_links: "选择用于打开文件链接的编辑器"
+    choose_editor_for_code_panels: "选择用于从代码审查面板、项目浏览器和全局搜索打开文件的编辑器"
+    choose_layout_for_warp_files: "选择在 Warp 中打开文件的布局"
+    group_files_single_editor_pane: "将文件分组到单个编辑器窗格"
+    group_files_single_editor_pane_description: "开启后，在同一标签页中打开的文件会自动分组到单个编辑器窗格。"
+    open_markdown_in_viewer: "默认用 Warp Markdown 查看器打开 Markdown 文件"
 
   warp_drive:
     enable: "启用 Warp 云盘"
@@ -1937,3 +1984,19 @@ errors:
   permission_denied: "权限被拒绝"
   file_not_found: "文件未找到"
   failed_to_persist_setting: "保存设置失败"
+
+agent_view:
+  zero_state:
+    new_oz_agent_conversation: "新建 Oz 智能体对话"
+    new_oz_cloud_agent_conversation: "新建 Oz 云端智能体对话"
+    send_prompt_to_start: "在下方发送提示词以开始新对话"
+    send_prompt_to_start_in_location: "在下方发送提示词，以在 `%{location}` 中开始新对话"
+    start_agent_conversation: "开始新的智能体对话"
+    start_cloud_agent_conversation: "开始新的云端智能体对话"
+    switch_model: "切换模型"
+    go_back_to_terminal: "返回终端"
+  message_bar:
+    for_help: "查看帮助"
+    for_commands: "查看命令"
+    send_task_to_cloud: "将任务发送到云端"
+    open_conversation: "打开对话"
