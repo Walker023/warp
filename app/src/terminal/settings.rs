@@ -5,6 +5,7 @@ use warp_core::features::FeatureFlag;
 use warpui::units::Pixels;
 use warpui::{AppContext, SingletonEntity};
 
+use crate::i18n::t;
 use crate::settings::{AISettings, InputSettings, TerminalSpacing};
 
 #[derive(
@@ -42,12 +43,13 @@ impl Osc52ClipboardAccess {
         matches!(self, Self::ReadWrite)
     }
 
-    pub fn as_dropdown_label(self) -> &'static str {
+    pub fn as_dropdown_label(self) -> String {
         match self {
-            Self::Deny => "Deny",
-            Self::WriteOnly => "Write only",
-            Self::ReadWrite => "Read and write",
+            Self::Deny => t!("settings_extra.features.osc52_access.deny"),
+            Self::WriteOnly => t!("settings_extra.features.osc52_access.write_only"),
+            Self::ReadWrite => t!("settings_extra.features.osc52_access.read_write"),
         }
+        .to_string()
     }
 }
 

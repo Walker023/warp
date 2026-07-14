@@ -1,0 +1,29 @@
+pane_group_ui:
+  get_started:
+    title: "开始使用"
+    welcome: "欢迎使用 Warp"
+    tagline: "智能体开发环境"
+    new_session: " 在 %{directory} 中新建会话  %{keybinding}"
+  header:
+    open_files: "打开文件并审查代码差异"
+    sharing:
+      unsharable_conversation: "此对话未存储在云端，因此无法共享。\n要将其同步到云端并共享，请在“设置 > 隐私”中启用相应选项，然后重新发起请求。"
+      share: "共享"
+      copy_link: "复制链接"
+      read_only: "只读"
+      read_only_sign_in: "只读。登录后可编辑"
+  code_diff:
+    requested_edit: "请求的编辑"
+  unsupported_shell:
+    message: "Warp 当前不支持你的默认 Shell，已回退使用 zsh。  "
+    learn_more: "了解详情"
+  child_agent:
+    wasm_unsupported: "网页版不支持本地子智能体。"
+    powershell_unsupported: "本地子智能体运行环境目前需要 bash、zsh 或 fish，不支持 PowerShell。"
+    shell_not_detected: "本地子智能体运行环境目前需要检测到 bash、zsh 或 fish 会话。"
+    harness_missing: "缺少本地子智能体运行框架类型。"
+    harness_unsupported: "不支持本地子智能体运行框架“%{harness}”。"
+    hidden_agent_failed: "无法为本地子智能体创建隐藏窗格。"
+    create_task_failed: "无法创建本地子任务：%{error}"
+    hidden_harness_failed: "无法为本地子智能体运行框架创建隐藏窗格。"
+    create_harness_task_failed: "无法创建本地 %{harness} 子任务：%{error}"

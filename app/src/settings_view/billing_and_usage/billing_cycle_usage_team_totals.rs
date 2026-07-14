@@ -9,6 +9,7 @@ use warpui::elements::{
 use warpui::fonts::{Properties, Weight};
 use warpui::Element;
 
+use crate::i18n::t;
 use crate::settings_view::billing_and_usage::billing_cycle_usage_common::{
     aggregate_segments, cost_type_color, format_cost_cents, format_credits,
     render_breakdown_tooltip, render_section_subheader, BarSegment, BillingUsageMouseStates,
@@ -206,7 +207,13 @@ fn build_team_total_card(
     let main = blended_colors::text_main(theme, card_bg);
     let sub = blended_colors::text_sub(theme, card_bg);
 
-    let title_text = Text::new_inline(summary.title.to_string(), appearance.ui_font_family(), 13.)
+    let title = match summary.card_key {
+        "__card_overall__" => t!("settings_extra.billing.overall_usage").to_string(),
+        "__card_local__" => t!("settings_extra.billing.local_agent_usage").to_string(),
+        "__card_cloud__" => t!("settings_extra.billing.cloud_agent_usage").to_string(),
+        _ => summary.title.to_string(),
+    };
+    let title_text = Text::new_inline(title, appearance.ui_font_family(), 13.)
         .with_color(sub)
         .with_style(Properties::default().weight(Weight::Medium))
         .finish();
@@ -221,7 +228,11 @@ fn build_team_total_card(
     .finish();
 
     let credits_text = Text::new_inline(
-        format!("({} credits)", format_credits(summary.total_credits)),
+        t!(
+            "settings_extra.billing.credits_parenthesized",
+            name = format_credits(summary.total_credits)
+        )
+        .to_string(),
         appearance.ui_font_family(),
         13.,
     )
@@ -237,7 +248,11 @@ fn build_team_total_card(
     let totals_row: Box<dyn Element> = match summary.limit_cents {
         Some(limit) => {
             let limit_text = Text::new_inline(
-                format!("Limit: {}", format_cost_cents(limit)),
+                t!(
+                    "settings_extra.billing.limit_amount",
+                    name = format_cost_cents(limit)
+                )
+                .to_string(),
                 appearance.ui_font_family(),
                 12.,
             )
@@ -353,9 +368,12 @@ pub fn render_team_totals_block(
 ) -> Box<dyn Element> {
     let mut column = Flex::column().with_cross_axis_alignment(CrossAxisAlignment::Stretch);
     column.add_child(
-        Container::new(render_section_subheader("Team", appearance))
-            .with_margin_bottom(8.)
-            .finish(),
+        Container::new(render_section_subheader(
+            t!("settings_extra.billing.team").as_ref(),
+            appearance,
+        ))
+        .with_margin_bottom(8.)
+        .finish(),
     );
     column.add_child(render_team_totals_section(
         entries,

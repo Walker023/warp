@@ -6,6 +6,7 @@ use warpui::units::Pixels;
 use warpui::{App, EntityIdSet, Presenter, WindowInvalidation};
 
 use super::*;
+use crate::i18n::t;
 use crate::test_util::terminal::initialize_app_for_terminal_view;
 
 fn endpoint_with_models(model_count: usize) -> CustomEndpoint {
@@ -310,41 +311,35 @@ fn validate_url_accepts_https_with_host() {
 
 #[test]
 fn validate_url_rejects_http() {
+    let error = t!("settings_extra.ai.url_must_use_https").to_string();
     assert_eq!(
         validate_url("http://api.example.com/v1"),
-        Err("URL must use HTTPS")
+        Err(error.clone())
     );
-    assert_eq!(
-        validate_url("http://example.com"),
-        Err("URL must use HTTPS")
-    );
+    assert_eq!(validate_url("http://example.com"), Err(error));
 }
 
 #[test]
 fn validate_url_rejects_ftp_and_other_schemes() {
-    assert_eq!(
-        validate_url("ftp://files.example.com"),
-        Err("URL must use HTTPS")
-    );
-    assert_eq!(
-        validate_url("file:///etc/passwd"),
-        Err("URL must use HTTPS")
-    );
-    assert_eq!(
-        validate_url("ws://socket.example.com"),
-        Err("URL must use HTTPS")
-    );
+    let error = t!("settings_extra.ai.url_must_use_https").to_string();
+    assert_eq!(validate_url("ftp://files.example.com"), Err(error.clone()));
+    assert_eq!(validate_url("file:///etc/passwd"), Err(error.clone()));
+    assert_eq!(validate_url("ws://socket.example.com"), Err(error));
 }
 
 #[test]
 fn validate_url_rejects_malformed_strings() {
-    assert_eq!(validate_url("not a url"), Err("Invalid URL"));
-    assert_eq!(validate_url("https://"), Err("Invalid URL"));
+    let error = t!("settings_extra.ai.invalid_url").to_string();
+    assert_eq!(validate_url("not a url"), Err(error.clone()));
+    assert_eq!(validate_url("https://"), Err(error));
 }
 
 #[test]
 fn validate_url_rejects_empty_host() {
-    assert_eq!(validate_url("https://?query=1"), Err("Invalid URL"));
+    assert_eq!(
+        validate_url("https://?query=1"),
+        Err(t!("settings_extra.ai.invalid_url").to_string())
+    );
 }
 
 #[test]
@@ -359,19 +354,19 @@ fn validate_url_allows_whitespace_only() {
 
 #[test]
 fn validate_url_rejects_localhost_and_private_ips() {
-    let error = Err("URL must not use a local or private host");
-    assert_eq!(validate_url("https://localhost:8080"), error);
-    assert_eq!(validate_url("https://127.0.0.1/v1"), error);
-    assert_eq!(validate_url("https://0.0.0.0/v1"), error);
-    assert_eq!(validate_url("https://10.0.0.1/v1"), error);
-    assert_eq!(validate_url("https://172.16.0.1/v1"), error);
-    assert_eq!(validate_url("https://192.168.0.1/v1"), error);
-    assert_eq!(validate_url("https://169.254.0.1/v1"), error);
-    assert_eq!(validate_url("https://[::1]/v1"), error);
-    assert_eq!(validate_url("https://[::]/v1"), error);
-    assert_eq!(validate_url("https://[fc00::1]/v1"), error);
-    assert_eq!(validate_url("https://[fe80::1]/v1"), error);
-    assert_eq!(validate_url("https://[::ffff:192.168.0.1]/v1"), error);
+    let error = t!("settings_extra.ai.url_private_host_forbidden").to_string();
+    assert_eq!(validate_url("https://localhost:8080"), Err(error.clone()));
+    assert_eq!(validate_url("https://127.0.0.1/v1"), Err(error.clone()));
+    assert_eq!(validate_url("https://0.0.0.0/v1"), Err(error.clone()));
+    assert_eq!(validate_url("https://10.0.0.1/v1"), Err(error.clone()));
+    assert_eq!(validate_url("https://172.16.0.1/v1"), Err(error.clone()));
+    assert_eq!(validate_url("https://192.168.0.1/v1"), Err(error.clone()));
+    assert_eq!(validate_url("https://169.254.0.1/v1"), Err(error.clone()));
+    assert_eq!(validate_url("https://[::1]/v1"), Err(error.clone()));
+    assert_eq!(validate_url("https://[::]/v1"), Err(error.clone()));
+    assert_eq!(validate_url("https://[fc00::1]/v1"), Err(error.clone()));
+    assert_eq!(validate_url("https://[fe80::1]/v1"), Err(error.clone()));
+    assert_eq!(validate_url("https://[::ffff:192.168.0.1]/v1"), Err(error));
 }
 
 #[test]

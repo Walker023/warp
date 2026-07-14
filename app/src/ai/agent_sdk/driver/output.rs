@@ -16,6 +16,7 @@ pub mod text {
         UploadArtifactResult, WebFetchStatus, WebSearchStatus,
         WriteToLongRunningShellCommandResult,
     };
+    use crate::i18n::t;
     use crate::AIAgentActionResultType;
 
     /// Format an agent input as a human-readable string. For action results, it's assumed that
@@ -53,9 +54,25 @@ pub mod text {
                         output,
                         exit_code,
                         ..
-                    } => writeln!(w, "{output}\n\n (`{command}` exited with code {exit_code})"),
+                    } => writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.result.command_completed",
+                            output = output,
+                            command = command,
+                            exit_code = exit_code
+                        )
+                    ),
                     RequestCommandOutputResult::LongRunningCommandSnapshot { command, .. } => {
-                        writeln!(w, "`{command}` is still running...")
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.result.command_still_running",
+                                command = command
+                            )
+                        )
                     }
                     RequestCommandOutputResult::CancelledBeforeExecution => {
                         writeln!(w, "{CANCELLED_MESSAGE}")
@@ -63,24 +80,41 @@ pub mod text {
                     RequestCommandOutputResult::Denylisted { .. } => {
                         writeln!(
                             w,
-                            "Command was not allowed to run due to presence on denylist"
+                            "{}",
+                            t!("ai_sdk_driver.output.result.command_disallowed")
                         )
                     }
                 },
                 AIAgentActionResultType::WriteToLongRunningShellCommand(result) => match result {
                     WriteToLongRunningShellCommandResult::Snapshot { .. } => {
-                        writeln!(w, "Command is still running...")
+                        writeln!(
+                            w,
+                            "{}",
+                            t!("ai_sdk_driver.output.result.write_command_still_running")
+                        )
                     }
                     WriteToLongRunningShellCommandResult::CommandFinished {
                         output,
                         exit_code,
                         ..
-                    } => writeln!(w, "{output}\n\n (exited with code {exit_code})"),
+                    } => writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.result.command_finished",
+                            output = output,
+                            exit_code = exit_code
+                        )
+                    ),
                     WriteToLongRunningShellCommandResult::Cancelled => {
                         writeln!(w, "{CANCELLED_MESSAGE}")
                     }
                     WriteToLongRunningShellCommandResult::Error(_) => {
-                        writeln!(w, "Failed to write to command.")
+                        writeln!(
+                            w,
+                            "{}",
+                            t!("ai_sdk_driver.output.result.write_command_failed")
+                        )
                     }
                 },
                 AIAgentActionResultType::RequestFileEdits(result) => match result {
@@ -92,21 +126,39 @@ pub mod text {
                     } => {
                         writeln!(
                             w,
-                            "Updated {} files, deleted {} files:\n```diff\n{diff}\n```",
-                            updated_files.len(),
-                            deleted_files.len()
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.result.files_updated",
+                                updated_count = updated_files.len(),
+                                deleted_count = deleted_files.len(),
+                                diff = diff
+                            )
                         )
                     }
                     RequestFileEditsResult::Cancelled => {
                         writeln!(w, "{CANCELLED_MESSAGE}")
                     }
                     RequestFileEditsResult::DiffApplicationFailed { error } => {
-                        writeln!(w, "Editing files failed: {error}")
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.result.edit_files_failed",
+                                error = error
+                            )
+                        )
                     }
                 },
                 AIAgentActionResultType::ReadFiles(result) => match result {
                     ReadFilesResult::Success { .. } => Ok(()),
-                    ReadFilesResult::Error(error) => writeln!(w, "Reading files failed: {error}"),
+                    ReadFilesResult::Error(error) => writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.result.read_files_failed",
+                            error = error
+                        )
+                    ),
                     ReadFilesResult::Cancelled => writeln!(w, "{CANCELLED_MESSAGE}"),
                 },
                 AIAgentActionResultType::UploadArtifact(result) => match result {
@@ -115,26 +167,57 @@ pub mod text {
                         filepath,
                         ..
                     } => match filepath {
-                        Some(filepath) => {
-                            writeln!(w, "Uploaded artifact {artifact_uid} from {filepath}")
-                        }
-                        None => writeln!(w, "Uploaded artifact {artifact_uid}"),
+                        Some(filepath) => writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.result.artifact_uploaded_from",
+                                artifact_uid = artifact_uid,
+                                filepath = filepath
+                            )
+                        ),
+                        None => writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.result.artifact_uploaded",
+                                artifact_uid = artifact_uid
+                            )
+                        ),
                     },
                     UploadArtifactResult::Error(error) => {
-                        writeln!(w, "Uploading artifact failed: {error}")
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.result.artifact_upload_failed",
+                                error = error
+                            )
+                        )
                     }
                     UploadArtifactResult::Cancelled => writeln!(w, "{CANCELLED_MESSAGE}"),
                 },
                 AIAgentActionResultType::SearchCodebase(result) => match result {
                     SearchCodebaseResult::Success { files } => {
-                        writeln!(w, "Codebase search results:")?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!("ai_sdk_driver.output.result.codebase_search_results")
+                        )?;
                         for file in files {
                             writeln!(w, "- {file}")?;
                         }
                         Ok(())
                     }
                     SearchCodebaseResult::Failed { message, .. } => {
-                        writeln!(w, "Searching codebase failed: {message}")
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.result.codebase_search_failed",
+                                message = message
+                            )
+                        )
                     }
                     SearchCodebaseResult::Cancelled => todo!(),
                 },
@@ -145,12 +228,20 @@ pub mod text {
                         }
                         Ok(())
                     }
-                    GrepResult::Error(error) => writeln!(w, "grep failed: {error}"),
+                    GrepResult::Error(error) => writeln!(
+                        w,
+                        "{}",
+                        t!("ai_sdk_driver.output.result.grep_failed", error = error)
+                    ),
                     GrepResult::Cancelled => writeln!(w, "{CANCELLED_MESSAGE}"),
                 },
                 AIAgentActionResultType::FileGlob(result) => match result {
                     FileGlobResult::Success { matched_files } => writeln!(w, "{matched_files}"),
-                    FileGlobResult::Error(error) => writeln!(w, "find failed: {error}"),
+                    FileGlobResult::Error(error) => writeln!(
+                        w,
+                        "{}",
+                        t!("ai_sdk_driver.output.result.find_failed", error = error)
+                    ),
                     FileGlobResult::Cancelled => writeln!(w, "{CANCELLED_MESSAGE}"),
                 },
                 AIAgentActionResultType::FileGlobV2(result) => match result {
@@ -160,7 +251,11 @@ pub mod text {
                         }
                         Ok(())
                     }
-                    FileGlobV2Result::Error(error) => writeln!(w, "find failed: {error}"),
+                    FileGlobV2Result::Error(error) => writeln!(
+                        w,
+                        "{}",
+                        t!("ai_sdk_driver.output.result.find_failed", error = error)
+                    ),
                     FileGlobV2Result::Cancelled => writeln!(w, "{CANCELLED_MESSAGE}"),
                 },
                 AIAgentActionResultType::ReadMCPResource(result) => match result {
@@ -192,7 +287,14 @@ pub mod text {
                         Ok(())
                     }
                     ReadMCPResourceResult::Error(error) => {
-                        writeln!(w, "Reading MCP resource failed: {error}")
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.result.read_mcp_resource_failed",
+                                error = error
+                            )
+                        )
                     }
                     ReadMCPResourceResult::Cancelled => writeln!(w, "{CANCELLED_MESSAGE}"),
                 },
@@ -206,7 +308,14 @@ pub mod text {
                                         writeln!(w, "{}", text_content.text)?;
                                     }
                                     rmcp::model::RawContent::Image(image_content) => {
-                                        writeln!(w, "{} image", image_content.mime_type)?;
+                                        writeln!(
+                                            w,
+                                            "{}",
+                                            t!(
+                                                "ai_sdk_driver.output.result.mcp_image",
+                                                mime_type = &image_content.mime_type
+                                            )
+                                        )?;
                                     }
                                     rmcp::model::RawContent::Resource(embedded_resource) => {
                                         match &embedded_resource.resource {
@@ -228,7 +337,14 @@ pub mod text {
                                     };
                                     }
                                     rmcp::model::RawContent::Audio(audio_content) => {
-                                        writeln!(w, "{} audio", audio_content.mime_type)?;
+                                        writeln!(
+                                            w,
+                                            "{}",
+                                            t!(
+                                                "ai_sdk_driver.output.result.mcp_audio",
+                                                mime_type = &audio_content.mime_type
+                                            )
+                                        )?;
                                     }
                                     rmcp::model::RawContent::ResourceLink(raw_resource) => {
                                         let rmcp::model::RawResource {
@@ -248,16 +364,35 @@ pub mod text {
                             Ok(())
                         }
                         CallMCPToolResult::Error(error) => {
-                            writeln!(w, "Calling MCP tool failed: {error}")
+                            writeln!(
+                                w,
+                                "{}",
+                                t!(
+                                    "ai_sdk_driver.output.result.call_mcp_tool_failed",
+                                    error = error
+                                )
+                            )
                         }
                         CallMCPToolResult::Cancelled => writeln!(w, "{CANCELLED_MESSAGE}"),
                     }
                 }
                 AIAgentActionResultType::ReadSkill(result) => match result {
-                    ReadSkillResult::Success { content } => {
-                        writeln!(w, "Skill read successfully: {}", content.file_name)
-                    }
-                    ReadSkillResult::Error(error) => writeln!(w, "Skill read error: {error}"),
+                    ReadSkillResult::Success { content } => writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.result.skill_read_success",
+                            file_name = &content.file_name
+                        )
+                    ),
+                    ReadSkillResult::Error(error) => writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.result.skill_read_failed",
+                            error = error
+                        )
+                    ),
                     ReadSkillResult::Cancelled => writeln!(w, "{CANCELLED_MESSAGE}"),
                 },
                 AIAgentActionResultType::SuggestNewConversation(result) => match result {
@@ -281,7 +416,14 @@ pub mod text {
                 AIAgentActionResultType::UseComputer(result) => match result {
                     // TODO(AGENT-2281): implement
                     UseComputerResult::Success(_result) => Ok(()),
-                    UseComputerResult::Error(error) => writeln!(w, "Use computer error: {error}"),
+                    UseComputerResult::Error(error) => writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.result.computer_use_failed",
+                            error = error
+                        )
+                    ),
                     UseComputerResult::Cancelled => writeln!(w, "{CANCELLED_MESSAGE}"),
                 },
                 // TODO(AGENT-2281): implement
@@ -289,12 +431,22 @@ pub mod text {
                 AIAgentActionResultType::StartRecording(_)
                 | AIAgentActionResultType::StopRecording(_) => Ok(()),
                 AIAgentActionResultType::FetchConversation(result) => match result {
-                    FetchConversationResult::Success { directory_path } => {
-                        writeln!(w, "Fetched conversation to {directory_path}")
-                    }
-                    FetchConversationResult::Error(error) => {
-                        writeln!(w, "Fetch conversation error: {error}")
-                    }
+                    FetchConversationResult::Success { directory_path } => writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.result.conversation_fetched",
+                            directory_path = directory_path
+                        )
+                    ),
+                    FetchConversationResult::Error(error) => writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.result.conversation_fetch_failed",
+                            error = error
+                        )
+                    ),
                     FetchConversationResult::Cancelled => writeln!(w, "{CANCELLED_MESSAGE}"),
                 },
                 // StartAgent is a client-side orchestration action, not used in SDK
@@ -320,39 +472,83 @@ pub mod text {
                 }
                 AIAgentOutputMessageType::Action(action) => match &action.action {
                     AIAgentActionType::RequestCommandOutput { command, .. } => {
-                        writeln!(w, "Running `{command}`")?;
-                    }
-                    AIAgentActionType::WriteToLongRunningShellCommand { input, .. } => {
-                        writeln!(w, "Write {} bytes to command", input.len())?;
-                    }
-                    AIAgentActionType::ReadFiles(request) => {
                         writeln!(
                             w,
-                            "Reading {}",
-                            request
-                                .locations
-                                .iter()
-                                .format_with(", ", |loc, f| f(&format_args!("{}", loc.name)))
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.running_command",
+                                command = command
+                            )
+                        )?;
+                    }
+                    AIAgentActionType::WriteToLongRunningShellCommand { input, .. } => {
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.writing_bytes",
+                                count = input.len()
+                            )
+                        )?;
+                    }
+                    AIAgentActionType::ReadFiles(request) => {
+                        let files = request
+                            .locations
+                            .iter()
+                            .map(|location| location.name.as_str())
+                            .join(", ");
+                        writeln!(
+                            w,
+                            "{}",
+                            t!("ai_sdk_driver.output.action.reading_files", files = &files)
                         )?;
                         // TODO: Better formatting, need shell info.
                     }
                     AIAgentActionType::UploadArtifact(request) => {
-                        writeln!(w, "Uploading artifact {}", request.file_path)?;
-                    }
-                    AIAgentActionType::SearchCodebase(request) => {
                         writeln!(
                             w,
-                            "Searching {} for {}",
-                            request.codebase_path.as_deref().unwrap_or("codebase"),
-                            request.query
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.uploading_artifact",
+                                path = &request.file_path
+                            )
                         )?;
                     }
-                    AIAgentActionType::RequestFileEdits { file_edits, title } => {
-                        write!(w, "Editing files:")?;
-                        if let Some(title) = title {
-                            write!(w, " {title}")?;
+                    AIAgentActionType::SearchCodebase(request) => {
+                        match request.codebase_path.as_deref() {
+                            Some(codebase) => writeln!(
+                                w,
+                                "{}",
+                                t!(
+                                    "ai_sdk_driver.output.action.searching_codebase",
+                                    codebase = codebase,
+                                    query = &request.query
+                                )
+                            )?,
+                            None => writeln!(
+                                w,
+                                "{}",
+                                t!(
+                                    "ai_sdk_driver.output.action.searching_default_codebase",
+                                    query = &request.query
+                                )
+                            )?,
                         }
-                        writeln!(w)?;
+                    }
+                    AIAgentActionType::RequestFileEdits { file_edits, title } => {
+                        match title {
+                            Some(title) => writeln!(
+                                w,
+                                "{}",
+                                t!(
+                                    "ai_sdk_driver.output.action.editing_files_with_title",
+                                    title = title
+                                )
+                            )?,
+                            None => {
+                                writeln!(w, "{}", t!("ai_sdk_driver.output.action.editing_files"))?
+                            }
+                        }
                         let file_paths: HashSet<_> =
                             file_edits.iter().flat_map(|edit| edit.file()).collect();
                         for path in file_paths {
@@ -360,39 +556,101 @@ pub mod text {
                         }
                     }
                     AIAgentActionType::Grep { queries, path } => {
-                        writeln!(w, "Grepping for {} in {path}", format_queries(queries))?;
+                        let queries = format_queries(queries);
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.grepping",
+                                queries = &queries,
+                                path = path
+                            )
+                        )?;
                     }
                     AIAgentActionType::FileGlob { patterns, path } => {
-                        write!(w, "Finding files matching {}", format_queries(patterns))?;
-                        if let Some(path) = path {
-                            write!(w, " in {path}")?;
+                        let patterns = format_queries(patterns);
+                        match path {
+                            Some(path) => writeln!(
+                                w,
+                                "{}",
+                                t!(
+                                    "ai_sdk_driver.output.action.finding_files_in",
+                                    patterns = &patterns,
+                                    path = path
+                                )
+                            )?,
+                            None => writeln!(
+                                w,
+                                "{}",
+                                t!(
+                                    "ai_sdk_driver.output.action.finding_files",
+                                    patterns = &patterns
+                                )
+                            )?,
                         }
-                        writeln!(w)?;
                     }
                     AIAgentActionType::FileGlobV2 {
                         patterns,
                         search_dir,
                     } => {
-                        write!(w, "Finding files matching {}", format_queries(patterns))?;
-                        if let Some(path) = search_dir {
-                            write!(w, " in {path}")?;
+                        let patterns = format_queries(patterns);
+                        match search_dir {
+                            Some(path) => writeln!(
+                                w,
+                                "{}",
+                                t!(
+                                    "ai_sdk_driver.output.action.finding_files_in",
+                                    patterns = &patterns,
+                                    path = path
+                                )
+                            )?,
+                            None => writeln!(
+                                w,
+                                "{}",
+                                t!(
+                                    "ai_sdk_driver.output.action.finding_files",
+                                    patterns = &patterns
+                                )
+                            )?,
                         }
-                        writeln!(w)?;
                     }
                     AIAgentActionType::ReadMCPResource {
                         server_id: _,
                         name,
                         uri,
                     } => match uri {
-                        Some(uri) => writeln!(w, "Reading MCP resource {uri}")?,
-                        None => writeln!(w, "Reading MCP resource {name}")?,
+                        Some(uri) => writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.reading_mcp_resource",
+                                resource = uri
+                            )
+                        )?,
+                        None => writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.reading_mcp_resource",
+                                resource = name
+                            )
+                        )?,
                     },
                     AIAgentActionType::CallMCPTool {
                         server_id: _,
                         name,
                         input,
                     } => {
-                        writeln!(w, "MCP tool call {name}({input:#})")?;
+                        let input = format!("{input:#}");
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.calling_mcp_tool",
+                                name = name,
+                                input = &input
+                            )
+                        )?;
                     }
                     AIAgentActionType::SuggestNewConversation { .. } => (),
                     AIAgentActionType::SuggestPrompt { .. } => (),
@@ -406,33 +664,81 @@ pub mod text {
                     | AIAgentActionType::ReadShellCommandOutput { .. }
                     | AIAgentActionType::TransferShellCommandControlToUser { .. } => (),
                     AIAgentActionType::UseComputer(request) => {
-                        writeln!(w, "Computer use action: {}", request.action_summary)?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.computer_use",
+                                summary = &request.action_summary
+                            )
+                        )?;
                     }
                     AIAgentActionType::RequestComputerUse(request) => {
-                        writeln!(w, "Requesting computer use: {}", request.task_summary)?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.requesting_computer_use",
+                                summary = &request.task_summary
+                            )
+                        )?;
                     }
                     AIAgentActionType::StartRecording { .. } => {
-                        writeln!(w, "Starting recording")?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!("ai_sdk_driver.output.action.starting_recording")
+                        )?;
                     }
                     AIAgentActionType::StopRecording { recording_id } => {
-                        writeln!(w, "Stopping recording {recording_id}")?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.stopping_recording",
+                                recording_id = recording_id
+                            )
+                        )?;
                     }
                     AIAgentActionType::ReadSkill(request) => {
-                        writeln!(w, "Reading skill: {}", request.skill)?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.reading_skill",
+                                skill = &request.skill
+                            )
+                        )?;
                     }
                     AIAgentActionType::FetchConversation { conversation_id } => {
-                        writeln!(w, "Fetching conversation {conversation_id}")?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.fetching_conversation",
+                                conversation_id = conversation_id
+                            )
+                        )?;
                     }
                     AIAgentActionType::StartAgent { name, .. } => {
-                        writeln!(w, "Starting agent: {name}")?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!("ai_sdk_driver.output.action.starting_agent", name = name)
+                        )?;
                     }
                     AIAgentActionType::SendMessageToAgent {
                         addresses, subject, ..
                     } => {
+                        let addresses = addresses.join(", ");
                         writeln!(
                             w,
-                            "Sending message to [{}]: {subject}",
-                            addresses.join(", ")
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.action.sending_message",
+                                addresses = &addresses,
+                                subject = subject
+                            )
                         )?;
                     }
                     AIAgentActionType::AskUserQuestion { .. } => (),
@@ -442,54 +748,116 @@ pub mod text {
                 },
                 AIAgentOutputMessageType::TodoOperation(operation) => match operation {
                     TodoOperation::UpdateTodos { todos } => {
-                        writeln!(w, "Updated TODO list:")?;
+                        writeln!(w, "{}", t!("ai_sdk_driver.output.status.updated_todos"))?;
                         format_todos(todos, w)?;
                     }
                     TodoOperation::MarkAsCompleted { completed_todos } => {
-                        writeln!(w, "Completed TODOs:")?;
+                        writeln!(w, "{}", t!("ai_sdk_driver.output.status.completed_todos"))?;
                         format_todos(completed_todos, w)?;
                     }
                 },
                 AIAgentOutputMessageType::Subagent(subagent) => {
-                    writeln!(w, "{subagent}")?;
+                    writeln!(
+                        w,
+                        "{}",
+                        t!("ai_export.subagent", task_id = subagent.task_id.as_str())
+                    )?;
                 }
                 AIAgentOutputMessageType::WebSearch(status) => match status {
                     WebSearchStatus::Searching { query } => match query {
-                        Some(q) => writeln!(w, "Searching web for: {q}")?,
-                        None => writeln!(w, "Searching web")?,
+                        Some(query) => writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.status.web_searching_for",
+                                query = query
+                            )
+                        )?,
+                        None => writeln!(w, "{}", t!("ai_sdk_driver.output.status.web_searching"))?,
                     },
                     WebSearchStatus::Success { query, pages } => {
-                        writeln!(w, "Searched web for: {query} ({} results)", pages.len())?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.status.web_searched",
+                                query = query,
+                                count = pages.len()
+                            )
+                        )?;
                     }
                     WebSearchStatus::Error { query } => {
-                        writeln!(w, "Web search failed for: {query}")?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.status.web_search_failed",
+                                query = query
+                            )
+                        )?;
                     }
                 },
                 AIAgentOutputMessageType::WebFetch(status) => match status {
                     WebFetchStatus::Fetching { urls } => {
-                        writeln!(w, "Fetching {} web pages...", urls.len())?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.status.web_fetching",
+                                count = urls.len()
+                            )
+                        )?;
                     }
                     WebFetchStatus::Success { pages } => {
-                        writeln!(w, "Fetched {} web pages", pages.len())?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.status.web_fetched",
+                                count = pages.len()
+                            )
+                        )?;
                     }
                     WebFetchStatus::Error => {
-                        writeln!(w, "Web fetch failed")?;
+                        writeln!(w, "{}", t!("ai_sdk_driver.output.status.web_fetch_failed"))?;
                     }
                 },
                 AIAgentOutputMessageType::CommentsAddressed {
                     comments: comment_ids,
                 } => {
-                    writeln!(w, "Addressed {} comments", comment_ids.len())?;
+                    writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.status.comments_addressed",
+                            count = comment_ids.len()
+                        )
+                    )?;
                 }
                 AIAgentOutputMessageType::DebugOutput { text } => {
                     writeln!(w, "[DEBUG] {text}")?;
                 }
                 AIAgentOutputMessageType::ArtifactCreated(data) => match data {
                     ArtifactCreatedData::PullRequest { url, branch } => {
-                        writeln!(w, "Created PR: {url} (branch: {branch})")?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.status.pull_request_created",
+                                url = url,
+                                branch = branch
+                            )
+                        )?;
                     }
                     ArtifactCreatedData::Screenshot { artifact_uid, .. } => {
-                        writeln!(w, "Screenshot captured (artifact: {artifact_uid})")?;
+                        writeln!(
+                            w,
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.status.screenshot_captured",
+                                artifact_uid = artifact_uid
+                            )
+                        )?;
                     }
                     ArtifactCreatedData::File {
                         artifact_uid,
@@ -498,18 +866,44 @@ pub mod text {
                     } => {
                         writeln!(
                             w,
-                            "File artifact uploaded: {filepath} (artifact: {artifact_uid})"
+                            "{}",
+                            t!(
+                                "ai_sdk_driver.output.status.file_artifact_uploaded",
+                                filepath = filepath,
+                                artifact_uid = artifact_uid
+                            )
                         )?;
                     }
                 },
                 AIAgentOutputMessageType::SkillInvoked(invoked_skill) => {
-                    writeln!(w, "Skill Read: {}", invoked_skill.name)?;
+                    writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.status.skill_read",
+                            name = invoked_skill.name.as_str()
+                        )
+                    )?;
                 }
                 AIAgentOutputMessageType::MessagesReceivedFromAgents { messages } => {
-                    writeln!(w, "Received {} messages", messages.len())?;
+                    writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.status.messages_received",
+                            count = messages.len()
+                        )
+                    )?;
                 }
                 AIAgentOutputMessageType::EventsFromAgents { event_ids } => {
-                    writeln!(w, "Received {} agent events", event_ids.len())?;
+                    writeln!(
+                        w,
+                        "{}",
+                        t!(
+                            "ai_sdk_driver.output.status.agent_events_received",
+                            count = event_ids.len()
+                        )
+                    )?;
                 }
             }
         }
@@ -531,20 +925,39 @@ pub mod text {
     pub fn conversation_started<W: Write>(conversation_id: &str, w: &mut W) -> io::Result<()> {
         writeln!(
             w,
-            "New conversation started with debug ID: {conversation_id}\n"
+            "{}",
+            t!(
+                "ai_sdk_driver.output.session.conversation_started",
+                conversation_id = conversation_id
+            )
         )
     }
 
     /// Report the run ID with a link to the Oz dashboard.
     pub fn run_started<W: Write>(run_id: &str, w: &mut W) -> io::Result<()> {
         let run_url = super::run_url(run_id);
-        writeln!(w, "Run ID: {run_id}")?;
-        writeln!(w, "Open in Oz: {run_url}\n")
+        writeln!(
+            w,
+            "{}",
+            t!("ai_sdk_driver.output.session.run_id", run_id = run_id)
+        )?;
+        writeln!(
+            w,
+            "{}",
+            t!("ai_sdk_driver.output.session.open_in_oz", url = &run_url)
+        )
     }
 
     /// Report that a shared session has been established.
     pub fn shared_session_established<W: Write>(join_url: &str, w: &mut W) -> io::Result<()> {
-        writeln!(w, "Sharing session at: {join_url}")
+        writeln!(
+            w,
+            "{}",
+            t!(
+                "ai_sdk_driver.output.session.sharing_session",
+                url = join_url
+            )
+        )
     }
 
     /// Format a list of query patterns.
@@ -565,7 +978,13 @@ pub mod text {
     ) -> io::Result<()> {
         writeln!(
             w,
-            "Created plan (title: {title}, id: {document_id}, notebook: {notebook_link})"
+            "{}",
+            t!(
+                "ai_sdk_driver.output.session.plan_created",
+                title = title,
+                document_id = document_id,
+                notebook_link = notebook_link
+            )
         )
     }
 }

@@ -9,6 +9,7 @@ use super::style;
 use crate::cloud_object::model::persistence::CloudModel;
 use crate::cloud_object::ServerObjectContainer;
 use crate::drive::CloudObjectTypeAndId;
+use crate::i18n::t;
 use crate::server::ids::SyncId;
 use crate::server::telemetry::SharingDialogSource;
 use crate::workspace::WorkspaceAction;
@@ -48,9 +49,12 @@ impl InheritanceState {
 
         match folder_name {
             Some(folder_name) => {
-                let prefix = style::detail_text("Inherited from ", appearance)
-                    .build()
-                    .finish();
+                let prefix = style::detail_text(
+                    t!("drive_extra.sharing.inherited_from_prefix").to_string(),
+                    appearance,
+                )
+                .build()
+                .finish();
                 let source_folder = self.source_folder;
                 let folder_link = appearance
                     .ui_builder()
@@ -74,14 +78,17 @@ impl InheritanceState {
                         .with_children([prefix, folder_link])
                         .with_cross_axis_alignment(CrossAxisAlignment::Center)
                         .finish(),
-                    tooltip_text: "Edit inherited permissions on the parent folder",
+                    tooltip_text: t!("drive_extra.sharing.edit_inherited_tooltip").to_string(),
                 }
             }
             None => InheritanceDetails {
-                source_label: style::detail_text("Inherited permission", appearance)
-                    .build()
-                    .finish(),
-                tooltip_text: "Cannot edit inherited permissions",
+                source_label: style::detail_text(
+                    t!("drive_extra.sharing.inherited_permission").to_string(),
+                    appearance,
+                )
+                .build()
+                .finish(),
+                tooltip_text: t!("drive_extra.sharing.cannot_edit_inherited_tooltip").to_string(),
             },
         }
     }
@@ -93,5 +100,5 @@ pub struct InheritanceDetails {
     /// permissions directly.
     pub source_label: Box<dyn Element>,
     /// A tooltip to show on disabled permission-editing controls.
-    pub tooltip_text: &'static str,
+    pub tooltip_text: String,
 }

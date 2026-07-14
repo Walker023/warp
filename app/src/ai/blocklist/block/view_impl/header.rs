@@ -17,6 +17,7 @@ use crate::ai::blocklist::{
     get_ai_block_overflow_menu_element_position_id, get_attached_blocks_chip_element_position_id,
 };
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::terminal::block_list_element::render_hoverable_block_button;
 use crate::terminal::view::{TerminalAction, WARP_PROMPT_HEIGHT_LINES};
 use crate::ui_components::blended_colors;
@@ -84,9 +85,9 @@ pub(super) fn render(props: Props, app: &AppContext) -> Option<Box<dyn Element>>
             props.has_attached_context_selected_text,
             props.num_attached_context_blocks,
         ) {
-            (true, _) => "selected text".to_owned(),
-            (false, 1) => "1 block".to_owned(),
-            (false, n) => format!("{n} blocks"),
+            (true, _) => t!("ai_ui.block.header.selected_text").to_string(),
+            (false, 1) => t!("ai_ui.block.header.one_block").to_string(),
+            (false, n) => t!("ai_ui.block.header.blocks", count = n).to_string(),
         };
 
         left_row.add_child(render_attached_context_chip(

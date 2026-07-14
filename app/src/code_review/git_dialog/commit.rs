@@ -252,8 +252,7 @@ pub(super) fn apply_generated_commit_message(
             editor_handle.update(ctx, |editor, ctx| {
                 // Swap "Generating\u{2026}" for the manual-type prompt so it
                 // shows if the user later clears the generated draft.
-                editor
-                    .set_placeholder_text(&t!("code_review.type_commit_message").to_string(), ctx);
+                editor.set_placeholder_text(t!("code_review.type_commit_message").to_string(), ctx);
                 // User input wins — don't clobber their text.
                 if !user_typed {
                     editor.system_reset_buffer_text(generated.trim(), ctx);
@@ -265,8 +264,7 @@ pub(super) fn apply_generated_commit_message(
         Err(err) => {
             log::warn!("Failed to autogenerate commit message: {err}");
             editor_handle.update(ctx, |editor, ctx| {
-                editor
-                    .set_placeholder_text(&t!("code_review.type_commit_message").to_string(), ctx);
+                editor.set_placeholder_text(t!("code_review.type_commit_message").to_string(), ctx);
             });
             me.refresh_confirm_enabled(ctx);
             ctx.notify();

@@ -14,6 +14,7 @@ use warpui::{AppContext, Element, SingletonEntity};
 use crate::ai::agent::conversation::{AIConversationId, ConversationStatus};
 use crate::ai::conversation_status_ui::{render_status_element, STATUS_ELEMENT_PADDING};
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::{ItemHighlightState, SearchItem};
 use crate::terminal::history::LinkedWorkflowData;
 use crate::terminal::input::inline_history::data_source::AcceptHistoryItem;
@@ -278,9 +279,15 @@ impl SearchItem for InlineHistoryItem {
 
     fn accessibility_label(&self) -> String {
         match &self.item_type {
-            HistoryItemType::Conversation { title, .. } => format!("Conversation: {title}"),
-            HistoryItemType::Command { command, .. } => format!("Command: {command}"),
-            HistoryItemType::AIPrompt { query_text } => format!("AI prompt: {query_text}"),
+            HistoryItemType::Conversation { title, .. } => {
+                t!("terminal_ui.input.a11y.conversation", name = title).to_string()
+            }
+            HistoryItemType::Command { command, .. } => {
+                t!("terminal_ui.input.a11y.command", name = command).to_string()
+            }
+            HistoryItemType::AIPrompt { query_text } => {
+                t!("terminal_ui.input.a11y.ai_prompt", name = query_text).to_string()
+            }
         }
     }
 }

@@ -169,7 +169,7 @@ impl VoiceInputToggleKey {
     }
 
     /// Display name for choosing key from the AI settings page.
-    pub fn display_name(&self) -> &'static str {
+    pub fn display_name(&self) -> String {
         // We use the underlying host OS to determine the correct key name to display.
         let (super_key_name, alt_key_name): (&'static str, &'static str) =
             match OperatingSystem::get() {
@@ -179,24 +179,16 @@ impl VoiceInputToggleKey {
             };
 
         match self {
-            VoiceInputToggleKey::None => "None",
-            VoiceInputToggleKey::Fn => "Fn",
-            VoiceInputToggleKey::AltLeft => {
-                Box::leak(format!("{alt_key_name} (Left)").into_boxed_str())
-            }
-            VoiceInputToggleKey::AltRight => {
-                Box::leak(format!("{alt_key_name} (Right)").into_boxed_str())
-            }
-            VoiceInputToggleKey::ControlLeft => "Control (Left)",
-            VoiceInputToggleKey::ControlRight => "Control (Right)",
-            VoiceInputToggleKey::SuperLeft => {
-                Box::leak(format!("{super_key_name} (Left)").into_boxed_str())
-            }
-            VoiceInputToggleKey::SuperRight => {
-                Box::leak(format!("{super_key_name} (Right)").into_boxed_str())
-            }
-            VoiceInputToggleKey::ShiftLeft => "Shift (Left)",
-            VoiceInputToggleKey::ShiftRight => "Shift (Right)",
+            VoiceInputToggleKey::None => t!("common.none").to_string(),
+            VoiceInputToggleKey::Fn => "Fn".to_string(),
+            VoiceInputToggleKey::AltLeft => key_with_side(alt_key_name, true),
+            VoiceInputToggleKey::AltRight => key_with_side(alt_key_name, false),
+            VoiceInputToggleKey::ControlLeft => key_with_side("Control", true),
+            VoiceInputToggleKey::ControlRight => key_with_side("Control", false),
+            VoiceInputToggleKey::SuperLeft => key_with_side(super_key_name, true),
+            VoiceInputToggleKey::SuperRight => key_with_side(super_key_name, false),
+            VoiceInputToggleKey::ShiftLeft => key_with_side("Shift", true),
+            VoiceInputToggleKey::ShiftRight => key_with_side("Shift", false),
         }
     }
 
@@ -255,20 +247,28 @@ impl VoiceInputToggleKey {
                     VoiceInputToggleKey::AltLeft
                     | VoiceInputToggleKey::ControlLeft
                     | VoiceInputToggleKey::SuperLeft
-                    | VoiceInputToggleKey::ShiftLeft => Some("Left"),
+                    | VoiceInputToggleKey::ShiftLeft => {
+                        Some(t!("settings_extra.options.key_side.left"))
+                    }
                     VoiceInputToggleKey::AltRight
                     | VoiceInputToggleKey::ControlRight
                     | VoiceInputToggleKey::SuperRight
-                    | VoiceInputToggleKey::ShiftRight => Some("Right"),
+                    | VoiceInputToggleKey::ShiftRight => {
+                        Some(t!("settings_extra.options.key_side.right"))
+                    }
                     VoiceInputToggleKey::None | VoiceInputToggleKey::Fn => None,
                 };
                 let key_name = match side {
                     Some(side) => format!("{side} {symbol}"),
                     None => symbol,
                 };
-                format!("Voice input (hold {key_name} key)")
+                t!(
+                    "settings_extra.options.voice_input.hold_key",
+                    name = key_name
+                )
+                .to_string()
             }
-            None => "Voice input".to_string(),
+            None => t!("terminal.voice_input").to_string(),
         }
     }
 
@@ -323,14 +323,32 @@ settings::macros::implement_setting_for_enum!(
 
 impl DefaultSessionMode {
     /// Display name for the settings dropdown.
-    pub fn display_name(&self) -> &'static str {
+    pub fn display_name(&self) -> String {
         match self {
-            DefaultSessionMode::Terminal => "Terminal",
-            DefaultSessionMode::Agent => "Agent",
-            DefaultSessionMode::CloudAgent => "Cloud Oz",
-            DefaultSessionMode::TabConfig => "Tab Config",
-            DefaultSessionMode::DockerSandbox => "Local Docker Sandbox",
+            DefaultSessionMode::Terminal => t!("workspace.new_session_menu.terminal").to_string(),
+            DefaultSessionMode::Agent => t!("workspace.new_session_menu.agent").to_string(),
+            DefaultSessionMode::CloudAgent => {
+                t!("settings_extra.options.default_session.cloud_oz").to_string()
+            }
+            DefaultSessionMode::TabConfig => {
+                t!("settings_extra.options.default_session.tab_config").to_string()
+            }
+            DefaultSessionMode::DockerSandbox => {
+                t!("workspace.new_session_menu.local_docker_sandbox").to_string()
+            }
         }
+    }
+}
+
+fn key_with_side(key: &str, is_left: bool) -> String {
+    if is_left {
+        t!("settings_extra.options.voice_input.key_on_left", name = key).to_string()
+    } else {
+        t!(
+            "settings_extra.options.voice_input.key_on_right",
+            name = key
+        )
+        .to_string()
     }
 }
 

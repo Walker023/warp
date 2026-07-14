@@ -78,6 +78,65 @@ fn llm_info_deserializes_without_base_model_name() {
 }
 
 #[test]
+fn localized_llm_names_preserve_canonical_metadata() {
+    let auto = LLMInfo::new_for_test("auto");
+    let cost_efficient = LLMInfo::new_for_test("auto (cost-efficient)");
+    let responsive = LLMInfo::new_for_test("auto (responsive)");
+    let named_model = LLMInfo::new_for_test("Claude 4");
+
+    assert_eq!(
+        auto.localized_display_name(),
+        t!("ai_models.display_name.auto")
+    );
+    assert_eq!(
+        cost_efficient.localized_display_name(),
+        t!("ai_models.display_name.auto_cost_efficient")
+    );
+    assert_eq!(
+        responsive.localized_base_model_name(),
+        t!("ai_models.display_name.auto_responsive")
+    );
+    assert_eq!(
+        cost_efficient.menu_display_name(),
+        cost_efficient.localized_display_name()
+    );
+    assert_eq!(named_model.localized_display_name(), "Claude 4");
+
+    assert_eq!(auto.display_name, "auto");
+    assert_eq!(cost_efficient.base_model_name, "auto (cost-efficient)");
+    assert_eq!(responsive.display_name, "auto (responsive)");
+
+    assert_eq!(t!("ai_models.display_name.auto", locale = "zh-CN"), "自动");
+    assert_eq!(
+        t!(
+            "ai_models.display_name.auto_cost_efficient",
+            locale = "zh-CN"
+        ),
+        "自动（成本效益）"
+    );
+    assert_eq!(
+        t!("ai_models.display_name.auto_responsive", locale = "zh-CN"),
+        "自动（响应速度）"
+    );
+    assert_eq!(
+        t!(
+            "ai_models.errors.unknown_target_models",
+            locale = "en",
+            models = "missing-a, missing-b"
+        ),
+        "unknown target model(s): missing-a, missing-b"
+    );
+    assert_eq!(
+        t!(
+            "ai_models.errors.unknown_target_models",
+            locale = "zh-CN",
+            models = "missing-a, missing-b"
+        ),
+        "未知目标模型：missing-a, missing-b"
+    );
+}
+
+#[test]
 fn llm_info_deserializes_host_configs_as_vec() {
     // Wire format from server: host_configs is a Vec
     let raw = r#"{
@@ -255,7 +314,7 @@ fn custom_endpoint_usage_display_label_resolves_alias_name_and_generic_fallback(
     );
     assert_eq!(
         preferences.custom_endpoint_usage_display_label("unknown"),
-        CUSTOM_ENDPOINT_USAGE_FALLBACK_LABEL
+        t!("ai_ui.llms.custom_endpoint")
     );
 }
 

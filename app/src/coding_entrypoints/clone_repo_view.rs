@@ -5,6 +5,7 @@ use warpui::{
 };
 
 use crate::coding_entrypoints::glowing_editor::{GlowingEditor, GlowingEditorEvent};
+use crate::i18n::t;
 use crate::TelemetryEvent;
 
 pub struct CloneRepoView {
@@ -21,7 +22,7 @@ impl CloneRepoView {
     pub fn new(is_ftux: bool, ctx: &mut ViewContext<Self>) -> Self {
         let editor = ctx.add_typed_action_view(|ctx| {
             GlowingEditor::new(
-                "Provide a repository URL e.g. \"git@github.com:username/project.git\"",
+                t!("coding_entrypoints_ui.clone_repository.placeholder").to_string(),
                 ctx,
             )
         });

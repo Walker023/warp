@@ -72,8 +72,15 @@ fn render_upgrade_footer(
     .with_height(16.)
     .finish();
 
-    let label = "Frontier models are unavailable on free plans. Upgrade";
-    let upgrade_start = label.len() - "Upgrade".len();
+    let upgrade = t!("ai_ui.prompt_alert.upgrade").to_string();
+    let label = t!(
+        "ai_ui.execution_profiles.frontier_models_unavailable",
+        upgrade = &upgrade
+    )
+    .to_string();
+    let upgrade_byte_start = label.rfind(&upgrade).unwrap_or(label.len());
+    let upgrade_start = label[..upgrade_byte_start].chars().count();
+    let upgrade_end = upgrade_start + upgrade.chars().count();
     let info_text = Text::new(
         label,
         appearance.ui_font_family(),
@@ -84,15 +91,15 @@ fn render_upgrade_footer(
         Highlight::new()
             .with_properties(Properties::default())
             .with_foreground_color(internal_colors::accent_fg(theme).into()),
-        (upgrade_start..label.len()).collect(),
+        (upgrade_start..upgrade_end).collect(),
     )
     .with_hoverable_char_range(
-        upgrade_start..label.len(),
+        upgrade_start..upgrade_end,
         upgrade_mouse_state,
         Some(Cursor::PointingHand),
         |_is_hovered, _ctx, _app| {},
     )
-    .with_clickable_char_range(upgrade_start..label.len(), move |_modifiers, ctx, _app| {
+    .with_clickable_char_range(upgrade_start..upgrade_end, move |_modifiers, ctx, _app| {
         ctx.dispatch_typed_action(WorkspaceAction::ShowUpgrade);
     })
     .finish();
@@ -1350,7 +1357,7 @@ impl ExecutionProfileEditorView {
     ) {
         profile_name_editor.update(ctx, |editor, ctx| {
             let display_name = if profile_data.is_default_profile {
-                "Default".to_string()
+                t!("common.default").to_string()
             } else {
                 profile_data.name.clone()
             };

@@ -29,6 +29,7 @@ use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, SingleLineEditorOptions,
     TextOptions,
 };
+use crate::i18n::t;
 use crate::menu::{MenuItem, MenuItemFields};
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
@@ -51,10 +52,6 @@ pub enum HostPickerEvent {
     Closed,
 }
 
-const CUSTOM_HOST_LABEL: &str = "Custom host…";
-const DEFAULT_BADGE: &str = "Default";
-const CONNECTED_BADGE: &str = "Connected";
-const DISCONNECTED_BADGE: &str = "Disconnected";
 const EDITOR_PLACEHOLDER: &str = "my-worker-host";
 
 // ── Internal action plumbing ────────────────────────────────────────
@@ -434,7 +431,7 @@ pub(crate) fn build_menu_items(
     if let Some(slug) = default_host {
         items.push(menu_item_for_known(
             slug,
-            Some(DEFAULT_BADGE),
+            Some(t!("ambient_agent.host_selector.default").to_string()),
             InternalAction::SelectKnown(slug.to_string()),
         ));
         known_slugs.push(slug.to_string());
@@ -456,7 +453,7 @@ pub(crate) fn build_menu_items(
         }
         items.push(menu_item_for_known(
             slug,
-            Some(CONNECTED_BADGE),
+            Some(t!("ambient_agent.host_selector.connected").to_string()),
             InternalAction::SelectKnown(slug.to_string()),
         ));
         known_slugs.push(slug.to_string());
@@ -472,15 +469,16 @@ pub(crate) fn build_menu_items(
             // state explicit.
             items.push(menu_item_for_known(
                 slug,
-                Some(DISCONNECTED_BADGE),
+                Some(t!("ambient_agent.host_selector.disconnected").to_string()),
                 InternalAction::SelectKnown(slug.to_string()),
             ));
         }
     }
     items.push(MenuItem::Item(
-        MenuItemFields::new(CUSTOM_HOST_LABEL).with_on_select_action(
-            DropdownAction::select_action_and_close(InternalAction::EnterCustomMode),
-        ),
+        MenuItemFields::new(t!("ai_ui.inline_action.host_picker.custom_host").to_string())
+            .with_on_select_action(DropdownAction::select_action_and_close(
+                InternalAction::EnterCustomMode,
+            )),
     ));
 
     items
@@ -491,7 +489,10 @@ pub(crate) fn build_menu_items(
 #[cfg(test)]
 pub(crate) fn menu_label_for(slug: &str, default_host: Option<&str>) -> String {
     if default_host == Some(slug) {
-        format_known_label(slug, Some(DEFAULT_BADGE))
+        format_known_label(
+            slug,
+            Some(t!("ambient_agent.host_selector.default").as_ref()),
+        )
     } else {
         format_known_label(slug, None)
     }
@@ -507,7 +508,7 @@ fn format_known_label(slug: &str, badge: Option<&str>) -> String {
 
 fn menu_item_for_known(
     slug: &str,
-    badge: Option<&str>,
+    badge: Option<String>,
     action: InternalAction,
 ) -> MenuItem<DropdownAction> {
     let mut fields = MenuItemFields::new(slug)

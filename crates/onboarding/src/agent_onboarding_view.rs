@@ -394,7 +394,7 @@ impl AgentOnboardingView {
         let cancel_button = self.no_ai_cancel_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label(t!("onboarding.no_ai_dialog.keep_ai").into()),
+                content: button::Content::Label(t!("onboarding.no_ai_dialog.keep_ai")),
                 theme: &button::themes::Naked,
                 options: button::Options {
                     on_click: Some(Box::new(|ctx, _app, _pos| {
@@ -409,7 +409,7 @@ impl AgentOnboardingView {
         let confirm_button = self.no_ai_confirm_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label(t!("onboarding.no_ai_dialog.confirm_no_ai").into()),
+                content: button::Content::Label(t!("onboarding.no_ai_dialog.confirm_no_ai")),
                 theme: &button::themes::Primary,
                 options: button::Options {
                     keystroke: Some(enter),
@@ -620,7 +620,7 @@ impl View for AgentOnboardingView {
             let close_button = self.close_button.render(
                 appearance,
                 button::Params {
-                    content: button::Content::Label(t!("onboarding.common.skip").into()),
+                    content: button::Content::Label(t!("onboarding.common.skip")),
                     theme: &button::themes::Naked,
                     options: button::Options {
                         size: button::Size::Small,

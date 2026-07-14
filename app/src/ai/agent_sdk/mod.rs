@@ -67,6 +67,7 @@ use crate::auth::auth_manager::{AuthManager, AuthManagerEvent};
 use crate::auth::AuthStateProvider;
 use crate::cloud_object::model::persistence::CloudModel;
 use crate::cloud_object::CloudObjectLookup as _;
+use crate::i18n::t;
 use crate::send_telemetry_sync_from_app_ctx;
 use crate::server::ids::{ServerId, SyncId};
 use crate::server::server_api::ai::{AIClient, AgentConfigSnapshot, GitCredential};
@@ -117,9 +118,21 @@ fn maybe_warn_team_api_key(ctx: &AppContext) {
     }
 
     eprintln!(
-        "\x1b[33mWarning: Free cloud credits apply to personal runs only but this run uses \
-         a team API key. If you want to use free cloud credits, consider using a personal API key instead.\x1b[0m"
+        "\x1b[33m{}\x1b[0m",
+        t!("ai_sdk_driver.cli.warning.team_api_key")
     );
+}
+
+fn invalid_cli_value(value: &str) -> anyhow::Error {
+    anyhow::anyhow!(t!("ai_sdk_driver.cli.error.invalid_value", value = value).to_string())
+}
+
+fn unexpected_cli_argument(argument: &str) -> anyhow::Error {
+    anyhow::anyhow!(t!(
+        "ai_sdk_driver.cli.error.unexpected_argument",
+        argument = argument
+    )
+    .to_string())
 }
 
 /// Run a Warp CLI command.
@@ -145,7 +158,7 @@ fn dispatch_command(
         CliCommand::Agent(agent_cmd) => run_agent(ctx, global_options, agent_cmd),
         CliCommand::Environment(environment_cmd) => {
             if !FeatureFlag::CloudEnvironments.is_enabled() {
-                return Err(anyhow::anyhow!("invalid value 'environment'"));
+                return Err(invalid_cli_value("environment"));
             }
             environment::run(ctx, global_options, environment_cmd)
         }
@@ -161,54 +174,54 @@ fn dispatch_command(
         CliCommand::Whoami => admin::whoami(ctx, global_options.output_format),
         CliCommand::Provider(provider_cmd) => {
             if !FeatureFlag::ProviderCommand.is_enabled() {
-                return Err(anyhow::anyhow!("invalid value 'provider'"));
+                return Err(invalid_cli_value("provider"));
             }
             provider::run(ctx, global_options, provider_cmd)
         }
         #[cfg(not(target_family = "wasm"))]
         CliCommand::Integration(integration_cmd) => {
             if !FeatureFlag::IntegrationCommand.is_enabled() {
-                return Err(anyhow::anyhow!("invalid value 'integration'"));
+                return Err(invalid_cli_value("integration"));
             }
             integration::run(ctx, global_options, integration_cmd)
         }
         #[cfg(target_family = "wasm")]
         CliCommand::Integration(_) => {
-            return Err(anyhow::anyhow!("invalid value 'integration'"));
+            return Err(invalid_cli_value("integration"));
         }
         CliCommand::Schedule(schedule_cmd) => {
             if !FeatureFlag::ScheduledAmbientAgents.is_enabled() {
-                return Err(anyhow::anyhow!("invalid value 'schedule'"));
+                return Err(invalid_cli_value("schedule"));
             }
             schedule::run(ctx, global_options, schedule_cmd)
         }
         CliCommand::Secret(secret_cmd) => {
             if !FeatureFlag::WarpManagedSecrets.is_enabled() {
-                return Err(anyhow::anyhow!("invalid value 'secret'"));
+                return Err(invalid_cli_value("secret"));
             }
             secret::run(ctx, global_options, secret_cmd)
         }
         CliCommand::Federate(federate_cmd) => {
             if !FeatureFlag::OzIdentityFederation.is_enabled() {
-                return Err(anyhow::anyhow!("invalid value 'federate'"));
+                return Err(invalid_cli_value("federate"));
             }
             federate::run(ctx, global_options, federate_cmd)
         }
         CliCommand::HarnessSupport(args) => {
             if !FeatureFlag::AgentHarness.is_enabled() {
-                return Err(anyhow::anyhow!("invalid value 'harness-support'"));
+                return Err(invalid_cli_value("harness-support"));
             }
             harness_support::run(ctx, global_options, args)
         }
         CliCommand::Artifact(artifact_cmd) => {
             if !FeatureFlag::ArtifactCommand.is_enabled() {
-                return Err(anyhow::anyhow!("invalid value 'artifact'"));
+                return Err(invalid_cli_value("artifact"));
             }
             artifact::run(ctx, global_options, artifact_cmd)
         }
         CliCommand::ApiKey(api_key_cmd) => {
             if !FeatureFlag::APIKeyManagement.is_enabled() {
-                return Err(anyhow::anyhow!("invalid value 'api-key'"));
+                return Err(invalid_cli_value("api-key"));
             }
             api_key::run(ctx, global_options, api_key_cmd)
         }
@@ -218,33 +231,50 @@ fn dispatch_command(
 fn format_skill_resolution_error(err: ResolveSkillError) -> String {
     match err {
         ResolveSkillError::NotFound { skill } => {
-            format!("Skill '{skill}' not found")
+            t!("ai_sdk_driver.skill.error.not_found", skill = &skill).to_string()
         }
-        ResolveSkillError::RepoNotFound { repo } => {
-            format!("Repository '{repo}' not found")
-        }
+        ResolveSkillError::RepoNotFound { repo } => t!(
+            "ai_sdk_driver.skill.error.repository_not_found",
+            repo = &repo
+        )
+        .to_string(),
         ResolveSkillError::Ambiguous { skill, candidates } => {
-            let mut msg = format!(
-                "Skill '{skill}' is ambiguous; specify as repo:skill_name\n\nCandidates:\n"
-            );
-            for path in candidates {
-                msg.push_str(&format!("- {}\n", path.display()));
-            }
-            msg
+            let candidates = candidates
+                .iter()
+                .map(|path| format!("- {}", path.display()))
+                .collect::<Vec<_>>()
+                .join("\n");
+            t!(
+                "ai_sdk_driver.skill.error.ambiguous",
+                skill = &skill,
+                candidates = &candidates
+            )
+            .to_string()
         }
         ResolveSkillError::OrgMismatch {
             repo,
             expected,
             found,
-        } => {
-            format!("Repository '{repo}' found but belongs to org '{found}', expected '{expected}'")
-        }
-        ResolveSkillError::ParseFailed { path, message } => {
-            format!("Failed to parse skill file {}: {message}", path.display())
-        }
-        ResolveSkillError::CloneFailed { org, repo, message } => {
-            format!("Failed to clone repository '{org}/{repo}': {message}")
-        }
+        } => t!(
+            "ai_sdk_driver.skill.error.organization_mismatch",
+            repo = &repo,
+            found = &found,
+            expected = &expected
+        )
+        .to_string(),
+        ResolveSkillError::ParseFailed { path, message } => t!(
+            "ai_sdk_driver.skill.error.parse_failed",
+            path = path.display(),
+            message = &message
+        )
+        .to_string(),
+        ResolveSkillError::CloneFailed { org, repo, message } => t!(
+            "ai_sdk_driver.skill.error.clone_failed",
+            org = &org,
+            repo = &repo,
+            message = &message
+        )
+        .to_string(),
     }
 }
 
@@ -257,23 +287,23 @@ fn run_agent(
     match command {
         AgentCommand::Run(args) => {
             if args.environment.is_some() && !FeatureFlag::CloudEnvironments.is_enabled() {
-                return Err(anyhow::anyhow!("unexpected argument '--environment' found"));
+                return Err(unexpected_cli_argument("--environment"));
             }
             if args.conversation.is_some() && !FeatureFlag::CloudConversations.is_enabled() {
-                return Err(anyhow::anyhow!(
-                    "unexpected argument '--conversation' found"
-                ));
+                return Err(unexpected_cli_argument("--conversation"));
             }
             if args.skill.is_some() && !FeatureFlag::OzPlatformSkills.is_enabled() {
-                return Err(anyhow::anyhow!("unexpected argument '--skill' found"));
+                return Err(unexpected_cli_argument("--skill"));
             }
             if args.harness != Harness::Oz && !FeatureFlag::AgentHarness.is_enabled() {
-                return Err(anyhow::anyhow!("unexpected argument '--harness' found"));
+                return Err(unexpected_cli_argument("--harness"));
             }
             if args.harness == Harness::OpenCode {
-                return Err(anyhow::anyhow!(
-                    "The opencode harness is only supported for local child agent launches."
-                ));
+                return Err(anyhow::anyhow!(t!(
+                    "ai_sdk_driver.cli.error.harness_local_child_only",
+                    harness = args.harness
+                )
+                .to_string()));
             }
 
             let server_api = ServerApiProvider::handle(ctx).as_ref(ctx).get_ai_client();
@@ -304,21 +334,35 @@ fn run_agent(
             if args.environment.environment.is_some()
                 && !FeatureFlag::CloudEnvironments.is_enabled()
             {
-                return Err(anyhow::anyhow!("unexpected argument '--environment' found"));
+                return Err(unexpected_cli_argument("--environment"));
             }
             if args.conversation.is_some() && !FeatureFlag::CloudConversations.is_enabled() {
-                return Err(anyhow::anyhow!(
-                    "unexpected argument '--conversation' found"
-                ));
+                return Err(unexpected_cli_argument("--conversation"));
             }
             if args.harness != Harness::Oz && !FeatureFlag::AgentHarness.is_enabled() {
-                return Err(anyhow::anyhow!("unexpected argument '--harness' found"));
+                return Err(unexpected_cli_argument("--harness"));
             }
             if let Err(msg) = args.validate_auth_secrets() {
+                if args.claude_auth_secret.is_some() && args.harness != Harness::Claude {
+                    return Err(anyhow::anyhow!(t!(
+                        "ai_sdk_driver.cli.error.auth_secret_harness_mismatch",
+                        argument = "--claude-auth-secret",
+                        harness = "claude"
+                    )
+                    .to_string()));
+                }
+                if args.codex_auth_secret.is_some() && args.harness != Harness::Codex {
+                    return Err(anyhow::anyhow!(t!(
+                        "ai_sdk_driver.cli.error.auth_secret_harness_mismatch",
+                        argument = "--codex-auth-secret",
+                        harness = "codex"
+                    )
+                    .to_string()));
+                }
                 return Err(anyhow::anyhow!(msg));
             }
             if args.runner.is_some() && !FeatureFlag::CloudRunners.is_enabled() {
-                return Err(anyhow::anyhow!("unexpected argument '--runner' found"));
+                return Err(unexpected_cli_argument("--runner"));
             }
             ambient::run_ambient_agent(ctx, args)
         }
@@ -370,9 +414,10 @@ fn build_merged_config_and_task(
     // Runner support is gated. The `run` command has no `--runner` flag, but a
     // config file can still set `runner_id`, so reject it when the flag is off.
     if file_merged.runner_id.is_some() && !FeatureFlag::CloudRunners.is_enabled() {
-        return Err(anyhow::anyhow!(
-            "`runner_id` is set in the config file but runner support is not enabled"
-        ));
+        return Err(anyhow::anyhow!(t!(
+            "ai_sdk_driver.cli.error.runner_config_disabled"
+        )
+        .to_string()));
     }
 
     // Skill provides base_prompt and optionally name
@@ -577,9 +622,11 @@ fn run_task(
         TaskCommand::Get(args) => {
             if args.conversation {
                 if !FeatureFlag::ConversationApi.is_enabled() {
-                    return Err(anyhow::anyhow!(
-                        "The --conversation flag is not available in this build"
-                    ));
+                    return Err(anyhow::anyhow!(t!(
+                        "ai_sdk_driver.cli.error.flag_unavailable",
+                        flag = "--conversation"
+                    )
+                    .to_string()));
                 }
                 ambient::get_run_conversation(ctx, args.task_id)
             } else {
@@ -588,9 +635,11 @@ fn run_task(
         }
         TaskCommand::Conversation(conv_cmd) => {
             if !FeatureFlag::ConversationApi.is_enabled() {
-                return Err(anyhow::anyhow!(
-                    "The 'conversation' subcommand is not available in this build"
-                ));
+                return Err(anyhow::anyhow!(t!(
+                    "ai_sdk_driver.cli.error.subcommand_unavailable",
+                    subcommand = "conversation"
+                )
+                .to_string()));
             }
             match conv_cmd {
                 warp_cli::task::ConversationCommand::Get(args) => {
@@ -719,8 +768,7 @@ impl AgentDriverRunner {
                 // hard-coded STS region.
                 let role_region = bedrock_role_region.ok_or_else(|| {
                     AgentDriverError::AwsBedrockCredentialsFailed(
-                        "--bedrock-role-region is required when --bedrock-inference-role is set"
-                            .to_string(),
+                        t!("ai_sdk_driver.cli.error.bedrock_role_region_required").to_string(),
                     )
                 })?;
                 // Set the OIDC strategy on the UI thread and kick off the refresh; the
@@ -750,9 +798,11 @@ impl AgentDriverRunner {
                 HarnessKind::Unsupported(harness) => {
                     return Err(AgentDriverError::HarnessSetupFailed {
                         harness: harness.to_string(),
-                        reason: format!(
-                            "The {harness} harness is only supported for local child agent launches."
-                        ),
+                        reason: t!(
+                            "ai_sdk_driver.cli.error.harness_local_child_only",
+                            harness = harness
+                        )
+                        .to_string(),
                     });
                 }
                 HarnessKind::Oz | HarnessKind::ThirdParty(_) => {}
@@ -862,9 +912,12 @@ impl AgentDriverRunner {
                         .args(["auth", "setup-git"])
                         .spawn()
                         .map_err(|err| {
-                            AgentDriverError::ConfigBuildFailed(anyhow::anyhow!(
-                                "gh auth setup-git failed: {err:?}"
-                            ))
+                            let error = format!("{err:?}");
+                            AgentDriverError::ConfigBuildFailed(anyhow::anyhow!(t!(
+                                "ai_sdk_driver.cli.error.git_setup_failed",
+                                error = &error
+                            )
+                            .to_string()))
                         })
                 })
                 .await?
@@ -909,9 +962,13 @@ impl AgentDriverRunner {
                 return Ok(());
             }
             Err(err) => {
-                return Err(AgentDriverError::SkillResolutionFailed(format!(
-                    "Failed to fetch git credentials before skill resolution: {err:#}"
-                )));
+                return Err(AgentDriverError::SkillResolutionFailed(
+                    t!(
+                        "ai_sdk_driver.skill.error.git_credentials_fetch_failed",
+                        error = format!("{err:#}")
+                    )
+                    .to_string(),
+                ));
             }
         };
         if credentials.is_empty() {
@@ -920,9 +977,13 @@ impl AgentDriverRunner {
         }
 
         driver::git_credentials::configure_git_credentials(&credentials).map_err(|err| {
-            AgentDriverError::SkillResolutionFailed(format!(
-                "Failed to write git credentials before skill resolution: {err:#}"
-            ))
+            AgentDriverError::SkillResolutionFailed(
+                t!(
+                    "ai_sdk_driver.skill.error.git_credentials_write_failed",
+                    error = format!("{err:#}")
+                )
+                .to_string(),
+            )
         })?;
         log::info!("Git credentials configured before task setup");
         Ok(())
@@ -994,9 +1055,15 @@ impl AgentDriverRunner {
     ) -> Result<(AgentDriverOptions, Task, Option<String>), AgentDriverError> {
         // Get the working directory
         let working_dir = match args.cwd.as_ref() {
-            Some(dir) => dunce::canonicalize(dir)
-                .with_context(|| format!("Unable to resolve {}", dir.display())),
-            None => std::env::current_dir().context("Unable to determine working directory"),
+            Some(dir) => dunce::canonicalize(dir).with_context(|| {
+                t!(
+                    "ai_sdk_driver.cli.error.working_directory_resolve",
+                    path = dir.display()
+                )
+                .to_string()
+            }),
+            None => std::env::current_dir()
+                .context(t!("ai_sdk_driver.cli.error.working_directory_determine").to_string()),
         }
         .map_err(AgentDriverError::ConfigBuildFailed)?;
 
@@ -1572,9 +1639,11 @@ fn launch_command(
 
     let auth_state = AuthStateProvider::handle(ctx).as_ref(ctx).get();
     if !auth_state.is_logged_in() {
-        return Err(anyhow::anyhow!(
-            "You are not logged in - please log in with `{cli_name} login` to continue."
-        ));
+        return Err(anyhow::anyhow!(t!(
+            "ai_sdk_driver.cli.error.not_logged_in",
+            cli_name = &cli_name
+        )
+        .to_string()));
     }
 
     // User is logged in — subscribe to auth events, trigger a refresh, and wait
@@ -1595,15 +1664,26 @@ fn launch_command(
                 dispatched = true;
                 let auth_state = AuthStateProvider::handle(ctx).as_ref(ctx).get();
                 let message = if auth_state.is_api_key_authenticated() {
-                    "Your API key is invalid. Please provide a valid key via '--api-key' or the WARP_API_KEY environment variable.".to_string()
+                    t!("ai_sdk_driver.cli.error.invalid_api_key").to_string()
                 } else {
-                    format!("Your credentials are invalid. Please log in again with `{cli_name} login`.")
+                    t!(
+                        "ai_sdk_driver.cli.error.invalid_credentials",
+                        cli_name = &cli_name
+                    )
+                    .to_string()
                 };
                 report_fatal_error(anyhow::anyhow!(message), ctx);
             }
             AuthManagerEvent::AuthFailed(err) => {
                 dispatched = true;
-                report_fatal_error(anyhow::anyhow!("Authentication failed: {err:#}"), ctx);
+                report_fatal_error(
+                    anyhow::anyhow!(t!(
+                        "ai_sdk_driver.cli.error.authentication_failed",
+                        error = format!("{err:#}")
+                    )
+                    .to_string()),
+                    ctx,
+                );
             }
             _ => {}
         }
@@ -1627,26 +1707,39 @@ pub fn is_running_in_warp() -> bool {
 
 /// Report a fatal error and terminate the app.
 fn report_fatal_error(err: anyhow::Error, ctx: &mut AppContext) {
-    let mut message = err.to_string();
-    for cause in err.chain().skip(1) {
-        let _ = write!(&mut message, "\n=> {cause}");
-    }
+    let log_message = format_error_chain(&err);
+    tracing::event!(
+        tracing::Level::ERROR,
+        tags.cloud_agent = true,
+        message = log_message
+    );
 
-    tracing::event!(tracing::Level::ERROR, tags.cloud_agent = true, message);
+    let mut message = err
+        .downcast_ref::<AgentDriverError>()
+        .map(AgentDriverError::user_facing_message)
+        .unwrap_or_else(|| format_error_chain(&err));
 
     #[cfg(not(target_family = "wasm"))]
     {
         if let Ok(path) = log_file_path() {
-            let _ = write!(
-                message,
-                "\n\nFor more information, check Warp logs at {}",
-                path.display()
+            let hint = t!(
+                "ai_sdk_driver.cli.error.log_path_hint",
+                path = path.display()
             );
+            let _ = write!(message, "\n\n{hint}");
         }
     }
 
     let error = anyhow::anyhow!(message);
     ctx.terminate_app(TerminationMode::ForceTerminate, Some(Err(error)));
+}
+
+fn format_error_chain(err: &anyhow::Error) -> String {
+    let mut message = err.to_string();
+    for cause in err.chain().skip(1) {
+        let _ = write!(&mut message, "\n=> {cause}");
+    }
+    message
 }
 
 fn resolve_orchestration_harness_label() -> &'static str {

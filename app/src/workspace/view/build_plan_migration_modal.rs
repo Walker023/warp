@@ -810,8 +810,10 @@ impl TypedActionView for BuildPlanMigrationModal {
                 let workspaces = UserWorkspaces::as_ref(ctx);
                 let Some(team_uid) = workspaces.current_team_uid() else {
                     ctx.emit(BuildPlanMigrationModalEvent::ShowToast {
-                        message: "Oops, something went wrong; your team data could not be found."
-                            .to_string(),
+                        message: t!(
+                            "workspace_search_ui.workspace.build_plan_migration.team_not_found"
+                        )
+                        .to_string(),
                         flavor: ToastFlavor::Error,
                     });
                     return;

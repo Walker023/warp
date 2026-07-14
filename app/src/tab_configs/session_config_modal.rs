@@ -18,6 +18,7 @@ use warpui::{
 use super::session_config::{is_git_repo, SessionConfigSelection, SessionType};
 use super::session_config_rendering;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::blended_colors;
 use crate::view_components::action_button::{
     ActionButton, ButtonSize, KeystrokeSource, NakedTheme, PrimaryTheme,
@@ -86,7 +87,7 @@ impl SessionConfigModal {
         });
 
         let submit_button = ctx.add_view(|ctx| {
-            ActionButton::new("Get Warping", PrimaryTheme)
+            ActionButton::new(t!("tab_configs_ui.session_modal.submit"), PrimaryTheme)
                 .with_full_width(true)
                 .with_keybinding(
                     KeystrokeSource::Fixed(Keystroke::parse("enter").unwrap_or_default()),
@@ -164,7 +165,7 @@ impl SessionConfigModal {
         let theme = appearance.theme();
 
         let title = FormattedTextElement::from_str(
-            "Create your first tab config",
+            t!("tab_configs_ui.session_modal.title"),
             appearance.ui_font_family(),
             24.,
         )
@@ -173,13 +174,9 @@ impl SessionConfigModal {
         .finish();
 
         let subtitle_text = if self.show_session_type_row {
-            "Set up a reusable starting point for your tabs. \
-             Pick a repo, choose a session type, and optionally attach a worktree. \
-             Use it whenever you want to open a new tab with this setup."
+            t!("tab_configs_ui.session_modal.subtitle_with_type")
         } else {
-            "Set up a reusable starting point for your tabs. \
-             Pick a repo, optionally attach a worktree, and \
-             use it whenever you want to open a new tab with this setup."
+            t!("tab_configs_ui.session_modal.subtitle_without_type")
         };
         let subtitle =
             FormattedTextElement::from_str(subtitle_text, appearance.ui_font_family(), 14.)

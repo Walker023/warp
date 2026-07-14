@@ -24,6 +24,7 @@ use crate::editor::{
     EditorOptions, EditorView, EnterAction, EnterSettings, Event as EditorEvent, InteractionState,
     PropagateAndNoOpNavigationKeys, SingleLineEditorOptions, TextOptions,
 };
+use crate::i18n::t;
 use crate::modal::{Modal, ModalEvent};
 use crate::network::NetworkStatus;
 use crate::send_telemetry_from_ctx;
@@ -36,7 +37,6 @@ use crate::ui_components::blended_colors;
 use crate::view_components::action_button::{ActionButton, PrimaryTheme};
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
-const HEADER_TEXT: &str = "Suggested rule";
 const MAX_EDITOR_HEIGHT: f32 = 240.;
 
 pub fn init(app: &mut AppContext) {
@@ -94,34 +94,38 @@ impl SuggestedRuleModal {
 
         let view_handle = view.clone();
         let modal = ctx.add_typed_action_view(|ctx| {
-            Modal::new(Some(HEADER_TEXT.to_string()), view, ctx)
-                .with_modal_style(UiComponentStyles {
-                    width: Some(510.),
-                    background: Some(background.into()),
-                    ..Default::default()
-                })
-                .with_header_style(UiComponentStyles {
-                    padding: Some(Coords {
-                        top: 8.,
-                        bottom: 0.,
-                        left: 24.,
-                        right: 24.,
-                    }),
-                    font_size: Some(16.),
-                    font_weight: Some(Weight::Bold),
-                    ..Default::default()
-                })
-                .with_body_style(UiComponentStyles {
-                    padding: Some(Coords {
-                        top: 0.,
-                        bottom: 24.,
-                        left: 24.,
-                        right: 24.,
-                    }),
-                    ..Default::default()
-                })
-                .with_background_opacity(100)
-                .with_dismiss_on_click()
+            Modal::new(
+                Some(t!("ai_ui.suggested_rule.title").to_string()),
+                view,
+                ctx,
+            )
+            .with_modal_style(UiComponentStyles {
+                width: Some(510.),
+                background: Some(background.into()),
+                ..Default::default()
+            })
+            .with_header_style(UiComponentStyles {
+                padding: Some(Coords {
+                    top: 8.,
+                    bottom: 0.,
+                    left: 24.,
+                    right: 24.,
+                }),
+                font_size: Some(16.),
+                font_weight: Some(Weight::Bold),
+                ..Default::default()
+            })
+            .with_body_style(UiComponentStyles {
+                padding: Some(Coords {
+                    top: 0.,
+                    bottom: 24.,
+                    left: 24.,
+                    right: 24.,
+                }),
+                ..Default::default()
+            })
+            .with_background_opacity(100)
+            .with_dismiss_on_click()
         });
 
         ctx.subscribe_to_view(&modal, |me, _, event, ctx| {
@@ -246,7 +250,7 @@ impl SuggestedRuleView {
         ctx.subscribe_to_model(&network_status, |me, _, _event, ctx| {
             let is_edit_allowed = me.is_edit_allowed(ctx);
             let tooltip = if !is_edit_allowed {
-                Some("Editing is disabled while offline.".to_string())
+                Some(t!("ai_ui.suggested_rule.offline_tooltip").to_string())
             } else {
                 None
             };
@@ -308,12 +312,12 @@ impl SuggestedRuleView {
         });
 
         let add_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Add rule", PrimaryTheme)
+            ActionButton::new(t!("ai_ui.rules.editor.add_rule").to_string(), PrimaryTheme)
                 .on_click(|ctx| ctx.dispatch_typed_action(SuggestedRuleDialogAction::Add))
         });
 
         let edit_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Edit rule", PrimaryTheme)
+            ActionButton::new(t!("ai_ui.rules.editor.edit_rule").to_string(), PrimaryTheme)
                 .on_click(|ctx| ctx.dispatch_typed_action(SuggestedRuleDialogAction::Edit))
         });
 
@@ -494,7 +498,10 @@ impl SuggestedRuleView {
         {
             let AIFact::Memory(AIMemory { name, content, .. }) = rule.model().string_model.clone();
             self.name_editor.update(ctx, |name_editor, ctx| {
-                name_editor.set_buffer_text(&name.unwrap_or("Untitled".to_string()), ctx);
+                name_editor.set_buffer_text(
+                    &name.unwrap_or_else(|| t!("ai_ui.rules.untitled").to_string()),
+                    ctx,
+                );
             });
             self.content_editor.update(ctx, |content_editor, ctx| {
                 content_editor.set_buffer_text(&content, ctx);
@@ -562,7 +569,7 @@ impl SuggestedRuleView {
         let editor_margin = 16.;
 
         Flex::column()
-            .with_child(self.render_label("Name".to_string(), appearance))
+            .with_child(self.render_label(t!("ai_ui.rules.editor.name").to_string(), appearance))
             .with_child(
                 Container::new(ChildView::new(&self.name_editor).finish())
                     .with_background(editor_bg)
@@ -573,7 +580,7 @@ impl SuggestedRuleView {
                     .with_margin_bottom(editor_margin)
                     .finish(),
             )
-            .with_child(self.render_label("Rule".to_string(), appearance))
+            .with_child(self.render_label(t!("ai_ui.rules.editor.rule").to_string(), appearance))
             .with_child(
                 ConstrainedBox::new(
                     Container::new(

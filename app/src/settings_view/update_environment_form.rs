@@ -1082,7 +1082,7 @@ impl UpdateEnvironmentForm {
             };
             let mut editor = EditorView::new(options, ctx);
             editor.set_placeholder_text(
-                &t!("settings.environments.description_placeholder").to_string(),
+                t!("settings.environments.description_placeholder").to_string(),
                 ctx,
             );
             editor

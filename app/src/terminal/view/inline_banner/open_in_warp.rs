@@ -10,6 +10,7 @@ use super::{
     InlineBannerTextButtonVariant,
 };
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::terminal::model::session::Session;
 use crate::terminal::view::open_in_warp::OpenablePath;
 use crate::terminal::view::{InlineBannerId, TerminalAction};
@@ -48,7 +49,7 @@ impl OpenInWarpBannerState {
 fn file_title_text(openable_path: &OpenablePath) -> String {
     match openable_path.file_type {
         OpenableFileType::Markdown => {
-            "Did you know that Warp can directly display Markdown files?".to_string()
+            t!("terminal_ui.inline_banner.open_in_warp.markdown_title").to_string()
         }
         OpenableFileType::Code | OpenableFileType::Text => {
             cfg_if::cfg_if! {
@@ -59,13 +60,13 @@ fn file_title_text(openable_path: &OpenablePath) -> String {
 
                     match language.as_ref().map(|language| language.display_name()) {
                         Some(display_name) => {
-                            format!("Did you know that Warp can directly edit {display_name} files?")
+                            t!("terminal_ui.inline_banner.open_in_warp.language_title", name = display_name).to_string()
                         }
-                        None => "Did you know that Warp can directly edit code?".to_string(),
+                        None => t!("terminal_ui.inline_banner.open_in_warp.code_title").to_string(),
                     }
                 } else {
                     // The `languages` crate is not available on WASM, so use a fallback message.
-                    "Did you know that Warp can directly edit code?".to_string()
+                    t!("terminal_ui.inline_banner.open_in_warp.code_title").to_string()
                 }
             }
         }
@@ -78,12 +79,14 @@ pub fn render_open_in_warp_banner(
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     let button_text = match state.target.file_type {
-        OpenableFileType::Markdown => "View in Warp",
-        OpenableFileType::Code | OpenableFileType::Text => "Edit in Warp",
+        OpenableFileType::Markdown => t!("terminal_ui.inline_banner.open_in_warp.view").to_string(),
+        OpenableFileType::Code | OpenableFileType::Text => {
+            t!("terminal_ui.inline_banner.open_in_warp.edit").to_string()
+        }
     };
 
     let open_button = InlineBannerTextButton {
-        text: button_text.to_string(),
+        text: button_text,
         text_color: appearance.theme().active_ui_text_color().into_solid(),
         button_state: InlineBannerButtonState {
             on_click_event: TerminalAction::OpenInWarpBanner(OpenInWarpBannerAction::OpenFile),
@@ -98,7 +101,7 @@ pub fn render_open_in_warp_banner(
     };
 
     let learn_more_button = InlineBannerTextButton {
-        text: "Learn more".to_string(),
+        text: t!("common.learn_more").to_string(),
         text_color: appearance.theme().active_ui_text_color().into_solid(),
         button_state: InlineBannerButtonState {
             on_click_event: TerminalAction::OpenInWarpBanner(OpenInWarpBannerAction::LearnMore),

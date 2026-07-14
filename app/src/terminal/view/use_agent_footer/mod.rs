@@ -842,9 +842,12 @@ impl TerminalView {
                                 .map(|n| n.to_string_lossy().into_owned())
                                 .unwrap_or_else(|| path_str.clone());
                             let limit_mb = MAX_IMAGE_SIZE_BYTES_FOR_CLI_AGENT / 1_000_000;
-                            let msg = format!(
-                                "{filename} is too large to send to the agent (limit {limit_mb}MB)."
-                            );
+                            let msg = t!(
+                                "terminal_ui.use_agent.file_too_large",
+                                name = filename,
+                                count = limit_mb
+                            )
+                            .to_string();
                             let _ = spawner
                                 .spawn(move |me, ctx| {
                                     me.show_error_toast(msg, ctx);
@@ -1112,7 +1115,7 @@ impl UseAgentToolbar {
         });
         let dont_show_again_button = ctx.add_typed_action_view(|_| {
             ActionButton::new(
-                "Don't show again",
+                t!("terminal.zero_state.dont_show_again").to_string(),
                 AgentFooterButtonTheme::new(Some(terminal_model.clone())),
             )
             .on_click(|ctx| {

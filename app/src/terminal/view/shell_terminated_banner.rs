@@ -16,9 +16,6 @@ use crate::i18n::t;
 use crate::terminal::model::terminal_model::ExitReason;
 use crate::ui_components;
 
-const FILE_ISSUE_TEXT: &str = "File issue";
-const MORE_INFO_TEXT: &str = "More info";
-
 /// A banner to display when the shell process terminates.
 ///
 /// This can be a simple informational banner or one giving information about
@@ -166,9 +163,13 @@ impl TerminationType {
 
     fn text(&self, appearance: &Appearance) -> Box<dyn Element> {
         let text = match self {
-            TerminationType::Normal => "Shell process exited",
-            TerminationType::PtySpawnFailure { .. } => "Shell process could not start!",
-            TerminationType::Premature { .. } => "Shell process exited prematurely!",
+            TerminationType::Normal => t!("terminal_ui.shell_terminated.exited"),
+            TerminationType::PtySpawnFailure { .. } => {
+                t!("terminal_ui.shell_terminated.could_not_start")
+            }
+            TerminationType::Premature { .. } => {
+                t!("terminal_ui.shell_terminated.premature")
+            }
         };
 
         Text::new(text, appearance.ui_font_family(), 14.)
@@ -178,17 +179,15 @@ impl TerminationType {
     }
 
     fn subtext(&self, appearance: &Appearance) -> Option<Box<dyn Element>> {
-        let text: Cow<str> = match self {
+        let text: Cow<'static, str> = match self {
             TerminationType::Normal => return None,
             TerminationType::PtySpawnFailure { pty_spawn_error } => {
                 format!("{pty_spawn_error:#}").into()
             }
-            TerminationType::Premature { shell_detail, .. } => format!(
-                "Something went wrong while starting {shell_detail} and Warpifying it, causing the \
-                process to terminate. Warpify script output is displayed here, which may point at \
-                a cause."
-            )
-            .into(),
+            TerminationType::Premature { shell_detail, .. } => t!(
+                "terminal_ui.shell_terminated.premature_description",
+                name = shell_detail
+            ),
         };
 
         let text = Text::new(text, appearance.ui_font_family(), 12.)
@@ -213,7 +212,7 @@ impl TerminationType {
                 vec![
                     ui_builder
                         .button(ButtonVariant::Text, handles[0].clone())
-                        .with_text_label(FILE_ISSUE_TEXT.to_string())
+                        .with_text_label(t!("terminal_ui.shell_terminated.file_issue").to_string())
                         .build()
                         .on_click(|ctx, _, _| {
                             ctx.dispatch_typed_action(Action::OpenUrl(
@@ -223,7 +222,7 @@ impl TerminationType {
                         .finish(),
                     ui_builder
                         .button(ButtonVariant::Outlined, handles[1].clone())
-                        .with_text_label(MORE_INFO_TEXT.to_string())
+                        .with_text_label(t!("terminal_ui.shell_terminated.more_info").to_string())
                         .build()
                         .on_click(|ctx, _, _| {
                             ctx.dispatch_typed_action(Action::OpenUrl(
@@ -251,7 +250,7 @@ impl TerminationType {
                         .finish(),
                     ui_builder
                         .button(ButtonVariant::Text, handles[1].clone())
-                        .with_text_label(FILE_ISSUE_TEXT.to_string())
+                        .with_text_label(t!("terminal_ui.shell_terminated.file_issue").to_string())
                         .build()
                         .on_click(|ctx, _, _| {
                             ctx.dispatch_typed_action(Action::OpenUrl(
@@ -261,7 +260,7 @@ impl TerminationType {
                         .finish(),
                     ui_builder
                         .button(ButtonVariant::Outlined, handles[2].clone())
-                        .with_text_label(MORE_INFO_TEXT.to_string())
+                        .with_text_label(t!("terminal_ui.shell_terminated.more_info").to_string())
                         .build()
                         .on_click(|ctx, _, _| {
                             ctx.dispatch_typed_action(Action::OpenUrl(

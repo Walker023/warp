@@ -8,6 +8,7 @@ use super::search_results_common::{
 use crate::ai::agent::icons::{failed_icon, yellow_running_icon};
 use crate::ai::agent::WebSearchStatus;
 use crate::ai::blocklist::block::view_impl::WithContentItemSpacing;
+use crate::i18n::t;
 
 pub enum WebSearchViewEvent {}
 
@@ -54,9 +55,9 @@ impl WebSearchView {
         let loading_icon = yellow_running_icon(appearance);
 
         let text = if let Some(q) = query {
-            format!("Searching the web for \"{q}\"")
+            t!("ai_ui.inline_action.web_search.searching_query", query = q).to_string()
         } else {
-            "Searching the web".to_string()
+            t!("ai_ui.inline_action.web_search.searching").to_string()
         };
 
         super::search_results_common::render_status_header(text, loading_icon, app)
@@ -69,9 +70,13 @@ impl WebSearchView {
         app: &AppContext,
     ) -> Box<dyn Element> {
         let title_text = if query.is_empty() {
-            "Searched the web".to_string()
+            t!("ai_ui.inline_action.web_search.searched").to_string()
         } else {
-            format!("Searched the web for \"{query}\"")
+            t!(
+                "ai_ui.inline_action.web_search.searched_query",
+                query = query
+            )
+            .to_string()
         };
 
         let body = if self.collapsible.is_expanded {
@@ -83,7 +88,7 @@ impl WebSearchView {
         render_collapsible_search_results(
             title_text,
             pages.len(),
-            "URLs",
+            t!("ai_ui.inline_action.urls").as_ref(),
             &self.collapsible,
             body,
             |ctx| {
@@ -122,7 +127,7 @@ impl WebSearchView {
 
         if pages.is_empty() {
             let no_results = Text::new_inline(
-                "No URLs found".to_string(),
+                t!("ai_ui.inline_action.web_search.no_urls").to_string(),
                 appearance.ui_font_family(),
                 appearance.monospace_font_size(),
             )
@@ -175,9 +180,9 @@ impl View for WebSearchView {
             WebSearchStatus::Error { query } => {
                 let appearance = Appearance::as_ref(app);
                 let text = if query.is_empty() {
-                    "Web search failed".to_string()
+                    t!("ai_ui.inline_action.web_search.failed").to_string()
                 } else {
-                    format!("Web search failed for \"{query}\"")
+                    t!("ai_ui.inline_action.web_search.failed_query", query = query).to_string()
                 };
                 super::search_results_common::render_status_header(
                     text,

@@ -50,6 +50,7 @@ use crate::completer::SessionAgnosticContext;
 use crate::drive::workflows::arguments::ArgumentsState;
 use crate::editor::InteractionState;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::menu::MenuItemFields;
 use crate::notebooks::file::MarkdownDisplayMode;
 use crate::notebooks::styles::block_footer_action_button;
@@ -676,7 +677,7 @@ impl RunnableCommandModel for NotebookCommand {
             .with_active_styles(active_highlight)
             .with_tooltip(move || {
                 tooltip_builder_raw
-                    .tool_tip("Raw".to_string())
+                    .tool_tip(t!("notebooks.code_block.raw").to_string())
                     .build()
                     .finish()
             })
@@ -701,7 +702,7 @@ impl RunnableCommandModel for NotebookCommand {
             .with_active_styles(active_highlight)
             .with_tooltip(move || {
                 tooltip_builder_rendered
-                    .tool_tip("Rendered".to_string())
+                    .tool_tip(t!("notebooks.code_block.rendered").to_string())
                     .build()
                     .finish()
             })
@@ -742,7 +743,7 @@ impl RunnableCommandModel for NotebookCommand {
                             self.mouse_state_handles
                                 .mermaid_fullscreen_button_state
                                 .clone(),
-                            "Open full screen",
+                            t!("notebooks.code_block.open_full_screen").to_string(),
                             None,
                         )
                         .on_click(move |ctx, app, _| {
@@ -776,7 +777,7 @@ impl RunnableCommandModel for NotebookCommand {
                     appearance,
                     Icon::Copy,
                     self.mouse_state_handles.copy_button_state.clone(),
-                    "Copy",
+                    t!("notebooks.embedding.copy"),
                     custom_action_to_display(CustomAction::Copy),
                 )
                 .on_click(move |ctx, app, _| {
@@ -803,7 +804,7 @@ impl RunnableCommandModel for NotebookCommand {
                         appearance,
                         Icon::TerminalInput,
                         self.mouse_state_handles.insert_button_state.clone(),
-                        "Run in terminal",
+                        t!("notebooks.embedding.run_in_terminal"),
                         NotebookKeybindings::as_ref(ctx).run_commands_keybinding(),
                     )
                     .on_click(move |ctx, app, _| {

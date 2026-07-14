@@ -6,6 +6,7 @@ use warp_core::ui::theme::Fill;
 use warp_core::ui::Icon;
 use warpui::elements::MouseState;
 
+use crate::i18n::t;
 use crate::view_components::action_button::{
     ActionButtonTheme, DisabledSecondaryTheme, SecondaryTheme,
 };
@@ -48,7 +49,7 @@ pub(super) trait GutterButton {
     fn is_enabled(&self) -> bool;
 
     /// The tooltip text displayed when the button is hovered.
-    fn tooltip_text(&self) -> Option<&'static str>;
+    fn tooltip_text(&self) -> Option<String>;
 
     /// The icon of the button.
     fn icon(&self) -> Icon;
@@ -70,11 +71,11 @@ impl GutterButton for AddAsContextButton {
         self.is_enabled
     }
 
-    fn tooltip_text(&self) -> Option<&'static str> {
+    fn tooltip_text(&self) -> Option<String> {
         if self.is_enabled {
-            Some("Add diff hunk as context")
+            Some(t!("code_editor_extra.code_editor.gutter.add_diff_hunk_as_context").to_string())
         } else {
-            Some("Save changes to attach as context.")
+            Some(t!("code_editor_extra.code_editor.gutter.save_to_attach_context").to_string())
         }
     }
 
@@ -99,11 +100,11 @@ impl GutterButton for RevertHunkButton {
         self.is_enabled
     }
 
-    fn tooltip_text(&self) -> Option<&'static str> {
+    fn tooltip_text(&self) -> Option<String> {
         if self.is_enabled {
-            Some("Revert diff hunk")
+            Some(t!("code_editor_extra.code_editor.gutter.revert_diff_hunk").to_string())
         } else {
-            Some("Save changes to revert")
+            Some(t!("code_editor_extra.code_editor.gutter.save_to_revert").to_string())
         }
     }
 
@@ -152,11 +153,17 @@ impl GutterButton for CommentButton {
         )
     }
 
-    fn tooltip_text(&self) -> Option<&'static str> {
+    fn tooltip_text(&self) -> Option<String> {
         match self {
-            CommentButton::CreateNewComment => Some("Add comment on line"),
-            CommentButton::Disabled => Some("Save changes to add comment"),
-            CommentButton::AddedComment => Some("Show saved comment"),
+            CommentButton::CreateNewComment => {
+                Some(t!("code_editor_extra.code_editor.gutter.add_comment_on_line").to_string())
+            }
+            CommentButton::Disabled => {
+                Some(t!("code_editor_extra.code_editor.gutter.save_to_add_comment").to_string())
+            }
+            CommentButton::AddedComment => {
+                Some(t!("code_editor_extra.code_editor.gutter.show_saved_comment").to_string())
+            }
             CommentButton::EditorOpenedToCreateNewComment
             | CommentButton::EditorOpenedToUpdateComment => None,
         }

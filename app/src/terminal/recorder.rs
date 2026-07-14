@@ -7,6 +7,7 @@ use warp_errors::report_error;
 use warpui::r#async::SpawnedFutureHandle;
 use warpui::{Entity, ModelContext, SingletonEntity, WindowId};
 
+use crate::i18n::t;
 use crate::settings::{DebugSettings, DebugSettingsChangedEvent};
 use crate::view_components::{DismissibleToast, ToastLink};
 use crate::workspace::{ToastStack, WorkspaceAction};
@@ -105,7 +106,7 @@ impl PtyRecorder {
                 let display_path = warp_core::paths::home_relative_path(path);
                 let file_path = path.to_owned();
                 self.show_toast(
-                    format!("PTY recording started: {display_path}"),
+                    t!("terminal_ui.recorder.started", name = display_path).to_string(),
                     Some(file_path),
                     ctx,
                 );
@@ -114,7 +115,7 @@ impl PtyRecorder {
             let display_path = warp_core::paths::home_relative_path(&self.path);
             self.stop_recording();
             self.show_toast(
-                format!("PTY recording stopped: {display_path}"),
+                t!("terminal_ui.recorder.stopped", name = display_path).to_string(),
                 Some(self.path.clone()),
                 ctx,
             );
@@ -168,7 +169,7 @@ impl PtyRecorder {
                 let path_str = path.to_string_lossy().into_owned();
                 toast = toast
                     .with_link(
-                        ToastLink::new("Open".to_string())
+                        ToastLink::new(t!("terminal_ui.recorder.open").to_string())
                             .with_onclick_action(WorkspaceAction::OpenInExplorer { path }),
                     )
                     .with_on_body_click(move |ctx| {

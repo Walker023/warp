@@ -7,6 +7,7 @@
 pub use rust_i18n::{set_locale, t};
 
 /// 获取当前语言
+#[cfg(test)]
 pub fn current_locale() -> String {
     rust_i18n::locale().to_string()
 }
@@ -14,6 +15,32 @@ pub fn current_locale() -> String {
 /// 设置语言（"en", "zh-CN"）
 pub fn switch_locale(locale: &str) {
     set_locale(locale);
+}
+
+fn localize_binding_description(description: &str) -> Option<String> {
+    let locale = rust_i18n::locale();
+    if &*locale == "en" {
+        return None;
+    }
+
+    let key = format!("binding_descriptions.{description}");
+    crate::_rust_i18n_try_translate(&locale, &key).map(|text| text.into_owned())
+}
+
+/// 将设置动作中的英文设置项名称转换为当前语言。
+pub(crate) fn localize_setting_action_item(description: &str) -> Option<String> {
+    let locale = rust_i18n::locale();
+    if &*locale == "en" {
+        return None;
+    }
+
+    let key = format!("setting_action_items.{description}");
+    crate::_rust_i18n_try_translate(&locale, &key).map(|text| text.into_owned())
+}
+
+/// 将快捷键描述连接到应用的本地化资源。
+pub fn install_binding_description_localizer() {
+    warpui::keymap::install_binding_description_localizer(localize_binding_description);
 }
 
 /// 获取可用语言列表

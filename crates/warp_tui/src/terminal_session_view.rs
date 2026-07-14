@@ -6,6 +6,7 @@ use std::sync::Arc;
 use ai::project_context::model::{ProjectContextModel, ProjectContextModelEvent};
 use instant::Instant;
 use parking_lot::FairMutex;
+use rust_i18n::t;
 use warp::editor::{CodeEditorModel, CodeEditorModelEvent};
 use warp::settings::{AISettings, AISettingsChangedEvent};
 use warp::tui_export::{
@@ -51,9 +52,6 @@ use crate::zero_state::render_zero_state;
 const INITIAL_INPUT_WIDTH: u16 = 80;
 const MAX_INPUT_TEXT_ROWS: u16 = 6;
 
-/// The footer hint shown while the ctrl-c exit confirmation is armed.
-const CTRL_C_EXIT_HINT: &str = "ctrl-c again to exit";
-
 /// Events emitted by the TUI terminal session surface.
 pub(crate) enum TuiTerminalSessionEvent {
     ExecuteCommand(Box<ExecuteCommandEvent>),
@@ -74,13 +72,6 @@ impl PtyIntentEvent for TuiTerminalSessionEvent {
         }
     }
 }
-
-/// Transient hint shown when a shell command is rejected because the PTY is
-/// already running a command.
-const COMMAND_ALREADY_RUNNING_HINT: &str = "cannot run — command already running";
-
-/// Footer hint shown while the input is in `!` shell mode.
-const SHELL_MODE_HINT: &str = "shell mode · esc to exit";
 
 /// Typed actions handled by [`TuiTerminalSessionView`].
 #[derive(Debug, Clone)]
@@ -106,7 +97,7 @@ pub(crate) struct TuiTerminalSessionView {
     /// the same way the request path does.
     terminal_surface_id: EntityId,
     /// Armed by a ctrl-c press; a second press while armed exits the TUI.
-    /// The footer shows [`CTRL_C_EXIT_HINT`] while armed.
+    /// The footer shows a localized exit hint while armed.
     exit_confirmation: ExitConfirmation,
     /// Credits⇄cost display state for the footer's clickable usage entry.
     usage_toggle: UsageToggle,
@@ -424,7 +415,7 @@ impl TuiTerminalSessionView {
     /// Handles a ctrl-c press: a second press within [`CTRL_C_EXIT_WINDOW`]
     /// exits the TUI; otherwise one contextual action runs — cancel the running
     /// conversation if there is one, else clear the input — and the exit
-    /// confirmation is (re-)armed, surfacing [`CTRL_C_EXIT_HINT`] in the footer.
+    /// confirmation is (re-)armed, surfacing an exit hint in the footer.
     fn handle_interrupt(&mut self, ctx: &mut ViewContext<Self>) {
         let now = Instant::now();
         if self.exit_confirmation.should_exit(now) {
@@ -486,12 +477,15 @@ impl TuiTerminalSessionView {
         // Left slot, highest priority first: while armed, the ctrl-c hint
         // replaces the other hints in place.
         let hint = if self.exit_confirmation.is_armed() {
-            Some((CTRL_C_EXIT_HINT.to_owned(), dim))
+            Some((
+                t!("warp_tui.terminal.ctrl_c_again_to_exit").to_string(),
+                dim,
+            ))
         } else if let Some(transient) = self.transient_hint.current() {
             Some((transient.to_owned(), dim))
         } else if self.is_shell_mode(ctx) {
             Some((
-                SHELL_MODE_HINT.to_owned(),
+                t!("warp_tui.terminal.shell_mode_exit_hint").to_string(),
                 TuiUiBuilder::from_app(ctx).shell_mode_accent_style(),
             ))
         } else {
@@ -629,7 +623,10 @@ impl TuiTerminalSessionView {
             return;
         };
         if is_pty_busy {
-            self.show_transient_hint(COMMAND_ALREADY_RUNNING_HINT.to_owned(), ctx);
+            self.show_transient_hint(
+                t!("warp_tui.terminal.command_already_running").to_string(),
+                ctx,
+            );
             return;
         }
 

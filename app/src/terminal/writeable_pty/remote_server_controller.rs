@@ -40,7 +40,9 @@ enum SshInitState {
     /// Stash held, choice block showing.
     AwaitingUserChoice {
         session_info: SessionInfo,
+        #[cfg_attr(feature = "remote_tty", allow(dead_code))]
         transport: SshTransport,
+        #[cfg_attr(feature = "remote_tty", allow(dead_code))]
         setup_start: Instant,
     },
     /// Stash held, `install_binary` in flight.
@@ -349,6 +351,7 @@ impl<T: EventLoopSender> RemoteServerController<T> {
         }
     }
 
+    #[cfg_attr(feature = "remote_tty", allow(dead_code))]
     pub fn handle_ssh_remote_server_install(
         &mut self,
         session_id: SessionId,
@@ -473,6 +476,7 @@ impl<T: EventLoopSender> RemoteServerController<T> {
         self.flush_stashed_bootstrap(session_info, ctx);
     }
 
+    #[cfg_attr(feature = "remote_tty", allow(dead_code))]
     pub fn handle_ssh_remote_server_skip(
         &mut self,
         session_id: SessionId,

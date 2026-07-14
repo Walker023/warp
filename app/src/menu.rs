@@ -2541,12 +2541,14 @@ impl<A: Action + Clone> SubMenu<A> {
             Select(_) => {
                 let menu_item = match self.selected_item() {
                     Some(item) => match item {
-                        MenuItem::Item(fields) => format!("{} Selected", fields.get_a11y_text()),
+                        MenuItem::Item(fields) => {
+                            t!("menu.a11y.selected", item = fields.get_a11y_text()).to_string()
+                        }
                         MenuItem::ItemsRow { items } => {
                             let selected_item_text = items
                                 .get(self.selected_item_index.unwrap_or_default())
                                 .map_or_else(|| "", |item| item.get_a11y_text());
-                            format!("{selected_item_text} Selected")
+                            t!("menu.a11y.selected", item = selected_item_text).to_string()
                         }
                         MenuItem::Separator => String::from(""),
                         MenuItem::Submenu { fields, .. } => {

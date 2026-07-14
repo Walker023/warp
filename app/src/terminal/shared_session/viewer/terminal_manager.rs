@@ -39,6 +39,7 @@ use crate::ai::llms::{LLMPreferences, LLMPreferencesEvent};
 use crate::context_chips::prompt_snapshot::PromptSnapshot;
 use crate::context_chips::prompt_type::PromptType;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::network::{NetworkStatus, NetworkStatusEvent, NetworkStatusKind};
 use crate::pane_group::pane::DetachType;
 use crate::pane_group::TerminalViewResources;
@@ -976,7 +977,7 @@ impl TerminalManager {
                 };
                 view.update(ctx, |terminal_view, ctx| {
                     terminal_view.show_persistent_toast(
-                        reason.user_facing_error_message().to_string(),
+                        reason.user_facing_error_message(),
                         ToastFlavor::Error,
                         ctx,
                     );
@@ -1009,7 +1010,7 @@ impl TerminalManager {
                 if !is_ambient_agent {
                     view.update(ctx, |terminal_view, ctx| {
                         terminal_view.show_persistent_toast(
-                            "Failed to reconnect. Please try again later.".to_owned(),
+                            t!("terminal_ui.shared_session.errors.reconnect_failed").to_string(),
                             ToastFlavor::Error,
                             ctx,
                         );
@@ -1323,7 +1324,8 @@ impl TerminalManager {
                     }
                     LinkAccessLevelUpdateResponse::Error => {
                         terminal_view.show_persistent_toast(
-                            "Failed to update permissions for shared session".to_owned(),
+                            t!("terminal_ui.shared_session.errors.update_permissions_failed")
+                                .to_string(),
                             ToastFlavor::Error,
                             ctx,
                         );
@@ -1352,7 +1354,7 @@ impl TerminalManager {
                     }
                     TeamAccessLevelUpdateResponse::Error(_) => {
                         terminal_view.show_persistent_toast(
-                            "Something went wrong. Please try again.".to_owned(),
+                            t!("terminal_ui.shared_session.errors.generic").to_string(),
                             ToastFlavor::Error,
                             ctx,
                         );
@@ -1367,12 +1369,12 @@ impl TerminalManager {
                     view.update(ctx, |terminal_view, ctx| {
                         let reason_string = match reason {
                             session_sharing_protocol::common::FailedToAddGuestsReason::NotWarpUsers => {
-                                "One or more of the emails are not Warp users.".to_owned()
+                                t!("terminal_ui.shared_session.errors.not_warp_users").to_string()
                             }
                             session_sharing_protocol::common::FailedToAddGuestsReason::GuestAlreadyAdded => {
-                                "One or more of the guests has already been added.".to_owned()
+                                t!("terminal_ui.shared_session.errors.guests_already_added").to_string()
                             }
-                            _ => "Something went wrong. Please try again.".to_owned(),
+                            _ => t!("terminal_ui.shared_session.errors.generic").to_string(),
                         };
                         terminal_view.show_persistent_toast(reason_string, ToastFlavor::Error, ctx);
                     });
@@ -1385,7 +1387,7 @@ impl TerminalManager {
                     };
                     view.update(ctx, |terminal_view, ctx| {
                         terminal_view.show_persistent_toast(
-                            "Something went wrong. Please try again.".to_owned(),
+                            t!("terminal_ui.shared_session.errors.generic").to_string(),
                             ToastFlavor::Error,
                             ctx,
                         );
@@ -1399,7 +1401,7 @@ impl TerminalManager {
                     };
                     view.update(ctx, |terminal_view, ctx| {
                         terminal_view.show_persistent_toast(
-                            "Something went wrong. Please try again.".to_owned(),
+                            t!("terminal_ui.shared_session.errors.generic").to_string(),
                             ToastFlavor::Error,
                             ctx,
                         );

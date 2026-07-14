@@ -1,0 +1,34 @@
+coding_entrypoints_ui:
+  project_buttons:
+    create_project: "Create new project"
+    create_project_tooltip: "Create and initialize a brand new project"
+    open_repository: "Open repository"
+    open_repository_tooltip: "Open an existing local folder or repository"
+    clone_repository: "Clone repository"
+    clone_repository_tooltip: "Clone a repo from GitHub or another source"
+  create_project:
+    placeholder: "What do you want to build?"
+    suggestions:
+      minesweeper: "Build a Minesweeper clone in React"
+      quotes_server: "Code a Node.js server that returns random quotes from a JSON file"
+      csv_converter: "Write a CSV to JSON converter CLI"
+      resume_page: "Create a starter template for a resume web page"
+      game_of_life: "Make a Conway's Game of Life simulation"
+  clone_repository:
+    placeholder: 'Provide a repository URL e.g. "git@github.com:username/project.git"'
+
+launch_configs_ui:
+  save_modal:
+    save_configuration: "Save Configuration"
+    open_yaml_file: "Open YAML File"
+    title: "Save Current Configuration"
+    documentation: "Link to Documentation"
+    saved_prefix: "Saved successfully to "
+    sentence_end: "."
+    file_exists: "Failed to save. A launch configuration with the same name already exists."
+    save_failed: "An issue was encountered while saving."
+    description: "This will save your current configuration of windows, tabs and panes to a file so you can easily open it again."
+    description_with_keybinding: "This will save your current configuration of windows, tabs and panes to a file so you can easily open it again with %{keybinding}."
+    yaml_location_prefix: "\nThe YAML file is saved to "
+    accessibility_title: "Save Config Modal"
+    accessibility_description: "Type the name of the file to which you want to save your current configuration of windows, tabs, and panes. Press Enter to save the launch configuration, or Escape to close the save configuration modal."

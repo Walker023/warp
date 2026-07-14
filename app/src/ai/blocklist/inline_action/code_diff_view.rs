@@ -82,6 +82,7 @@ use crate::code::editor::view::{CodeEditorEvent, CodeEditorRenderOptions, CodeEd
 use crate::code::editor::{add_color, remove_color};
 use crate::code::inline_diff::{InlineDiffView, InlineDiffViewEvent};
 use crate::code_review::telemetry_event::CodeReviewPaneEntrypoint;
+use crate::i18n::t;
 use crate::menu::{Event as MenuEvent, Menu, MenuItemFields, MenuVariant};
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::{view, PaneId};
@@ -107,16 +108,6 @@ use crate::view_components::DismissibleToast;
 use crate::workspace::ToastStack;
 use crate::{cmd_or_ctrl_shift, send_telemetry_from_ctx, TelemetryEvent};
 
-const REQUESTED_EDIT_CANCEL_LABEL: &str = "Cancel";
-const REQUESTED_EDIT_REFINE_LABEL: &str = "Refine";
-const REQUESTED_EDIT_ACCEPT_LABEL: &str = "Accept";
-const REQUESTED_EDIT_ACCEPT_AND_AUTOEXECUTE_LABEL: &str = "Auto-approve";
-const REQUESTED_EDIT_EDIT_LABEL: &str = "Edit";
-const REQUESTED_EDIT_MINIMIZE_LABEL: &str = "Done";
-const SUGGESTED_EDIT_ACCEPT_LABEL: &str = "Accept";
-const SUGGESTED_EDIT_ACCEPT_AND_CONTINUE_LABEL: &str = "Accept and continue with agent";
-const SUGGESTED_EDIT_ITERATE_WITH_AGENT_LABEL: &str = "Iterate with agent";
-const SUGGESTED_EDIT_DISMISS_LABEL: &str = "Dismiss";
 const MAX_EDITOR_HEIGHT: f32 = 500.;
 const INLINE_EDITOR_HEIGHT: f32 = 94.;
 const INLINE_EDITOR_HEIGHT_EXPANDED: f32 = 400.;
@@ -196,7 +187,7 @@ pub fn init(app: &mut AppContext) {
 
     app.register_editable_bindings([EditableBinding::new(
         EDIT_REQUESTED_EDIT_NAME,
-        "Edit Code Diff",
+        t!("ai_ui.inline_action.code_diff.edit_code_diff").to_string(),
         CodeDiffViewAction::Edit,
     )
     .with_context_predicate(id!(CodeDiffView::ui_name()) & !id!(DISPATCHED_REQUESTED_EDIT_EXPANDED))
@@ -361,7 +352,7 @@ impl RegisteredDiffStorage for WeakViewHandle<CodeDiffView> {
         let Some(view) = self.upgrade(app) else {
             log::warn!("RequestFileEdits review view vanished before execute");
             return futures::future::ready(RequestFileEditsResult::DiffApplicationFailed {
-                error: "The review surface holding these edits no longer exists".to_string(),
+                error: t!("ai_actions.code_diff.review_surface_missing").to_string(),
             })
             .boxed();
         };
@@ -428,7 +419,7 @@ impl CodeDiffView {
             self.accept_split_button_menu.update(ctx, |menu, ctx| {
                 menu.set_items(
                     vec![MenuItemFields::new_multiline(
-                        SUGGESTED_EDIT_ACCEPT_AND_CONTINUE_LABEL,
+                        t!("ai_ui.inline_action.code_diff.accept_continue").to_string(),
                         2,
                     )
                     .with_on_select_action(
@@ -450,15 +441,15 @@ impl CodeDiffView {
             .unwrap_or_default();
 
             let accept_item = MenuItemFields::new_with_label(
-                REQUESTED_EDIT_ACCEPT_LABEL,
-                accept_keystroke.as_str(),
+                t!("ai_ui.inline_action.code_diff.accept").to_string(),
+                accept_keystroke.clone(),
             )
             .with_on_select_action(CodeDiffViewAction::TryAccept)
             .into_item();
 
             let auto_item = MenuItemFields::new_with_label(
-                REQUESTED_EDIT_ACCEPT_AND_AUTOEXECUTE_LABEL,
-                auto_keystroke.as_str(),
+                t!("ai_ui.inline_action.code_diff.auto_approve").to_string(),
+                auto_keystroke,
             )
             .with_on_select_action(CodeDiffViewAction::AcceptAndAutoExecute)
             .into_item();
@@ -552,9 +543,13 @@ impl CodeDiffView {
                     safe: ("Failed to save file for accepted AgentMode diffs"),
                     full: ("Failed to save file for accepted AgentMode diffs for {}: {}", file_path_clone, error)
                 );
-                let toast = DismissibleToast::error(format!(
-                    "Failed to save file {file_path_clone}"
-                ));
+                let toast = DismissibleToast::error(
+                    t!(
+                        "ai_ui.inline_action.code_diff.save_file_failed",
+                        path = &file_path_clone
+                    )
+                    .to_string(),
+                );
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
@@ -700,12 +695,12 @@ impl CodeDiffView {
             .collect();
 
         let cancel_button_label = if is_passive {
-            SUGGESTED_EDIT_DISMISS_LABEL
+            t!("common.dismiss").to_string()
         } else {
-            REQUESTED_EDIT_REFINE_LABEL
+            t!("ai_ui.inline_action.code_diff.refine").to_string()
         };
         let cancel_button = CompactibleActionButton::new(
-            cancel_button_label.to_string(),
+            cancel_button_label,
             Some(KeystrokeSource::Fixed(
                 CANCEL_REQUESTED_EDIT_KEYSTROKE.clone(),
             )),
@@ -717,7 +712,7 @@ impl CodeDiffView {
         );
 
         let edit_button = CompactibleActionButton::new(
-            REQUESTED_EDIT_EDIT_LABEL.to_string(),
+            t!("common.edit").to_string(),
             Some(KeystrokeSource::Binding(EDIT_REQUESTED_EDIT_NAME)),
             ButtonSize::Small,
             CodeDiffViewAction::Edit,
@@ -727,7 +722,7 @@ impl CodeDiffView {
         );
 
         let minimize_button = CompactibleActionButton::new(
-            REQUESTED_EDIT_MINIMIZE_LABEL.to_string(),
+            t!("ai_ui.inline_action.code_diff.done").to_string(),
             Some(KeystrokeSource::Fixed(
                 MINIMIZE_REQUESTED_EDIT_KEYSTROKE.clone(),
             )),
@@ -739,7 +734,7 @@ impl CodeDiffView {
         );
 
         let iterate_with_agent_button = CompactibleActionButton::new(
-            SUGGESTED_EDIT_ITERATE_WITH_AGENT_LABEL.to_string(),
+            t!("ai_ui.inline_action.code_diff.iterate_with_agent").to_string(),
             Some(KeystrokeSource::Binding(SET_INPUT_MODE_AGENT_ACTION_NAME)),
             ButtonSize::Small,
             CodeDiffViewAction::IterateOnPassiveDiffWithAgent,
@@ -749,11 +744,7 @@ impl CodeDiffView {
         );
 
         let accept_and_autoexecute_split_button = CompactibleSplitActionButton::new(
-            if is_passive {
-                SUGGESTED_EDIT_ACCEPT_LABEL.to_string()
-            } else {
-                REQUESTED_EDIT_ACCEPT_LABEL.to_string()
-            },
+            t!("ai_ui.inline_action.code_diff.accept").to_string(),
             Some(accept_keystroke_source(is_passive)),
             ButtonSize::Small,
             CodeDiffViewAction::TryAccept,
@@ -784,7 +775,7 @@ impl CodeDiffView {
         let code_review_button = ctx.add_typed_action_view(|ctx| {
             ActionButton::new("", NakedTheme)
                 .with_icon(Icon::Diff)
-                .with_tooltip("Review changes")
+                .with_tooltip(t!("ai_ui.inline_action.code_diff.review_changes").to_string())
                 .with_width(icon_size(ctx))
                 .with_height(icon_size(ctx))
                 .on_click(|ctx| {
@@ -796,7 +787,7 @@ impl CodeDiffView {
         let expansion_button_collapsed = ctx.add_typed_action_view(|ctx| {
             ActionButton::new("", NakedTheme)
                 .with_icon(Icon::ChevronRight)
-                .with_tooltip("Expand")
+                .with_tooltip(t!("ai_ui.inline_action.code_diff.expand").to_string())
                 .with_width(icon_size(ctx))
                 .with_height(icon_size(ctx))
                 .on_click(|ctx| {
@@ -807,7 +798,7 @@ impl CodeDiffView {
         let expansion_button_expanded = ctx.add_typed_action_view(|ctx| {
             ActionButton::new("", NakedTheme)
                 .with_icon(Icon::ChevronDown)
-                .with_tooltip("Collapse")
+                .with_tooltip(t!("ai_ui.inline_action.code_diff.collapse").to_string())
                 .with_width(icon_size(ctx))
                 .with_height(icon_size(ctx))
                 .on_click(|ctx| {
@@ -1051,10 +1042,16 @@ impl CodeDiffView {
                     .diff_view
                     .as_ref(ctx)
                     .file_name()
-                    .unwrap_or_else(|| "file".to_string());
+                    .unwrap_or_else(|| t!("ai_ui.inline_action.code_diff.file").to_string());
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
-                        DismissibleToast::error(format!("Failed to revert changes to {file_name}")),
+                        DismissibleToast::error(
+                            t!(
+                                "ai_ui.inline_action.code_diff.revert_failed",
+                                name = &file_name
+                            )
+                            .to_string(),
+                        ),
                         window_id,
                         ctx,
                     );
@@ -1570,7 +1567,7 @@ impl CodeDiffView {
                 fg_overlay_6(appearance.theme())
             };
             let mcp_config_button = render_provider_icon_button(
-                "Open config",
+                t!("ai_ui.inline_action.code_diff.open_config").as_ref(),
                 mcp_button_handle.clone(),
                 appearance,
                 icon,
@@ -1768,11 +1765,13 @@ impl CodeDiffView {
             let diff_type = diff.diff_view.as_ref(app).diff();
             let file_name = match diff.diff_view.as_ref(app).file_name() {
                 Some(file_name) if matches!(diff_type, Some(DiffType::Create { .. })) => {
-                    format!("{file_name} (new)")
+                    t!("ai_ui.inline_action.code_diff.new_file", name = &file_name).to_string()
                 }
-                Some(file_name) if matches!(diff_type, Some(DiffType::Delete { .. })) => {
-                    format!("{file_name} (deleted)")
-                }
+                Some(file_name) if matches!(diff_type, Some(DiffType::Delete { .. })) => t!(
+                    "ai_ui.inline_action.code_diff.deleted_file",
+                    name = &file_name
+                )
+                .to_string(),
                 Some(file_name) => {
                     // Check if this is a rename
                     if let Some(rename_to) = Self::get_rename_target(diff_type) {
@@ -1786,7 +1785,7 @@ impl CodeDiffView {
                         file_name
                     }
                 }
-                None => "No file name".to_string(),
+                None => t!("ai_ui.inline_action.code_diff.no_file_name").to_string(),
             };
 
             // Get the full path for the tooltip
@@ -1906,7 +1905,7 @@ impl CodeDiffView {
         if Self::is_rename_without_changes(diff_type) {
             let placeholder = Container::new(
                 Text::new(
-                    "File renamed without changes",
+                    t!("ai_ui.inline_action.code_diff.renamed_without_changes").to_string(),
                     appearance.monospace_font_family(),
                     appearance.monospace_font_size(),
                 )
@@ -2087,11 +2086,11 @@ impl CodeDiffView {
 
         if self.display_mode.is_embedded() {
             let label = if self.is_passive {
-                SUGGESTED_EDIT_DISMISS_LABEL
+                t!("common.dismiss").to_string()
             } else {
-                REQUESTED_EDIT_CANCEL_LABEL
+                t!("common.cancel").to_string()
             };
-            self.cancel_button.set_label(label.to_string(), ctx);
+            self.cancel_button.set_label(label, ctx);
         }
 
         for diff in &self.pending_diffs {
@@ -2334,7 +2333,7 @@ impl CodeDiffView {
 
         let checkbox_text = appearance
             .ui_builder()
-            .span("Don't show me suggested code banners again")
+            .span(t!("ai_ui.inline_action.code_diff.hide_suggestions").to_string())
             .with_style(UiComponentStyles {
                 font_color: Some(font_color),
                 font_size: Some(font_size),
@@ -2347,7 +2346,7 @@ impl CodeDiffView {
         let formatted_text = FormattedTextElement::new(
             FormattedText::new([FormattedTextLine::Line(vec![
                 FormattedTextFragment::hyperlink(
-                    "Manage suggested code banner settings",
+                    t!("ai_ui.inline_action.code_diff.manage_suggestions").to_string(),
                     "Settings > AI",
                 ),
             ])]),
@@ -2874,9 +2873,9 @@ pub fn convert_file_edits_to_file_diffs(
             // For file deletions/moves we may not have any other context to show. Provide a minimal stub.
             if show_as_deleted && dummy_content.is_empty() {
                 dummy_content = if v4a_move_to.is_some() {
-                    "(renamed)".to_string()
+                    t!("ai_ui.inline_action.code_diff.renamed_placeholder").to_string()
                 } else {
-                    "(deleted file)".to_string()
+                    t!("ai_ui.inline_action.code_diff.deleted_placeholder").to_string()
                 };
             }
 
@@ -3030,7 +3029,7 @@ impl BackingView for CodeDiffView {
         // Code diffs should show "Requested Edit" as the title and hide the close button
         // since they are closed via accept/reject actions.
         view::HeaderContent::Standard(view::StandardHeader {
-            title: "Requested Edit".to_string(),
+            title: t!("ai_ui.inline_action.code_diff.requested_edit").to_string(),
             title_secondary: None,
             title_style: None,
             title_clip_config: warpui::text_layout::ClipConfig::start(),

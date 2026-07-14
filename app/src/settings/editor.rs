@@ -6,6 +6,8 @@ use settings::macros::define_settings_group;
 use settings::{RespectUserSyncSetting, Setting as _, SupportedPlatforms, SyncToCloud};
 use warpui::ModelContext;
 
+use crate::i18n::t;
+
 #[derive(
     Clone,
     Copy,
@@ -70,9 +72,9 @@ impl CursorDisplayType {
 impl Display for CursorDisplayType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let value = match &self {
-            CursorDisplayType::Bar => "Bar",
-            CursorDisplayType::Block => "Block",
-            CursorDisplayType::Underline => "Underline",
+            CursorDisplayType::Bar => t!("settings_extra.options.cursor.bar"),
+            CursorDisplayType::Block => t!("settings_extra.options.cursor.block"),
+            CursorDisplayType::Underline => t!("settings_extra.options.cursor.underline"),
         };
         write!(f, "{value}")
     }
@@ -102,10 +104,10 @@ pub enum CodeEditorLineNumberMode {
 }
 
 impl CodeEditorLineNumberMode {
-    pub fn dropdown_item_label(&self) -> &'static str {
+    pub fn dropdown_item_label(&self) -> String {
         match self {
-            Self::Absolute => "Absolute",
-            Self::Relative => "Relative",
+            Self::Absolute => t!("settings_extra.options.line_numbers.absolute").to_string(),
+            Self::Relative => t!("settings_extra.options.line_numbers.relative").to_string(),
         }
     }
 }
@@ -119,11 +121,15 @@ pub enum TabBehavior {
 }
 
 impl TabBehavior {
-    pub fn dropdown_item_label(&self) -> &'static str {
+    pub fn dropdown_item_label(&self) -> String {
         match self {
-            TabBehavior::Completions => "Open completions menu",
-            TabBehavior::Autosuggestions => "Accept autosuggestion",
-            TabBehavior::UserDefined => "User defined",
+            TabBehavior::Completions => {
+                t!("settings_extra.options.tab_behavior.open_completions").to_string()
+            }
+            TabBehavior::Autosuggestions => t!("editor.autosuggestion.accept").to_string(),
+            TabBehavior::UserDefined => {
+                t!("settings_extra.options.tab_behavior.user_defined").to_string()
+            }
         }
     }
 }
@@ -159,12 +165,12 @@ pub enum WarpPromptSeparator {
 }
 
 impl WarpPromptSeparator {
-    pub fn dropdown_item_label(&self) -> &'static str {
+    pub fn dropdown_item_label(&self) -> String {
         match self {
-            Self::None => "None",
-            Self::PercentSign => "%",
-            Self::DollarSign => "$",
-            Self::ChevronSymbol => ">",
+            Self::None => t!("common.none").to_string(),
+            Self::PercentSign => "%".to_string(),
+            Self::DollarSign => "$".to_string(),
+            Self::ChevronSymbol => ">".to_string(),
         }
     }
 

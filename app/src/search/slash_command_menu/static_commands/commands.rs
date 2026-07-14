@@ -6,13 +6,14 @@ use uuid::Uuid;
 use warp_core::features::FeatureFlag;
 
 use super::Availability;
+use crate::i18n::t;
 use crate::search::slash_command_menu::static_commands::Argument;
 use crate::search::slash_command_menu::StaticCommand;
 use crate::ui_components::color_dot;
 
 pub static AGENT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/agent",
-    description: "Start a new conversation",
+    description: "workspace_search_ui.slash_commands.descriptions.agent",
     icon_path: "bundled/svg/oz.svg",
     availability: Availability::AI_ENABLED.union(Availability::NOT_CLOUD_AGENT),
     auto_enter_ai_mode: false,
@@ -21,7 +22,7 @@ pub static AGENT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
 
 pub static CLOUD_AGENT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/cloud-agent",
-    description: "Start a new cloud agent conversation",
+    description: "workspace_search_ui.slash_commands.descriptions.cloud_agent",
     icon_path: "bundled/svg/oz-cloud.svg",
     availability: Availability::AI_ENABLED.union(Availability::NOT_CLOUD_AGENT),
     auto_enter_ai_mode: false,
@@ -30,7 +31,7 @@ pub static CLOUD_AGENT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand
 
 pub const ADD_MCP: StaticCommand = StaticCommand {
     name: "/add-mcp",
-    description: "Add a new MCP server via the MCP settings page",
+    description: "workspace_search_ui.slash_commands.descriptions.add_mcp",
     icon_path: "bundled/svg/dataflow.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
@@ -39,7 +40,7 @@ pub const ADD_MCP: StaticCommand = StaticCommand {
 
 pub const PR_COMMENTS: StaticCommand = StaticCommand {
     name: "/pr-comments",
-    description: "Pull GitHub PR review comments",
+    description: "workspace_search_ui.slash_commands.descriptions.pr_comments",
     icon_path: "bundled/svg/github.svg",
     availability: Availability::REPOSITORY
         .union(Availability::AI_ENABLED)
@@ -50,20 +51,20 @@ pub const PR_COMMENTS: StaticCommand = StaticCommand {
 
 pub static CREATE_ENVIRONMENT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/create-environment",
-    description: "Create an Oz environment (Docker image + repos) via guided setup",
+    description: "workspace_search_ui.slash_commands.descriptions.create_environment",
     icon_path: "bundled/svg/dataflow.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
     argument: Some(
         Argument::optional()
-            .with_hint_text("<optional repo paths or GitHub URLs>")
+            .with_hint_text("workspace_search_ui.slash_commands.hints.optional_repo_paths")
             .with_execute_on_selection(),
     ),
 });
 
 pub const CREATE_DOCKER_SANDBOX: StaticCommand = StaticCommand {
     name: "/docker-sandbox",
-    description: "Create a new docker sandbox terminal session",
+    description: "workspace_search_ui.slash_commands.descriptions.docker_sandbox",
     icon_path: "bundled/svg/docker.svg",
     availability: Availability::LOCAL.union(Availability::AI_ENABLED),
     auto_enter_ai_mode: false,
@@ -72,16 +73,19 @@ pub const CREATE_DOCKER_SANDBOX: StaticCommand = StaticCommand {
 
 pub static CREATE_NEW_PROJECT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/create-new-project",
-    description: "Have Oz walk you through creating a new coding project",
+    description: "workspace_search_ui.slash_commands.descriptions.create_new_project",
     icon_path: "bundled/svg/plus.svg",
     availability: Availability::LOCAL | Availability::AI_ENABLED,
     auto_enter_ai_mode: true,
-    argument: Some(Argument::required().with_hint_text("<describe what you want to build>")),
+    argument: Some(
+        Argument::required()
+            .with_hint_text("workspace_search_ui.slash_commands.hints.describe_project"),
+    ),
 });
 
 pub static EDIT_SKILL: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/open-skill",
-    description: "Open a skill's markdown file in Warp's built-in editor",
+    description: "workspace_search_ui.slash_commands.descriptions.open_skill",
     icon_path: "bundled/svg/file-code-02.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
@@ -90,7 +94,7 @@ pub static EDIT_SKILL: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand 
 
 pub static INVOKE_SKILL: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/skills",
-    description: "Invoke a skill",
+    description: "workspace_search_ui.slash_commands.descriptions.skills",
     icon_path: "bundled/svg/stars-01.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
@@ -99,7 +103,7 @@ pub static INVOKE_SKILL: LazyLock<StaticCommand> = LazyLock::new(|| StaticComman
 
 pub static ADD_PROMPT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/add-prompt",
-    description: "Add new Agent prompt",
+    description: "workspace_search_ui.slash_commands.descriptions.add_prompt",
     icon_path: if FeatureFlag::AgentView.is_enabled() {
         "bundled/svg/prompt.svg"
     } else {
@@ -112,7 +116,7 @@ pub static ADD_PROMPT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand 
 
 pub const ADD_RULE: StaticCommand = StaticCommand {
     name: "/add-rule",
-    description: "Add a new global rule for the agent",
+    description: "workspace_search_ui.slash_commands.descriptions.add_rule",
     icon_path: "bundled/svg/book-open.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
@@ -121,33 +125,37 @@ pub const ADD_RULE: StaticCommand = StaticCommand {
 
 pub static EDIT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/open-file",
-    description: "Open a file in Warp's code editor",
+    description: "workspace_search_ui.slash_commands.descriptions.open_file",
     icon_path: "bundled/svg/file-code-02.svg",
     availability: Availability::LOCAL,
     auto_enter_ai_mode: false,
     argument: Some(
-        Argument::optional().with_hint_text("<path/to/file[:line[:col]]> or \"@\" to search"),
+        Argument::optional().with_hint_text("workspace_search_ui.slash_commands.hints.file_path"),
     ),
 });
 
 pub static RENAME_TAB: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/rename-tab",
-    description: "Rename the current tab",
+    description: "workspace_search_ui.slash_commands.descriptions.rename_tab",
     icon_path: "bundled/svg/pencil-line.svg",
     availability: Availability::ALWAYS,
     auto_enter_ai_mode: false,
-    argument: Some(Argument::required().with_hint_text("<tab name>")),
+    argument: Some(
+        Argument::required().with_hint_text("workspace_search_ui.slash_commands.hints.tab_name"),
+    ),
 });
 
 pub static RENAME_CONVERSATION: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/rename-conversation",
-    description: "Rename the current conversation",
+    description: "workspace_search_ui.slash_commands.descriptions.rename_conversation",
     icon_path: "bundled/svg/pencil-line.svg",
     availability: Availability::AGENT_VIEW
         | Availability::ACTIVE_CONVERSATION
         | Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
-    argument: Some(Argument::required().with_hint_text("<new title>")),
+    argument: Some(
+        Argument::required().with_hint_text("workspace_search_ui.slash_commands.hints.new_title"),
+    ),
 });
 
 static SET_TAB_COLOR_HINT: LazyLock<String> = LazyLock::new(|| {
@@ -162,7 +170,7 @@ static SET_TAB_COLOR_HINT: LazyLock<String> = LazyLock::new(|| {
 
 pub static SET_TAB_COLOR: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/set-tab-color",
-    description: "Set the color of the current tab",
+    description: "workspace_search_ui.slash_commands.descriptions.set_tab_color",
     icon_path: "bundled/svg/ellipse.svg",
     availability: Availability::ALWAYS,
     auto_enter_ai_mode: false,
@@ -170,10 +178,10 @@ pub static SET_TAB_COLOR: LazyLock<StaticCommand> = LazyLock::new(|| StaticComma
 });
 
 pub static FORK: LazyLock<StaticCommand> = LazyLock::new(|| {
-    let hint_text = "<optional prompt to send in forked conversation>";
+    let hint_text = "workspace_search_ui.slash_commands.hints.fork_prompt";
     StaticCommand {
         name: "/fork",
-        description: "Fork the current conversation in a new pane or a new tab",
+        description: "workspace_search_ui.slash_commands.descriptions.fork",
         icon_path: "bundled/svg/arrow-split.svg",
         availability: Availability::AGENT_VIEW
             | Availability::ACTIVE_CONVERSATION
@@ -186,7 +194,7 @@ pub static FORK: LazyLock<StaticCommand> = LazyLock::new(|| {
 
 pub static MOVE_TO_CLOUD: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/handoff",
-    description: "Hand off this conversation to a cloud agent",
+    description: "workspace_search_ui.slash_commands.descriptions.handoff",
     icon_path: "bundled/svg/upload-cloud-01.svg",
     availability: Availability::AGENT_VIEW
         | Availability::ACTIVE_CONVERSATION
@@ -195,14 +203,14 @@ pub static MOVE_TO_CLOUD: LazyLock<StaticCommand> = LazyLock::new(|| StaticComma
     auto_enter_ai_mode: false,
     argument: Some(
         Argument::optional()
-            .with_hint_text("<optional follow-up prompt>")
+            .with_hint_text("workspace_search_ui.slash_commands.hints.follow_up_prompt")
             .with_execute_on_selection(),
     ),
 });
 
 pub const OPEN_CODE_REVIEW: StaticCommand = StaticCommand {
     name: "/open-code-review",
-    description: "Open code review",
+    description: "workspace_search_ui.slash_commands.descriptions.open_code_review",
     icon_path: "bundled/svg/diff.svg",
     availability: Availability::REPOSITORY,
     auto_enter_ai_mode: false,
@@ -211,7 +219,7 @@ pub const OPEN_CODE_REVIEW: StaticCommand = StaticCommand {
 
 pub const INDEX: StaticCommand = StaticCommand {
     name: "/index",
-    description: "Index this codebase",
+    description: "workspace_search_ui.slash_commands.descriptions.index",
     icon_path: "bundled/svg/find-all.svg",
     availability: Availability::REPOSITORY
         .union(Availability::CODEBASE_CONTEXT)
@@ -222,7 +230,7 @@ pub const INDEX: StaticCommand = StaticCommand {
 
 pub const INIT: StaticCommand = StaticCommand {
     name: "/init",
-    description: "Index this codebase and generate an AGENTS.md file",
+    description: "workspace_search_ui.slash_commands.descriptions.init",
     icon_path: "bundled/svg/warp-2.svg",
     availability: Availability::REPOSITORY
         .union(Availability::AGENT_VIEW)
@@ -233,7 +241,7 @@ pub const INIT: StaticCommand = StaticCommand {
 
 pub const OPEN_PROJECT_RULES: StaticCommand = StaticCommand {
     name: "/open-project-rules",
-    description: "Open the project rules file (AGENTS.md)",
+    description: "workspace_search_ui.slash_commands.descriptions.open_project_rules",
     icon_path: "bundled/svg/file-code-02.svg",
     availability: Availability::REPOSITORY.union(Availability::AI_ENABLED),
     auto_enter_ai_mode: false,
@@ -242,7 +250,7 @@ pub const OPEN_PROJECT_RULES: StaticCommand = StaticCommand {
 
 pub const OPEN_MCP_SERVERS: StaticCommand = StaticCommand {
     name: "/open-mcp-servers",
-    description: "Open MCP servers",
+    description: "workspace_search_ui.slash_commands.descriptions.open_mcp_servers",
     icon_path: "bundled/svg/dataflow.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
@@ -251,7 +259,7 @@ pub const OPEN_MCP_SERVERS: StaticCommand = StaticCommand {
 
 pub const OPEN_SETTINGS_FILE: StaticCommand = StaticCommand {
     name: "/open-settings-file",
-    description: "Open settings file (TOML)",
+    description: "workspace_search_ui.slash_commands.descriptions.open_settings_file",
     icon_path: "bundled/svg/file-code-02.svg",
     availability: Availability::LOCAL,
     auto_enter_ai_mode: false,
@@ -260,7 +268,7 @@ pub const OPEN_SETTINGS_FILE: StaticCommand = StaticCommand {
 
 pub const CHANGELOG: StaticCommand = StaticCommand {
     name: "/changelog",
-    description: "Open the latest changelog",
+    description: "workspace_search_ui.slash_commands.descriptions.changelog",
     icon_path: "bundled/svg/book-open.svg",
     availability: Availability::ALWAYS,
     auto_enter_ai_mode: false,
@@ -272,7 +280,7 @@ pub const CHANGELOG: StaticCommand = StaticCommand {
 // argument after `/feedback` would fall through and be treated as plain input.
 pub static FEEDBACK: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/feedback",
-    description: "Send feedback",
+    description: "workspace_search_ui.slash_commands.descriptions.feedback",
     icon_path: "bundled/svg/feedback.svg",
     availability: Availability::ALWAYS,
     auto_enter_ai_mode: false,
@@ -281,7 +289,7 @@ pub static FEEDBACK: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
 
 pub const OPEN_REPO: StaticCommand = StaticCommand {
     name: "/open-repo",
-    description: "Switch to another indexed repository",
+    description: "workspace_search_ui.slash_commands.descriptions.open_repo",
     icon_path: "bundled/svg/folder.svg",
     availability: Availability::LOCAL.union(Availability::AI_ENABLED),
     auto_enter_ai_mode: false,
@@ -290,7 +298,7 @@ pub const OPEN_REPO: StaticCommand = StaticCommand {
 
 pub const OPEN_RULES: StaticCommand = StaticCommand {
     name: "/open-rules",
-    description: "View all of your global and project rules",
+    description: "workspace_search_ui.slash_commands.descriptions.open_rules",
     icon_path: "bundled/svg/book-open.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
@@ -299,7 +307,7 @@ pub const OPEN_RULES: StaticCommand = StaticCommand {
 
 pub static NEW: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/new",
-    description: "Start a new conversation (alias for /agent)",
+    description: "workspace_search_ui.slash_commands.descriptions.new",
     icon_path: "bundled/svg/new-conversation.svg",
     availability: Availability::NO_LRC_CONTROL
         | Availability::AI_ENABLED
@@ -310,7 +318,7 @@ pub static NEW: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
 
 pub static MODEL: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/model",
-    description: "Switch the base agent model",
+    description: "workspace_search_ui.slash_commands.descriptions.model",
     icon_path: "bundled/svg/oz.svg",
     availability: Availability::AGENT_VIEW | Availability::AI_ENABLED,
     auto_enter_ai_mode: true,
@@ -319,7 +327,7 @@ pub static MODEL: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
 
 pub static HOST: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/host",
-    description: "Switch the cloud agent execution host",
+    description: "workspace_search_ui.slash_commands.descriptions.host",
     icon_path: "bundled/svg/oz-cloud.svg",
     availability: Availability::AGENT_VIEW
         | Availability::AI_ENABLED
@@ -330,7 +338,7 @@ pub static HOST: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
 
 pub static HARNESS: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/harness",
-    description: "Switch the cloud agent harness",
+    description: "workspace_search_ui.slash_commands.descriptions.harness",
     icon_path: "bundled/svg/oz.svg",
     availability: Availability::AGENT_VIEW
         | Availability::AI_ENABLED
@@ -341,7 +349,7 @@ pub static HARNESS: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
 
 pub static ENVIRONMENT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/environment",
-    description: "Switch the cloud agent environment",
+    description: "workspace_search_ui.slash_commands.descriptions.environment",
     icon_path: "bundled/svg/globe-04.svg",
     availability: Availability::AGENT_VIEW
         | Availability::AI_ENABLED
@@ -352,7 +360,7 @@ pub static ENVIRONMENT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand
 
 pub static PROFILE: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/profile",
-    description: "Switch the active execution profile",
+    description: "workspace_search_ui.slash_commands.descriptions.profile",
     icon_path: "bundled/svg/psychology.svg",
     availability: Availability::AGENT_VIEW
         | Availability::AI_ENABLED
@@ -365,22 +373,28 @@ pub const PLAN_NAME: &str = "/plan";
 
 pub static PLAN: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: PLAN_NAME,
-    description: "Prompt the agent to do some research and create a plan for a task",
+    description: "workspace_search_ui.slash_commands.descriptions.plan",
     icon_path: "bundled/svg/file-06.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: true,
-    argument: Some(Argument::optional().with_hint_text("<describe your task>")),
+    argument: Some(
+        Argument::optional()
+            .with_hint_text("workspace_search_ui.slash_commands.hints.describe_task"),
+    ),
 });
 
 pub const ORCHESTRATE_NAME: &str = "/orchestrate";
 
 pub static ORCHESTRATE: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: ORCHESTRATE_NAME,
-    description: "Break a task into subtasks and run them in parallel with multiple agents",
+    description: "workspace_search_ui.slash_commands.descriptions.orchestrate",
     icon_path: "bundled/svg/oz.svg",
     availability: Availability::LOCAL | Availability::AI_ENABLED,
     auto_enter_ai_mode: true,
-    argument: Some(Argument::optional().with_hint_text("<describe your task>")),
+    argument: Some(
+        Argument::optional()
+            .with_hint_text("workspace_search_ui.slash_commands.hints.describe_task"),
+    ),
 });
 
 /// If `query` starts with the given command `name` followed by a space,
@@ -394,7 +408,7 @@ pub fn strip_command_prefix(query: &str, name: &str) -> Option<String> {
 
 pub static COMPACT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/compact",
-    description: "Free up context by summarizing convo history",
+    description: "workspace_search_ui.slash_commands.descriptions.compact",
     icon_path: "bundled/svg/collapse_content.svg",
     availability: Availability::AGENT_VIEW
         | Availability::ACTIVE_CONVERSATION
@@ -403,13 +417,14 @@ pub static COMPACT: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
         | Availability::NOT_CLOUD_AGENT,
     auto_enter_ai_mode: true,
     argument: Some(
-        Argument::optional().with_hint_text("<optional custom summarization instructions>"),
+        Argument::optional()
+            .with_hint_text("workspace_search_ui.slash_commands.hints.summarization_instructions"),
     ),
 });
 
 pub static COMPACT_AND: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/compact-and",
-    description: "Compact conversation and then send a follow-up prompt",
+    description: "workspace_search_ui.slash_commands.descriptions.compact_and",
     icon_path: "bundled/svg/collapse_content.svg",
     availability: Availability::AGENT_VIEW
         | Availability::ACTIVE_CONVERSATION
@@ -417,26 +432,32 @@ pub static COMPACT_AND: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand
         | Availability::AI_ENABLED
         | Availability::NOT_CLOUD_AGENT,
     auto_enter_ai_mode: true,
-    argument: Some(Argument::optional().with_hint_text("<prompt to send after compaction>")),
+    argument: Some(
+        Argument::optional()
+            .with_hint_text("workspace_search_ui.slash_commands.hints.post_compaction_prompt"),
+    ),
 });
 
 pub static QUEUE: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/queue",
-    description: "Queue a prompt to send after the agent finishes responding",
+    description: "workspace_search_ui.slash_commands.descriptions.queue",
     icon_path: "bundled/svg/clock-plus.svg",
     availability: Availability::AGENT_VIEW
         | Availability::ACTIVE_CONVERSATION
         | Availability::AI_ENABLED
         | Availability::NOT_CLOUD_AGENT,
     auto_enter_ai_mode: true,
-    argument: Some(Argument::required().with_hint_text("<prompt to send when agent is done>")),
+    argument: Some(
+        Argument::required()
+            .with_hint_text("workspace_search_ui.slash_commands.hints.queued_prompt"),
+    ),
 });
 
 pub static FORK_AND_COMPACT: LazyLock<StaticCommand> = LazyLock::new(|| {
-    let hint_text = "<optional prompt to send after compaction>";
+    let hint_text = "workspace_search_ui.slash_commands.hints.optional_post_compaction_prompt";
     StaticCommand {
         name: "/fork-and-compact",
-        description: "Fork current conversation and compact it in the forked copy",
+        description: "workspace_search_ui.slash_commands.descriptions.fork_and_compact",
         icon_path: "bundled/svg/fork_and_compact.svg",
         availability: Availability::AGENT_VIEW
             | Availability::ACTIVE_CONVERSATION
@@ -450,7 +471,7 @@ pub static FORK_AND_COMPACT: LazyLock<StaticCommand> = LazyLock::new(|| {
 
 pub const FORK_FROM: StaticCommand = StaticCommand {
     name: "/fork-from",
-    description: "Fork conversation from a specific query",
+    description: "workspace_search_ui.slash_commands.descriptions.fork_from",
     icon_path: "bundled/svg/arrow-split.svg",
     availability: Availability::AGENT_VIEW
         .union(Availability::NO_LRC_CONTROL)
@@ -461,10 +482,10 @@ pub const FORK_FROM: StaticCommand = StaticCommand {
 };
 
 pub static CONTINUE_LOCALLY: LazyLock<StaticCommand> = LazyLock::new(|| {
-    let hint_text = "<optional prompt to send in local conversation>";
+    let hint_text = "workspace_search_ui.slash_commands.hints.local_prompt";
     StaticCommand {
         name: "/continue-locally",
-        description: "Continue this cloud conversation locally",
+        description: "workspace_search_ui.slash_commands.descriptions.continue_locally",
         icon_path: "bundled/svg/arrow-split.svg",
         availability: Availability::AGENT_VIEW
             | Availability::ACTIVE_CONVERSATION
@@ -477,7 +498,7 @@ pub static CONTINUE_LOCALLY: LazyLock<StaticCommand> = LazyLock::new(|| {
 
 pub const USAGE: StaticCommand = StaticCommand {
     name: "/usage",
-    description: "Open billing and usage settings",
+    description: "workspace_search_ui.slash_commands.descriptions.usage",
     icon_path: "bundled/svg/bar-chart-04.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
@@ -486,7 +507,7 @@ pub const USAGE: StaticCommand = StaticCommand {
 
 pub const REMOTE_CONTROL: StaticCommand = StaticCommand {
     name: "/remote-control",
-    description: "Start remote control for this session",
+    description: "workspace_search_ui.slash_commands.descriptions.remote_control",
     icon_path: "bundled/svg/phone-01.svg",
     availability: Availability::AI_ENABLED.union(Availability::NOT_CLOUD_AGENT),
     auto_enter_ai_mode: false,
@@ -495,7 +516,7 @@ pub const REMOTE_CONTROL: StaticCommand = StaticCommand {
 
 pub const COST: StaticCommand = StaticCommand {
     name: "/cost",
-    description: "Toggle credit usage details",
+    description: "workspace_search_ui.slash_commands.descriptions.cost",
     icon_path: "bundled/svg/bar-chart-04.svg",
     availability: Availability::AGENT_VIEW
         .union(Availability::AI_ENABLED)
@@ -506,7 +527,7 @@ pub const COST: StaticCommand = StaticCommand {
 
 pub const CONVERSATIONS: StaticCommand = StaticCommand {
     name: "/conversations",
-    description: "Open conversation history",
+    description: "workspace_search_ui.slash_commands.descriptions.conversations",
     icon_path: "bundled/svg/conversation.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
@@ -515,7 +536,7 @@ pub const CONVERSATIONS: StaticCommand = StaticCommand {
 
 pub static PROMPTS: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/prompts",
-    description: "Search saved prompts",
+    description: "workspace_search_ui.slash_commands.descriptions.prompts",
     icon_path: "bundled/svg/prompt.svg",
     availability: Availability::AI_ENABLED,
     auto_enter_ai_mode: false,
@@ -524,7 +545,7 @@ pub static PROMPTS: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
 
 pub const REWIND: StaticCommand = StaticCommand {
     name: "/rewind",
-    description: "Rewind to a previous point in the conversation",
+    description: "workspace_search_ui.slash_commands.descriptions.rewind",
     icon_path: "bundled/svg/clock-rewind.svg",
     availability: Availability::AGENT_VIEW
         .union(Availability::AI_ENABLED)
@@ -535,7 +556,7 @@ pub const REWIND: StaticCommand = StaticCommand {
 
 pub const EXPORT_TO_CLIPBOARD: StaticCommand = StaticCommand {
     name: "/export-to-clipboard",
-    description: "Export current conversation to clipboard in markdown format",
+    description: "workspace_search_ui.slash_commands.descriptions.export_to_clipboard",
     icon_path: "bundled/svg/copy.svg",
     availability: Availability::AGENT_VIEW
         .union(Availability::AI_ENABLED)
@@ -546,13 +567,16 @@ pub const EXPORT_TO_CLIPBOARD: StaticCommand = StaticCommand {
 
 pub static EXPORT_TO_FILE: LazyLock<StaticCommand> = LazyLock::new(|| StaticCommand {
     name: "/export-to-file",
-    description: "Export current conversation to a markdown file",
+    description: "workspace_search_ui.slash_commands.descriptions.export_to_file",
     icon_path: "bundled/svg/download-01.svg",
     availability: Availability::AGENT_VIEW
         | Availability::AI_ENABLED
         | Availability::NOT_CLOUD_AGENT,
     auto_enter_ai_mode: true,
-    argument: Some(Argument::optional().with_hint_text("<optional filename>")),
+    argument: Some(
+        Argument::optional()
+            .with_hint_text("workspace_search_ui.slash_commands.hints.optional_filename"),
+    ),
 });
 
 pub static COMMAND_REGISTRY: LazyLock<Registry> = LazyLock::new(Registry::new);
@@ -586,7 +610,7 @@ impl Default for Registry {
 impl Registry {
     pub fn new() -> Self {
         let mut commands = HashMap::new();
-        for command in all_commands().into_iter() {
+        for mut command in all_commands() {
             debug_assert!(
                 !command
                     .availability
@@ -594,6 +618,17 @@ impl Registry {
                 "command `{}` sets both TERMINAL_VIEW and AGENT_VIEW, which is unsatisfiable",
                 command.name,
             );
+            command.description = localize_static(command.description);
+            if let Some(hint_text) = command
+                .argument
+                .as_mut()
+                .and_then(|argument| argument.hint_text.as_mut())
+            {
+                let key = *hint_text;
+                if key.starts_with("workspace_search_ui.") {
+                    *hint_text = localize_static(key);
+                }
+            }
             commands.insert(SlashCommandId::new(), command);
         }
         Self { commands }
@@ -622,6 +657,10 @@ impl Registry {
             .find(|(_, command)| command.name == name)
             .map(|(id, _)| id)
     }
+}
+
+fn localize_static(key: &'static str) -> &'static str {
+    Box::leak(t!(key).into_owned().into_boxed_str())
 }
 
 fn all_commands() -> Vec<StaticCommand> {

@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use chrono::{Duration, Utc};
+use chrono::{DateTime, Duration, Utc};
 use derivative::Derivative;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -27,12 +27,12 @@ use crate::auth::UserUid;
 use crate::channel::ChannelState;
 use crate::drive::items::WarpDriveItem;
 use crate::drive::{CloudObjectTypeAndId, OpenWarpDriveObjectArgs, OpenWarpDriveObjectSettings};
+use crate::i18n::t;
 use crate::persistence::ModelEvent;
 use crate::server::cloud_objects::update_manager::InitiatedBy;
 use crate::server::ids::{HashableId, HashedSqliteId, ObjectUid, ServerId, SyncId, ToServerId};
 use crate::server::server_api::object::ObjectClient;
 use crate::server::sync_queue::{QueueItem, SerializedModel};
-use crate::util::time_format::format_approx_duration_from_now_utc;
 use crate::workflows::{CloudWorkflow, WorkflowSource};
 use crate::workspaces::user_profiles::UserProfiles;
 use crate::workspaces::user_workspaces::UserWorkspaces;
@@ -913,14 +913,27 @@ impl CloudObjectMetadataExt for CloudObjectMetadata {
         let time_ago_string = self
             .revision
             .clone()
-            .map(|r| format_approx_duration_from_now_utc(r.utc()));
+            .map(|r| localized_approx_duration_from_now_utc(r.utc()));
 
         let full_string = match (editor_string, time_ago_string) {
-            (Some(name), Some(time_ago)) if name.is_empty() => format!("Edited {time_ago}"),
-            (Some(name), Some(time_ago)) => format!("{name} edited {time_ago}"),
-            (None, Some(time_ago)) => format!("Edited {time_ago}"),
-            (Some(name), None) => format!("Last edited by {name}"),
-            _ => return None,
+            (Some(name), Some(time_ago)) if name.is_empty() => {
+                t!("drive_extra.cloud_object.history.edited", time = time_ago).to_string()
+            }
+            (Some(name), Some(time_ago)) => t!(
+                "drive_extra.cloud_object.history.edited_by",
+                name = name,
+                time = time_ago
+            )
+            .to_string(),
+            (None, Some(time_ago)) => {
+                t!("drive_extra.cloud_object.history.edited", time = time_ago).to_string()
+            }
+            (Some(name), None) => t!(
+                "drive_extra.cloud_object.history.last_edited_by",
+                name = name
+            )
+            .to_string(),
+            (None, None) => return None,
         };
 
         Some(full_string)
@@ -947,13 +960,70 @@ impl CloudObjectMetadataExt for CloudObjectMetadata {
             let days_left = deletion_time.signed_duration_since(current_time).num_days();
 
             let full_string = match days_left {
-                0 | 1 => "1 day until permanent deletion".to_string(),
-                _ => format!("{days_left} days until permanent deletion"),
+                0 | 1 => t!("drive_extra.cloud_object.history.deletion_one_day").to_string(),
+                _ => t!(
+                    "drive_extra.cloud_object.history.deletion_days",
+                    count = days_left
+                )
+                .to_string(),
             };
             Some(full_string)
         } else {
             None
         }
+    }
+}
+
+fn localized_approx_duration_from_now_utc(datetime: DateTime<Utc>) -> String {
+    let elapsed_seconds = Utc::now()
+        .signed_duration_since(datetime)
+        .num_seconds()
+        .max(0);
+    let minutes = elapsed_seconds / 60;
+    let hours = minutes / 60;
+    let days = hours / 24;
+
+    if days >= 365 {
+        let years = days / 365;
+        if years == 1 {
+            t!("drive_extra.cloud_object.time.year_one").to_string()
+        } else {
+            t!("drive_extra.cloud_object.time.years", count = years).to_string()
+        }
+    } else if days >= 30 {
+        let months = days / 30;
+        if months == 1 {
+            t!("drive_extra.cloud_object.time.month_one").to_string()
+        } else {
+            t!("drive_extra.cloud_object.time.months", count = months).to_string()
+        }
+    } else if days >= 7 {
+        let weeks = days / 7;
+        if weeks == 1 {
+            t!("drive_extra.cloud_object.time.week_one").to_string()
+        } else {
+            t!("drive_extra.cloud_object.time.weeks", count = weeks).to_string()
+        }
+    } else if days >= 1 {
+        if days == 1 {
+            t!("drive_extra.cloud_object.time.day_one").to_string()
+        } else {
+            t!("drive_extra.cloud_object.time.days", count = days).to_string()
+        }
+    } else if hours >= 1 {
+        if hours == 1 {
+            t!("drive_extra.cloud_object.time.hour_one").to_string()
+        } else {
+            t!("drive_extra.cloud_object.time.hours", count = hours).to_string()
+        }
+    } else if minutes >= 1 {
+        if minutes == 1 {
+            t!("drive_extra.cloud_object.time.minute_one").to_string()
+        } else {
+            t!("drive_extra.cloud_object.time.minutes", count = minutes).to_string()
+        }
+    } else {
+        t!("drive_extra.cloud_object.time.just_now").to_string()
     }
 }
 
@@ -1003,16 +1073,16 @@ pub enum Space {
 impl Space {
     pub fn name(&self, app: &AppContext) -> String {
         match self {
-            Space::Personal => "Personal".to_string(),
+            Space::Personal => t!("drive_extra.cloud_object.spaces.personal").to_string(),
             Space::Team { team_uid, .. } => {
                 let user_workspaces = UserWorkspaces::as_ref(app);
                 if let Some(team) = user_workspaces.team_from_uid(*team_uid) {
                     team.name.clone()
                 } else {
-                    "Team".to_string()
+                    t!("drive_extra.cloud_object.spaces.team").to_string()
                 }
             }
-            Space::Shared => "Shared with me".to_string(),
+            Space::Shared => t!("drive_extra.cloud_object.spaces.shared_with_me").to_string(),
         }
     }
 }

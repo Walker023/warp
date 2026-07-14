@@ -265,7 +265,10 @@ impl EditorView {
                     .as_ref(ctx)
                     .can_request_voice()
                 {
-                    self.voice_error_toast(super::VOICE_LIMIT_HIT_TOAST_TEXT, ctx);
+                    self.voice_error_toast(
+                        t!("code_editor_extra.editor.voice_limit_hit").as_ref(),
+                        ctx,
+                    );
                     return false;
                 }
 
@@ -499,12 +502,16 @@ impl EditorView {
                 self.user_insert(&transcribe_response, ctx);
             }
             Err(e) => match e {
-                TranscribeError::QuotaLimit => {
-                    self.voice_error_toast(super::VOICE_LIMIT_HIT_TOAST_TEXT, ctx)
-                }
+                TranscribeError::QuotaLimit => self.voice_error_toast(
+                    t!("code_editor_extra.editor.voice_limit_hit").as_ref(),
+                    ctx,
+                ),
                 _ => {
                     report_error!(anyhow::Error::new(e).context("Failed to transcribe voice input"));
-                    self.voice_error_toast(super::VOICE_ERROR_TOAST_TEXT, ctx)
+                    self.voice_error_toast(
+                        t!("code_editor_extra.editor.voice_processing_error").as_ref(),
+                        ctx,
+                    )
                 }
             },
         }

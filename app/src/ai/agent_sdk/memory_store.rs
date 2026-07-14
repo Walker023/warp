@@ -11,6 +11,7 @@ use warpui::platform::TerminationMode;
 use warpui::{AppContext, ModelContext, SingletonEntity};
 
 use crate::ai::agent_sdk::output::{self, TableFormat};
+use crate::i18n::t;
 use crate::server::server_api::ai::{
     AIClient, AgentAttachmentItem, CreateMemoryRequest, CreateMemoryResponse, MemoryItem,
     MemorySource, MemoryStoreItem, MemoryVersionItem, UpdateMemoryRequest, UpdateMemoryResponse,
@@ -200,7 +201,10 @@ impl MemoryStoreCommandRunner {
                     OutputFormat::Json => output::write_json(&store, std::io::stdout())?,
                     OutputFormat::Ndjson => output::write_json_line(&store, std::io::stdout())?,
                     OutputFormat::Pretty | OutputFormat::Text => {
-                        println!("Updated store {}.", store.uid);
+                        println!(
+                            "{}",
+                            t!("ai_cli.memory.status.store_updated", uid = &store.uid)
+                        );
                         output::print_list([store], output_format);
                     }
                 }
@@ -223,7 +227,7 @@ impl MemoryStoreCommandRunner {
                 if agents.is_empty()
                     && matches!(output_format, OutputFormat::Pretty | OutputFormat::Text)
                 {
-                    println!("No agents attached to this store.");
+                    println!("{}", t!("ai_cli.memory.empty.store_agents"));
                     return Ok(());
                 }
                 output::print_list(agents, output_format);
@@ -248,7 +252,7 @@ impl MemoryStoreCommandRunner {
                 if versions.is_empty()
                     && matches!(output_format, OutputFormat::Pretty | OutputFormat::Text)
                 {
-                    println!("No versions found.");
+                    println!("{}", t!("ai_cli.memory.empty.versions"));
                     return Ok(());
                 }
                 output::print_list(versions, output_format);
@@ -303,7 +307,13 @@ impl MemoryStoreCommandRunner {
                     OutputFormat::Json => output::write_json(&output, std::io::stdout())?,
                     OutputFormat::Ndjson => output::write_json_line(&output, std::io::stdout())?,
                     OutputFormat::Pretty | OutputFormat::Text => {
-                        println!("Deleted memory {}.", args.memory_uid);
+                        println!(
+                            "{}",
+                            t!(
+                                "ai_cli.memory.status.memory_deleted",
+                                uid = &args.memory_uid
+                            )
+                        );
                     }
                 }
                 Ok(())
@@ -322,12 +332,12 @@ impl SingletonEntity for MemoryStoreCommandRunner {}
 impl TableFormat for MemoryStoreItem {
     fn header() -> Vec<Cell> {
         vec![
-            Cell::new("UID"),
-            Cell::new("Owner Type"),
-            Cell::new("Owner UID"),
-            Cell::new("Description"),
-            Cell::new("Created"),
-            Cell::new("Updated"),
+            Cell::new(t!("ai_cli.memory.table.uid").to_string()),
+            Cell::new(t!("ai_cli.memory.table.owner_type").to_string()),
+            Cell::new(t!("ai_cli.memory.table.owner_uid").to_string()),
+            Cell::new(t!("ai_cli.memory.table.description").to_string()),
+            Cell::new(t!("ai_cli.memory.table.created").to_string()),
+            Cell::new(t!("ai_cli.memory.table.updated").to_string()),
         ]
     }
 
@@ -346,11 +356,11 @@ impl TableFormat for MemoryStoreItem {
 impl TableFormat for MemoryVersionItem {
     fn header() -> Vec<Cell> {
         vec![
-            Cell::new("UID"),
-            Cell::new("Version"),
-            Cell::new("Content"),
-            Cell::new("Reason"),
-            Cell::new("Created"),
+            Cell::new(t!("ai_cli.memory.table.uid").to_string()),
+            Cell::new(t!("ai_cli.memory.table.version").to_string()),
+            Cell::new(t!("ai_cli.memory.table.content").to_string()),
+            Cell::new(t!("ai_cli.memory.table.reason").to_string()),
+            Cell::new(t!("ai_cli.memory.table.created").to_string()),
         ]
     }
 
@@ -368,10 +378,10 @@ impl TableFormat for MemoryVersionItem {
 impl TableFormat for AgentAttachmentItem {
     fn header() -> Vec<Cell> {
         vec![
-            Cell::new("UID"),
-            Cell::new("Name"),
-            Cell::new("Access"),
-            Cell::new("Instructions"),
+            Cell::new(t!("ai_cli.memory.table.uid").to_string()),
+            Cell::new(t!("ai_cli.memory.table.name").to_string()),
+            Cell::new(t!("ai_cli.memory.table.access").to_string()),
+            Cell::new(t!("ai_cli.memory.table.instructions").to_string()),
         ]
     }
 
@@ -388,12 +398,12 @@ impl TableFormat for AgentAttachmentItem {
 impl TableFormat for MemoryItem {
     fn header() -> Vec<Cell> {
         vec![
-            Cell::new("UID"),
-            Cell::new("Version"),
-            Cell::new("Source"),
-            Cell::new("Content"),
-            Cell::new("Created"),
-            Cell::new("Updated"),
+            Cell::new(t!("ai_cli.memory.table.uid").to_string()),
+            Cell::new(t!("ai_cli.memory.table.version").to_string()),
+            Cell::new(t!("ai_cli.memory.table.source").to_string()),
+            Cell::new(t!("ai_cli.memory.table.content").to_string()),
+            Cell::new(t!("ai_cli.memory.table.created").to_string()),
+            Cell::new(t!("ai_cli.memory.table.updated").to_string()),
         ]
     }
 
@@ -431,7 +441,10 @@ impl From<CreateMemoryResponse> for CreateMemoryOutput {
 
 impl TableFormat for CreateMemoryOutput {
     fn header() -> Vec<Cell> {
-        vec![Cell::new("Memory ID"), Cell::new("Version ID")]
+        vec![
+            Cell::new(t!("ai_cli.memory.table.memory_id").to_string()),
+            Cell::new(t!("ai_cli.memory.table.version_id").to_string()),
+        ]
     }
 
     fn row(&self) -> Vec<Cell> {
@@ -441,7 +454,7 @@ impl TableFormat for CreateMemoryOutput {
 
 fn print_memory_stores(stores: Vec<MemoryStoreItem>, output_format: OutputFormat) {
     if stores.is_empty() && matches!(output_format, OutputFormat::Pretty | OutputFormat::Text) {
-        println!("No memory stores found.");
+        println!("{}", t!("ai_cli.memory.empty.stores"));
         return;
     }
     output::print_list(stores, output_format);
@@ -449,7 +462,7 @@ fn print_memory_stores(stores: Vec<MemoryStoreItem>, output_format: OutputFormat
 
 fn print_memories(memories: Vec<MemoryItem>, output_format: OutputFormat) {
     if memories.is_empty() && matches!(output_format, OutputFormat::Pretty | OutputFormat::Text) {
-        println!("No memories found.");
+        println!("{}", t!("ai_cli.memory.empty.memories"));
         return;
     }
     output::print_list(memories, output_format);
@@ -472,7 +485,10 @@ impl From<UpdateMemoryResponse> for UpdateMemoryOutput {
 
 impl TableFormat for UpdateMemoryOutput {
     fn header() -> Vec<Cell> {
-        vec![Cell::new("Memory ID"), Cell::new("Version ID")]
+        vec![
+            Cell::new(t!("ai_cli.memory.table.memory_id").to_string()),
+            Cell::new(t!("ai_cli.memory.table.version_id").to_string()),
+        ]
     }
 
     fn row(&self) -> Vec<Cell> {
@@ -489,7 +505,13 @@ fn print_update_memory_response(
         OutputFormat::Json => output::write_json(&output, std::io::stdout())?,
         OutputFormat::Ndjson => output::write_json_line(&output, std::io::stdout())?,
         OutputFormat::Pretty | OutputFormat::Text => {
-            println!("Updated memory {}.", output.memory_id);
+            println!(
+                "{}",
+                t!(
+                    "ai_cli.memory.status.memory_updated",
+                    id = &output.memory_id
+                )
+            );
             output::print_list([output], output_format);
         }
     }
@@ -505,7 +527,13 @@ fn print_create_memory_response(
         OutputFormat::Json => output::write_json(&output, std::io::stdout())?,
         OutputFormat::Ndjson => output::write_json_line(&output, std::io::stdout())?,
         OutputFormat::Pretty | OutputFormat::Text => {
-            println!("Created memory {}.", output.memory_id);
+            println!(
+                "{}",
+                t!(
+                    "ai_cli.memory.status.memory_created",
+                    id = &output.memory_id
+                )
+            );
             output::print_list([output], output_format);
         }
     }

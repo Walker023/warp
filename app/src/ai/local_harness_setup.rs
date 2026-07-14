@@ -1,16 +1,44 @@
+use std::fmt;
+
 use warp_cli::agent::Harness;
 
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 #[cfg(not(target_family = "wasm"))]
 use crate::util::path::resolve_executable;
 
 /// Tooltip shown when a local harness is product-enabled but its CLI is missing.
-pub(crate) const LOCAL_HARNESS_INSTALLATION_REQUIRED_TOOLTIP: &str =
-    "Install Claude Code to use this local harness.";
-pub(crate) const LOCAL_CODEX_HARNESS_INSTALLATION_REQUIRED_TOOLTIP: &str =
-    "Install Codex to use this local harness.";
-pub(crate) const LOCAL_CODEX_HARNESS_DISABLED_MESSAGE: &str =
-    "Local Codex child agents are temporarily disabled.";
+pub(crate) const LOCAL_HARNESS_INSTALLATION_REQUIRED_TOOLTIP: LocalHarnessSetupMessage =
+    LocalHarnessSetupMessage::InstallClaudeCode;
+pub(crate) const LOCAL_CODEX_HARNESS_INSTALLATION_REQUIRED_TOOLTIP: LocalHarnessSetupMessage =
+    LocalHarnessSetupMessage::InstallCodex;
+pub(crate) const LOCAL_CODEX_HARNESS_DISABLED_MESSAGE: LocalHarnessSetupMessage =
+    LocalHarnessSetupMessage::LocalCodexDisabled;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum LocalHarnessSetupMessage {
+    InstallClaudeCode,
+    InstallCodex,
+    LocalCodexDisabled,
+}
+
+impl fmt::Display for LocalHarnessSetupMessage {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let message = match self {
+            Self::InstallClaudeCode => t!("ai_actions.local_harness.install_claude_code"),
+            Self::InstallCodex => t!("ai_actions.local_harness.install_codex"),
+            Self::LocalCodexDisabled => t!("ai_actions.local_harness.local_codex_disabled"),
+        };
+        f.write_str(message.as_ref())
+    }
+}
+
+#[cfg(test)]
+impl PartialEq<LocalHarnessSetupMessage> for String {
+    fn eq(&self, other: &LocalHarnessSetupMessage) -> bool {
+        self == &other.to_string()
+    }
+}
 
 /// Client-side readiness for using a harness in local orchestration.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -18,9 +46,9 @@ pub(crate) enum LocalHarnessSetupState {
     /// The harness is product-enabled and its required local CLI is installed.
     Ready,
     /// The harness is intentionally unavailable in the product.
-    ProductDisabled { message: &'static str },
+    ProductDisabled { message: LocalHarnessSetupMessage },
     /// The harness is product-enabled but the required local CLI is missing.
-    MissingHarness { tooltip: &'static str },
+    MissingHarness { tooltip: LocalHarnessSetupMessage },
 }
 
 impl LocalHarnessSetupState {
@@ -31,7 +59,9 @@ impl LocalHarnessSetupState {
 }
 
 /// Returns the product-level disabled reason for a local harness.
-pub(crate) fn local_harness_product_disabled_message(harness: Harness) -> Option<&'static str> {
+pub(crate) fn local_harness_product_disabled_message(
+    harness: Harness,
+) -> Option<LocalHarnessSetupMessage> {
     match harness {
         Harness::Codex if !local_codex_harness_is_enabled() => {
             Some(LOCAL_CODEX_HARNESS_DISABLED_MESSAGE)

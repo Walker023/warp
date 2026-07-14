@@ -14,6 +14,7 @@ use crate::ai::llms::{
     should_show_bedrock_icon_for_model, should_show_key_icon_for_model, DisableReason, LLMId,
     LLMInfo,
 };
+use crate::i18n::t;
 use crate::menu::{MenuItem, MenuItemFields, MenuTooltipPosition};
 
 pub fn is_auto(llm: &LLMInfo) -> bool {
@@ -40,7 +41,7 @@ fn with_cost_and_profile_info<A: Action + Clone>(
     let mut label = String::new();
 
     if Some(&llm.id) == profile_default_model {
-        label.push_str("Profile default");
+        label.push_str(t!("ai_ui.execution_profiles.profile_default").as_ref());
     }
 
     match llm.usage_metadata.credit_multiplier {
@@ -77,7 +78,7 @@ fn make_item_fields<A: Action + Clone>(
     app: &AppContext,
 ) -> MenuItem<A> {
     let label = if collapse_auto && is_auto(llm) {
-        "auto".to_string()
+        t!("common.auto").to_string()
     } else if collapse_reasoning_variants && llm.has_reasoning_level() {
         llm.base_model_name().to_string()
     } else {
@@ -165,8 +166,10 @@ fn make_item_fields<A: Action + Clone>(
             .with_tooltip_position(MenuTooltipPosition::Above);
 
         if matches!(reason, DisableReason::RequiresUpgrade) {
-            item =
-                item.with_right_side_label("disabled", Properties::default().style(Style::Italic));
+            item = item.with_right_side_label(
+                t!("ai_ui.execution_profiles.disabled").to_string(),
+                Properties::default().style(Style::Italic),
+            );
         }
     }
 

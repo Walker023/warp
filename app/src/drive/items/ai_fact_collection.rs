@@ -6,6 +6,7 @@ use crate::appearance::Appearance;
 use crate::cloud_object::CloudObjectMetadata;
 use crate::drive::index::DriveIndexAction;
 use crate::drive::DriveObjectType;
+use crate::i18n::t;
 use crate::server::ids::ClientId;
 use crate::themes::theme::Fill;
 
@@ -26,7 +27,7 @@ impl WarpDriveAIFactCollection {
 
 impl WarpDriveItem for WarpDriveAIFactCollection {
     fn display_name(&self) -> Option<String> {
-        Some("Rules".to_string())
+        Some(t!("drive_extra.index.usage.rules").to_string())
     }
 
     fn metadata(&self) -> Option<&CloudObjectMetadata> {

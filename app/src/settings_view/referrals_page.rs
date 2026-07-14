@@ -38,7 +38,6 @@ use crate::{safe_info, send_telemetry_from_ctx};
 
 const HEADER_FONT_SIZE: f32 = 18.;
 const HEADER_MARGIN_BOTTOM: f32 = 32.;
-const HEADER_TEXT: &str = "Invite a friend to Warp";
 
 const INVITE_FIELD_LABEL_BOTTOM_MARGIN: f32 = 8.;
 
@@ -202,7 +201,11 @@ impl ReferralsPageView {
             me.handle_editor_event(event, ctx);
         });
 
-        let page = PageType::new_monolith(ReferralsWidget::default(), Some(HEADER_TEXT), true);
+        let page = PageType::new_monolith(
+            ReferralsWidget::default(),
+            Some(t!("resource_center.invite_friend").as_ref()),
+            true,
+        );
         Self {
             page,
             referrals_client,

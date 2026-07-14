@@ -1,0 +1,32 @@
+ai_actions:
+  local_harness:
+    install_claude_code: "请安装 Claude Code 以使用此本地运行框架。"
+    install_codex: "请安装 Codex 以使用此本地运行框架。"
+    local_codex_disabled: "本地 Codex 子智能体暂时已禁用。"
+  start_agent:
+    local_harness_missing: "缺少本地子智能体运行框架类型。"
+    unsupported_local_harness: "不支持本地子智能体运行框架“%{harness}”。"
+    agent_identifier_missing: "服务器未分配智能体标识符"
+    local_oz_parent_run_id_missing: "本地 Oz 子智能体需要可用的父任务 run_id。"
+    local_parent_run_id_missing: "本地运行框架子智能体需要可用的父任务 run_id。"
+    remote_parent_run_id_missing: "远程子智能体需要可用的父任务 run_id。"
+    remote_opencode_unsupported: "远程子智能体暂不支持 opencode 运行框架。"
+    initialization_failed: "子智能体初始化失败"
+    cancelled_before_initialization: "子智能体在初始化前已取消"
+    blocked_before_initialization: "子智能体在初始化前被阻止启动"
+  run_agents:
+    cancelled_before_launch: "启动前已取消"
+    spawn_timeout: "智能体未能在 %{seconds} 秒内启动。运行框架的可执行文件可能尚未安装。"
+    config_disapproved: "智能体编排配置已被拒绝"
+    disabled_by_execution_profile: "当前执行配置已禁用子智能体运行。"
+    api_key_required: "使用此运行框架的云端子智能体需要配置 API 密钥才能运行。"
+    duplicate_agents: "请求的智能体已启动：%{agents}。请勿重复启动子智能体；如需后续处理，请使用现有智能体 ID 调用 send_message_to_agent：%{agent_ids}。"
+    empty_agent_run_configs: "orchestrate：agent_run_configs 不能为空"
+  mcp:
+    tool_input_not_object: "MCP 服务器工具输入不是对象"
+    tool_server_not_found: "未找到提供该工具的 MCP 服务器"
+    tool_call_error: "MCP 工具调用返回错误。"
+    resource_not_found: "未找到 MCP 服务器资源"
+    resource_server_not_found: "未找到提供该资源的 MCP 服务器"
+  code_diff:
+    review_surface_missing: "包含这些编辑内容的审查界面已不存在"

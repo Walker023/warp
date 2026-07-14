@@ -15,15 +15,13 @@ use crate::env_vars::view::env_var_collection::{
     EditorType, EnvVarCollectionView, DESCRIPTION_EDITOR_POSITION, ROW_SPACING,
 };
 use crate::env_vars::EnvVarValue;
+use crate::i18n::t;
 use crate::Appearance;
 
 // Metadata labels (name and description)
 const LABEL_FONT_SIZE: f32 = 12.;
 const METADATA_SPACING: f32 = 8.;
 const LAST_ROW_ELEMENT_SPACING: f32 = 2.;
-const TITLE_LABEL_TEXT: &str = "Title";
-const DESCRIPTION_LABEL_TEXT: &str = "Description";
-
 const VERTICAL_TEXT_INPUT_PADDING: f32 = 5.;
 const HORIZONTAL_TEXT_INPUT_PADDING: f32 = 10.;
 const SECRET_ICON_BUTTON_MARGIN: f32 = 2.;
@@ -33,7 +31,7 @@ impl EnvVarCollectionView {
         ctx: &mut ViewContext<Self>,
         font_size_override: Option<f32>,
         font_family_override: Option<FamilyId>,
-        placeholder_text: Option<&str>,
+        placeholder_text: Option<String>,
         single_line: bool,
     ) -> ViewHandle<EditorView> {
         let text = TextOptions {
@@ -41,7 +39,7 @@ impl EnvVarCollectionView {
             font_family_override,
             ..Default::default()
         };
-        ctx.add_typed_action_view(|ctx| {
+        ctx.add_typed_action_view(move |ctx| {
             let mut editor = if single_line {
                 EditorView::single_line(
                     SingleLineEditorOptions {
@@ -363,9 +361,12 @@ impl EnvVarCollectionView {
 
         Flex::column()
             .with_child(
-                Container::new(self.render_metadata_label(TITLE_LABEL_TEXT, appearance))
-                    .with_margin_bottom(METADATA_SPACING)
-                    .finish(),
+                Container::new(self.render_metadata_label(
+                    t!("env_vars_ui.metadata.title").to_string(),
+                    appearance,
+                ))
+                .with_margin_bottom(METADATA_SPACING)
+                .finish(),
             )
             .with_child(
                 Container::new(self.render_metadata_editor(
@@ -378,9 +379,12 @@ impl EnvVarCollectionView {
             )
             .with_child(
                 SavePosition::new(
-                    Container::new(self.render_metadata_label(DESCRIPTION_LABEL_TEXT, appearance))
-                        .with_margin_bottom(METADATA_SPACING)
-                        .finish(),
+                    Container::new(self.render_metadata_label(
+                        t!("env_vars_ui.metadata.description").to_string(),
+                        appearance,
+                    ))
+                    .with_margin_bottom(METADATA_SPACING)
+                    .finish(),
                     DESCRIPTION_EDITOR_POSITION,
                 )
                 .finish(),

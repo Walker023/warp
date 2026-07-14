@@ -89,6 +89,7 @@ use crate::drive::items::WarpDriveItemId;
 use crate::drive::{CloudObjectTypeAndId, OpenWarpDriveObjectArgs};
 use crate::env_vars::EnvVarCollectionType;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::launch_configs::launch_config::{self, PaneMode, PaneTemplateType};
 use crate::notebooks::file::FileNotebookView;
 use crate::palette::PaletteMode;
@@ -3057,10 +3058,13 @@ impl PaneGroup {
         let user_default_shell_changed_banner = ctx.add_typed_action_view(|_| {
             Banner::<PaneGroupAction>::new_permanently_dismissible(
                 BannerTextContent::formatted_text(vec![
-                    FormattedTextFragment::plain_text(
-                        "Warp doesn't currently support your default shell, falling back to zsh.  ",
+                    FormattedTextFragment::plain_text(t!(
+                        "pane_group_ui.unsupported_shell.message"
+                    )),
+                    FormattedTextFragment::hyperlink(
+                        t!("pane_group_ui.unsupported_shell.learn_more"),
+                        WARP_SHELL_COMPATIBILITY_DOCS,
                     ),
-                    FormattedTextFragment::hyperlink("Learn more", WARP_SHELL_COMPATIBILITY_DOCS),
                 ]),
             )
         });

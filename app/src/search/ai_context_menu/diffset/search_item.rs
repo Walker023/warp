@@ -7,6 +7,7 @@ use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
 use crate::code_review::diff_state::DiffMode;
+use crate::i18n::t;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::ai_context_menu::styles;
 use crate::search::item::SearchItem;
@@ -21,17 +22,31 @@ pub struct DiffSetSearchItem {
 impl DiffSetSearchItem {
     pub fn name(&self) -> String {
         match &self.diff_mode {
-            DiffMode::Head => "Uncommitted changes".to_string(),
-            DiffMode::MainBranch => "Changes vs. main branch".to_string(),
-            DiffMode::OtherBranch(branch) => format!("Changes vs. {branch}"),
+            DiffMode::Head => t!("workspace_search_ui.search.diff.uncommitted_changes").to_string(),
+            DiffMode::MainBranch => {
+                t!("workspace_search_ui.search.diff.changes_vs_main").to_string()
+            }
+            DiffMode::OtherBranch(branch) => t!(
+                "workspace_search_ui.search.diff.changes_vs_branch",
+                name = branch
+            )
+            .to_string(),
         }
     }
 
     pub fn description(&self) -> String {
         match &self.diff_mode {
-            DiffMode::Head => "All uncommitted changes in the working directory".to_string(),
-            DiffMode::MainBranch => "All changes compared to the main branch".to_string(),
-            DiffMode::OtherBranch(branch) => format!("All changes compared to {branch}"),
+            DiffMode::Head => {
+                t!("workspace_search_ui.search.diff.uncommitted_description").to_string()
+            }
+            DiffMode::MainBranch => {
+                t!("workspace_search_ui.search.diff.main_description").to_string()
+            }
+            DiffMode::OtherBranch(branch) => t!(
+                "workspace_search_ui.search.diff.branch_description",
+                name = branch
+            )
+            .to_string(),
         }
     }
 }

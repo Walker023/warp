@@ -11,6 +11,7 @@ use warpui::{AppContext, SingletonEntity, WeakViewHandle};
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::blocklist::BlocklistAIHistoryModel;
 use crate::cloud_object::model::persistence::CloudModel;
+use crate::i18n::t;
 use crate::server::ids::ServerId;
 use crate::server::server_api::object::GuestIdentifier;
 use crate::terminal::shared_session::join_link;
@@ -110,7 +111,9 @@ impl SubjectExt for Subject {
             Subject::User(kind) => kind.name(app),
             Subject::PendingUser { email } => email.clone().map(Cow::from),
             Subject::Team(kind) => kind.display_name(app).map(Cow::from),
-            Subject::AnyoneWithLink(_) => Some(Cow::from("Anyone with the link")),
+            Subject::AnyoneWithLink(_) => Some(Cow::Owned(
+                t!("drive_extra.sharing.anyone_with_link").to_string(),
+            )),
         }
     }
 

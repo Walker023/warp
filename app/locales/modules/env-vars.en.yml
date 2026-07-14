@@ -1,0 +1,35 @@
+env_vars_ui:
+  collection:
+    variables: "Variables"
+    load: "Load"
+    education: "Add secret or command. Warp never stores external secrets"
+    value_placeholder: "Value"
+    description_placeholder: "Description"
+    variable_placeholder: "Variable"
+    title_placeholder: "Add a title"
+    collection_description_placeholder: "Add a description"
+    untitled: "Untitled"
+    enterprise_secret_conflict: "This environment variable cannot be created due to conflicts with your enterprise's secret redaction settings. Contact a team admin for details."
+    user_secret_conflict: "This environment variable cannot be created due to conflicts with your secret redaction settings. Save the secret as an environment variable (in your shell config or a .env file), or update your secret redaction settings in Settings > Privacy."
+    invoke_error: "An error occurred while trying to load the environment variables"
+  trash:
+    no_access: "You no longer have access to these environment variables"
+    moved: "Environment variables were moved to trash"
+    restore_tooltip: "Restore environment variables from trash"
+  menu:
+    command: "Command"
+    clear_secret: "Clear secret"
+  command_dialog:
+    title: "Secret command"
+    name_placeholder: "Name"
+    command_placeholder: "Command"
+  metadata:
+    title: "Title"
+    description: "Description"
+  unsaved:
+    message: "You have unsaved changes."
+    keep_editing: "Keep editing"
+    discard_changes: "Discard changes"
+  agent_block:
+    run: "Run"
+    confirmation: "OK if I run this command and read the output?"

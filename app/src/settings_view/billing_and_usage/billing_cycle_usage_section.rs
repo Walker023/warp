@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, Local, Utc};
+use chrono::{DateTime, Local, Utc};
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::vector::vec2f;
@@ -33,6 +33,9 @@ use crate::settings_view::billing_and_usage_page_v2::{
     BONUS_CREDITS_DOT_COLOR, PAYG_CREDITS_DOT_COLOR,
 };
 use crate::ui_components::icons::Icon;
+use crate::util::time_format::{
+    format_localized_date_range, format_localized_datetime, LocalizedDateTimeFormat,
+};
 use crate::workspaces::update_manager::TeamUpdateManager;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 use crate::workspaces::workspace::{
@@ -451,10 +454,11 @@ impl BillingCycleUsageSectionView {
             return None;
         }
         let theme = appearance.theme();
-        let reset_str = AIRequestUsageModel::as_ref(app)
-            .next_refresh_time_local()
-            .format("Resets %b %d, %-I:%M %p")
-            .to_string();
+        let reset_time = format_localized_datetime(
+            AIRequestUsageModel::as_ref(app).next_refresh_time_local(),
+            LocalizedDateTimeFormat::MonthDayTime,
+        );
+        let reset_str = t!("settings_extra.billing.resets_at", name = reset_time).to_string();
         Some(
             Text::new_inline(
                 reset_str,
@@ -682,7 +686,7 @@ impl BillingCycleUsageSectionView {
         let body = FormattedTextElement::new(
             FormattedText::new([FormattedTextLine::Line(vec![
                 FormattedTextFragment::hyperlink_action(link_text, action),
-                FormattedTextFragment::plain_text(format!(" {trailing_copy}")),
+                FormattedTextFragment::plain_text(trailing_copy),
             ])]),
             appearance.ui_font_size(),
             appearance.ui_font_family(),
@@ -726,53 +730,67 @@ impl BillingCycleUsageSectionView {
 /// visibility CTA banner, or `None` to suppress the banner entirely.
 fn visibility_cta_for(
     granularity: UsageVisibilityGranularity,
-) -> Option<(&'static str, &'static str, BillingCycleUsageAction, Icon)> {
+) -> Option<(String, String, BillingCycleUsageAction, Icon)> {
     match granularity {
         UsageVisibilityGranularity::OwnOnly => Some((
-            "Upgrade to Build",
-            "to see team-level credit usage.",
+            t!("settings_extra.billing.upgrade_build").to_string(),
+            t!("settings_extra.billing.see_team_usage_suffix").to_string(),
             BillingCycleUsageAction::OpenUpgrade,
             Icon::ArrowCircleBrokenUp,
         )),
         UsageVisibilityGranularity::TeamAggregate => Some((
-            "Upgrade to Business",
-            "to see per-user credit attribution.",
+            t!("settings_extra.billing.upgrade_business").to_string(),
+            t!("settings_extra.billing.see_per_user_attribution_suffix").to_string(),
             BillingCycleUsageAction::OpenUpgrade,
             Icon::ArrowCircleBrokenUp,
         )),
         UsageVisibilityGranularity::PerUserTotals => Some((
-            "Upgrade to Enterprise",
-            "to see fine-grained credit attribution and set per-user spend limits.",
+            t!("settings_extra.billing.upgrade_enterprise").to_string(),
+            t!("settings_extra.billing.see_detailed_attribution_suffix").to_string(),
             BillingCycleUsageAction::OpenUpgrade,
             Icon::ArrowCircleBrokenUp,
         )),
         // FullBreakdown viewers already have full visibility; nudge them to
         // the admin panel where per-user spend limits actually get configured.
         UsageVisibilityGranularity::FullBreakdown => Some((
-            "Open the admin panel",
-            "to set per-user spend limits.",
+            t!("settings_extra.billing.open_admin_panel").to_string(),
+            t!("settings_extra.billing.set_per_user_limits_suffix").to_string(),
             BillingCycleUsageAction::OpenAdminPanel,
             Icon::Users,
         )),
     }
 }
 
-fn legend_style_for(cost_type: AiCreditsUsageAndCostType) -> (ColorU, &'static str) {
+fn legend_style_for(cost_type: AiCreditsUsageAndCostType) -> (ColorU, String) {
     match cost_type {
-        AiCreditsUsageAndCostType::BaseLimit => (BASE_CREDITS_DOT_COLOR, "Base"),
-        AiCreditsUsageAndCostType::BonusGrant => (BONUS_CREDITS_DOT_COLOR, "Add-ons"),
-        AiCreditsUsageAndCostType::Payg => (PAYG_CREDITS_DOT_COLOR, "Pay-as-you-go"),
-        AiCreditsUsageAndCostType::AmbientBonusGrant => (AMBIENT_CREDITS_DOT_COLOR, "Cloud-only"),
-        AiCreditsUsageAndCostType::Aggregate => (AGGREGATE_CREDITS_DOT_COLOR, "Combined"),
-        AiCreditsUsageAndCostType::Other(_) => (BASE_CREDITS_DOT_COLOR, ""),
+        AiCreditsUsageAndCostType::BaseLimit => (
+            BASE_CREDITS_DOT_COLOR,
+            t!("settings_extra.billing.base").to_string(),
+        ),
+        AiCreditsUsageAndCostType::BonusGrant => (
+            BONUS_CREDITS_DOT_COLOR,
+            t!("settings_extra.billing.add_ons").to_string(),
+        ),
+        AiCreditsUsageAndCostType::Payg => (
+            PAYG_CREDITS_DOT_COLOR,
+            t!("settings_extra.billing.pay_as_you_go").to_string(),
+        ),
+        AiCreditsUsageAndCostType::AmbientBonusGrant => (
+            AMBIENT_CREDITS_DOT_COLOR,
+            t!("settings_extra.billing.cloud_only").to_string(),
+        ),
+        AiCreditsUsageAndCostType::Aggregate => (
+            AGGREGATE_CREDITS_DOT_COLOR,
+            t!("settings_extra.billing.combined").to_string(),
+        ),
+        AiCreditsUsageAndCostType::Other(_) => (BASE_CREDITS_DOT_COLOR, String::new()),
     }
 }
 
 fn render_aggregate_legend_tooltip(appearance: &Appearance) -> Box<dyn Element> {
     let theme = appearance.theme();
     let text = Text::new_inline(
-        "Other team members' usage across add-on, pay-as-you-go, and cloud-only credits."
-            .to_string(),
+        t!("settings_extra.billing.aggregate_legend_tooltip").to_string(),
         appearance.ui_font_family(),
         12.,
     )
@@ -794,13 +812,5 @@ fn render_aggregate_legend_tooltip(appearance: &Appearance) -> Box<dyn Element> 
 fn format_period_range(start: DateTime<Utc>, end: DateTime<Utc>) -> String {
     let start = start.with_timezone(&Local);
     let end = end.with_timezone(&Local);
-    if start.year() == end.year() {
-        format!("{} - {}", start.format("%b %d"), end.format("%b %d, %Y"))
-    } else {
-        format!(
-            "{} - {}",
-            start.format("%b %d, %Y"),
-            end.format("%b %d, %Y")
-        )
-    }
+    format_localized_date_range(start, end)
 }

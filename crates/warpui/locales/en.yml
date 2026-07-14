@@ -1,0 +1,5 @@
+warpui:
+  file_dialog:
+    choose_directory: "Choose directory..."
+    choose_file: "Choose file..."
+    save_file_as: "Save file as..."

@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+rust_i18n::i18n!("locales", fallback = "en");
 
 use anyhow::{anyhow, Result};
 use onboarding::components::onboarding_callout::{
@@ -86,11 +86,11 @@ impl View for RootView {
         let callout = self.callout.render(
             appearance,
             CalloutParams {
-                title: t!("onboarding.demo.callout.title").into(),
-                text: t!("onboarding.demo.callout.body").into(),
+                title: t!("onboarding.demo.callout.title"),
+                text: t!("onboarding.demo.callout.body"),
                 step: StepStatus::new(1, 2),
                 right_button: CalloutButton {
-                    text: t!("onboarding.demo.callout.submit").into(),
+                    text: t!("onboarding.demo.callout.submit"),
                     keystroke: None,
                     handler: Box::new(|_ctx, _app_ctx, _mouse_pos| {}),
                 },

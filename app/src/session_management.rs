@@ -4,6 +4,7 @@ use chrono::NaiveDateTime;
 use warpui::{AppContext, Entity, EntityId, WindowId};
 
 use crate::context_chips::prompt_snapshot::PromptSnapshot;
+use crate::i18n::t;
 use crate::pane_group::{PaneGroup, PaneId};
 use crate::terminal::model::blockgrid::BlockGrid;
 use crate::terminal::shared_session::SharedSessionStatus;
@@ -78,14 +79,34 @@ impl CommandContext {
             Self::None => None,
             Self::LastRunCommand {
                 last_run_command, ..
-            } => Some(format!("Last run command {}", last_run_command.clone())),
-            Self::LastRunAIBlock { prompt } => Some(format!("Last AI interaction: {prompt}")),
-            Self::RunningCommand { running_command } => {
-                Some(format!("Currently running {running_command}"))
-            }
-            Self::RunningAIBlock { prompt } => {
-                Some(format!("Currently running AI interaction: {prompt}"))
-            }
+            } => Some(
+                t!(
+                    "common_extra.session.a11y.last_run_command",
+                    command = last_run_command
+                )
+                .to_string(),
+            ),
+            Self::LastRunAIBlock { prompt } => Some(
+                t!(
+                    "common_extra.session.a11y.last_ai_interaction",
+                    prompt = prompt
+                )
+                .to_string(),
+            ),
+            Self::RunningCommand { running_command } => Some(
+                t!(
+                    "common_extra.session.a11y.running_command",
+                    command = running_command
+                )
+                .to_string(),
+            ),
+            Self::RunningAIBlock { prompt } => Some(
+                t!(
+                    "common_extra.session.a11y.running_ai_interaction",
+                    prompt = prompt
+                )
+                .to_string(),
+            ),
         }
     }
 }

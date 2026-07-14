@@ -30,6 +30,7 @@ use crate::code_review::comments::{
     AttachedReviewComment, AttachedReviewCommentTarget, LineDiffContent,
 };
 use crate::editor::InteractionState;
+use crate::i18n::t;
 use crate::notebooks::editor::view::RichTextEditorView;
 use crate::util::time_format::human_readable_approx_duration;
 
@@ -109,7 +110,7 @@ fn render_comment_file_path_header(
 
         let outdated_chip = Container::new(
             Text::new(
-                "Outdated",
+                t!("code_editor_extra.code_review.outdated").to_string(),
                 appearance.ui_font_family(),
                 appearance.ui_font_size(),
             )
@@ -172,7 +173,7 @@ fn render_comment_text_section(
     if is_imported_from_github {
         left_section.add_child(
             Text::new(
-                "From GitHub".to_string(),
+                t!("code_editor_extra.code_review.from_github").to_string(),
                 appearance.ui_font_family(),
                 appearance.ui_font_size(),
             )
@@ -475,7 +476,7 @@ impl CommentViewCard {
             _ => source
                 .head()
                 .map(|head| head.title())
-                .unwrap_or_else(|| "Review Comment".to_string()),
+                .unwrap_or_else(|| t!("code_editor_extra.code_review.review_comment").to_string()),
         }
     }
 }

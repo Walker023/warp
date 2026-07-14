@@ -35,7 +35,6 @@ use crate::ai::blocklist::{
     BlocklistAIController, BlocklistAIControllerEvent, BlocklistAIInputEvent, BlocklistAIInputModel,
 };
 use crate::ai::cloud_agent_settings::CloudAgentSettings;
-use crate::ai::custom_model_routers::is_custom_router_id;
 use crate::ai::execution_profiles::model_menu_items::{
     available_model_menu_items, has_reasoning_variants, is_auto,
 };
@@ -82,12 +81,6 @@ const ICON_SPACING: f32 = 8.0;
 const MAX_PROFILE_NAME_WIDTH_SCALE_FACTOR: f32 = 10.0;
 
 const PROFILE_SELECTOR_POSITION_ID: &str = "profile_selector";
-
-const PROFILE_PICKER_TOOLTIP: &str = "Choose an AI execution profile";
-const MODEL_PICKER_TOOLTIP: &str = "Choose an agent model";
-const MODEL_LOCKED_FOR_FOLLOWUP_TOOLTIP: &str = "Follow-ups use the original run's model";
-const MODEL_REQUIRES_EDIT_ACCESS_TOOLTIP: &str = "Request edit access to change model";
-const HARNESS_DEFAULT_MODEL_LABEL: &str = "default";
 
 pub fn calculate_scaled_font_size(appearance: &warp_core::ui::appearance::Appearance) -> f32 {
     if FeatureFlag::AgentView.is_enabled() {
@@ -269,7 +262,7 @@ impl ProfileModelSelector {
                 ),
                 is_blurred: false,
             })
-            .with_tooltip(PROFILE_PICKER_TOOLTIP)
+            .with_tooltip(t!("terminal_ui.profile_model_selector.profile_tooltip").to_string())
             .with_size(ButtonSize::UDIButton)
             .with_icon(Icon::Psychology)
         });
@@ -297,14 +290,14 @@ impl ProfileModelSelector {
                 ),
                 is_blurred: false,
             })
-            .with_tooltip(MODEL_PICKER_TOOLTIP)
+            .with_tooltip(t!("terminal_ui.profile_model_selector.model_tooltip").to_string())
             .with_size(ButtonSize::UDIButton)
         });
 
         let profile_compact_button = ctx.add_typed_action_view(|_| {
             ActionButton::new("", PromptIconButtonTheme::new(false))
                 .with_icon(Icon::Psychology)
-                .with_tooltip(PROFILE_PICKER_TOOLTIP)
+                .with_tooltip(t!("terminal_ui.profile_model_selector.profile_tooltip").to_string())
                 .with_size(ButtonSize::UDIButton)
                 .on_click(|ctx| {
                     ctx.dispatch_typed_action(ProfileModelSelectorAction::ToggleProfileMenu);
@@ -314,7 +307,7 @@ impl ProfileModelSelector {
         let model_compact_button = ctx.add_typed_action_view(|_| {
             ActionButton::new("", PromptIconButtonTheme::new(false))
                 .with_icon(Icon::Neurology)
-                .with_tooltip(MODEL_PICKER_TOOLTIP)
+                .with_tooltip(t!("terminal_ui.profile_model_selector.model_tooltip").to_string())
                 .with_size(ButtonSize::UDIButton)
                 .on_click(|ctx| {
                     ctx.dispatch_typed_action(ProfileModelSelectorAction::ToggleModelMenu);
@@ -351,9 +344,10 @@ impl ProfileModelSelector {
                         .iter()
                         .map(|name| {
                             if *name == "auto" {
-                                "auto-select the best model for the task"
+                                t!("terminal_ui.profile_model_selector.auto_model_description")
+                                    .to_string()
                             } else {
-                                name
+                                (*name).to_string()
                             }
                         })
                         .collect::<Vec<_>>()
@@ -363,7 +357,7 @@ impl ProfileModelSelector {
                     }
                     label
                 } else {
-                    "New models available".to_string()
+                    t!("terminal_ui.profile_model_selector.new_models_available").to_string()
                 }
             })))
         });
@@ -719,33 +713,23 @@ impl ProfileModelSelector {
                 llm_preferences.get_active_base_model(ctx, Some(self.terminal_view_id))
             };
 
-            // Don't append description for custom model routers — it would add a
-            // redundant "(Custom auto · Local)" suffix to the button label.
-            if !is_custom_router_id(active_llm.id.as_str()) {
-                if let Some(description) = &active_llm.description {
-                    format!("{} ({})", active_llm.display_name, description)
-                } else {
-                    active_llm.display_name.clone()
-                }
-            } else {
-                active_llm.display_name.clone()
-            }
+            active_llm.menu_display_name()
         };
 
         // Non-Oz runs lock silently: the harness owns model selection, and the
         // user already knows that, so no tooltip is shown.
-        let model_tooltip: Option<&str> = if self.is_locked_for_cloud_followup(ctx) {
-            Some(MODEL_LOCKED_FOR_FOLLOWUP_TOOLTIP)
+        let model_tooltip = if self.is_locked_for_cloud_followup(ctx) {
+            Some(t!("terminal_ui.profile_model_selector.followup_model_locked").to_string())
         } else if self.is_locked_for_non_oz_run(ctx) {
             None
         } else {
-            Some(MODEL_PICKER_TOOLTIP)
+            Some(t!("terminal_ui.profile_model_selector.model_tooltip").to_string())
         };
         let locked = self.is_model_locked(ctx);
         self.model_button.update(ctx, |button, ctx| {
             button.set_label(model_name, ctx);
             button.set_disabled(locked, ctx);
-            match model_tooltip {
+            match model_tooltip.clone() {
                 Some(t) => button.set_tooltip(Some(t), ctx),
                 None => button.clear_tooltip(ctx),
             }
@@ -901,7 +885,7 @@ impl ProfileModelSelector {
     fn harness_model_display_name(&self, app: &AppContext) -> String {
         self.active_harness_model_info(app)
             .map(|info| info.display_name.clone())
-            .unwrap_or_else(|| HARNESS_DEFAULT_MODEL_LABEL.to_string())
+            .unwrap_or_else(|| t!("terminal.default").to_string())
     }
 
     fn refresh_harness_model_menu(&mut self, ctx: &mut ViewContext<Self>) {
@@ -928,8 +912,8 @@ impl ProfileModelSelector {
             model_id: String::new(),
             reasoning_level: None,
         };
-        let mut default_fields =
-            MenuItemFields::new(HARNESS_DEFAULT_MODEL_LABEL).with_on_select_action(default_action);
+        let mut default_fields = MenuItemFields::new(t!("terminal.default").to_string())
+            .with_on_select_action(default_action);
         if default_selected {
             default_fields = default_fields.with_icon(Icon::Check);
         } else {
@@ -1156,22 +1140,23 @@ impl ProfileModelSelector {
                 .map(|llm| {
                     let is_selected = llm.id == active_llm_id;
 
-                    let label = if llm.display_name.starts_with("auto (") {
-                        // Auto display names are formatted like "auto (<sub-variant>)"
-                        // We extract the sub-variant and capitalize it for use in the sidecar menu.
-                        let trimmed = llm
-                            .display_name
-                            .trim_start_matches("auto (")
-                            .trim_end_matches(")");
-
-                        // Capitalize the first letter of the auto sub-variant.
-                        let mut chars = trimmed.chars();
-                        chars
-                            .next()
-                            .map(|first| first.to_uppercase().chain(chars).collect())
-                            .unwrap_or_default()
-                    } else {
-                        llm.display_name.clone()
+                    let label = match llm.display_name.as_str() {
+                        "auto (cost-efficient)" => {
+                            t!("ai_models.auto_variant.cost_efficient").to_string()
+                        }
+                        "auto (responsive)" => t!("ai_models.auto_variant.responsive").to_string(),
+                        display_name if display_name.starts_with("auto (") => {
+                            // 未知 auto 变体继续使用服务端提供的原始标签。
+                            let trimmed = display_name
+                                .trim_start_matches("auto (")
+                                .trim_end_matches(")");
+                            let mut chars = trimmed.chars();
+                            chars
+                                .next()
+                                .map(|first| first.to_uppercase().chain(chars).collect())
+                                .unwrap_or_default()
+                        }
+                        _ => llm.localized_display_name(),
                     };
 
                     Self::make_sidecar_item(label, &llm.id, is_selected)
@@ -1633,7 +1618,7 @@ impl ProfileModelSelector {
 
                 let tooltip = appearance
                     .ui_builder()
-                    .tool_tip(PROFILE_PICKER_TOOLTIP.to_owned());
+                    .tool_tip(t!("terminal_ui.profile_model_selector.profile_tooltip").to_string());
                 let mut stack = Stack::new();
                 stack.add_child(button_with_hover);
                 stack.add_positioned_overlay_child(
@@ -1781,7 +1766,7 @@ impl ProfileModelSelector {
 
                 let tooltip = appearance
                     .ui_builder()
-                    .tool_tip(MODEL_PICKER_TOOLTIP.to_owned());
+                    .tool_tip(t!("terminal_ui.profile_model_selector.model_tooltip").to_string());
                 let mut stack = Stack::new();
                 stack.add_child(button_with_hover);
                 stack.add_positioned_overlay_child(
@@ -1796,16 +1781,16 @@ impl ProfileModelSelector {
                 stack.finish()
             } else if state.is_hovered() {
                 // Non-Oz runs lock silently — skip the tooltip entirely.
-                let tooltip_text: Option<&str> = if is_locked_for_followup {
-                    Some(MODEL_LOCKED_FOR_FOLLOWUP_TOOLTIP)
+                let tooltip_text = if is_locked_for_followup {
+                    Some(t!("terminal_ui.profile_model_selector.followup_model_locked").to_string())
                 } else if is_locked_for_non_oz {
                     None
                 } else {
-                    Some(MODEL_REQUIRES_EDIT_ACCESS_TOOLTIP)
+                    Some(t!("terminal_ui.profile_model_selector.request_edit_access").to_string())
                 };
 
                 if let Some(text) = tooltip_text {
-                    let tooltip = appearance.ui_builder().tool_tip(text.to_owned());
+                    let tooltip = appearance.ui_builder().tool_tip(text);
                     let mut stack = Stack::new();
                     stack.add_child(button_with_save_position);
                     stack.add_positioned_overlay_child(
@@ -1969,7 +1954,10 @@ impl ProfileModelSelector {
             Flex::row()
                 .with_main_axis_size(MainAxisSize::Max)
                 .with_cross_axis_alignment(CrossAxisAlignment::Center)
-                .with_child(self.render_model_spec_value_label("Cost".to_string(), app))
+                .with_child(self.render_model_spec_value_label(
+                    t!("terminal_ui.input.models.cost").to_string(),
+                    app,
+                ))
                 .with_child(
                     Expanded::new(
                         1.,
@@ -2016,18 +2004,23 @@ impl ProfileModelSelector {
     ) -> Box<dyn Element> {
         let mut spec_values = vec![
             self.render_model_spec_value(
-                "Intelligence".to_string(),
+                t!("terminal_ui.input.models.intelligence").to_string(),
                 spec.quality,
                 bg_bar_color,
                 app,
             ),
-            self.render_model_spec_value("Speed".to_string(), spec.speed, bg_bar_color, app),
+            self.render_model_spec_value(
+                t!("terminal_ui.input.models.speed").to_string(),
+                spec.speed,
+                bg_bar_color,
+                app,
+            ),
         ];
         if let Some(byo_key_source) = byo_key_source {
             spec_values.push(self.render_model_spec_api_key(byo_key_source, app));
         } else {
             spec_values.push(self.render_model_spec_value(
-                "Cost".to_string(),
+                t!("terminal_ui.input.models.cost").to_string(),
                 spec.cost,
                 bg_bar_color,
                 app,
@@ -2046,8 +2039,8 @@ impl ProfileModelSelector {
         let appearance = Appearance::as_ref(app);
         let theme = appearance.theme();
         let header = self.render_model_spec_header(
-            "Model Specs".to_string(),
-            "Warp’s benchmarks for how well a model performs in our harness, the rate at which it consumes credits, and task speed.".to_string(),
+            t!("terminal_ui.input.models.specs_title").to_string(),
+            t!("terminal_ui.input.models.specs_description").to_string(),
             app,
         );
         let spec = self.render_all_model_spec_values(
@@ -2086,16 +2079,16 @@ impl ProfileModelSelector {
 
         let (title, description) = match kind {
             ModelSpecSidecarKind::Auto => (
-                "Auto mode",
-                "Auto will select the best model for the task. Cost-efficiency optimizes for cost, Responsiveness optimizes for response speed.",
+                t!("terminal_ui.profile_model_selector.auto_mode_title").to_string(),
+                t!("terminal_ui.profile_model_selector.auto_mode_description").to_string(),
             ),
             ModelSpecSidecarKind::Reasoning => (
-                "Reasoning level",
-                "Increased reasoning levels consume more credits and have higher latency, but higher performance for complicated tasks.",
+                t!("terminal_ui.input.models.reasoning_level_title").to_string(),
+                t!("terminal_ui.input.models.reasoning_level_description").to_string(),
             ),
         };
 
-        let header = self.render_model_spec_header(title.to_string(), description.to_string(), app);
+        let header = self.render_model_spec_header(title, description, app);
         let sidecar_menu = ChildView::new(&self.model_spec_sidecar.dropdown).finish();
         let spec_values = self.render_all_model_spec_values(
             &spec.clone().unwrap_or_default(),

@@ -7,11 +7,9 @@ use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use warpui::Element;
 
 use super::env_var_collection::{EnvVarCollectionAction, EnvVarCollectionView};
+use crate::i18n::t;
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 
-const UNSAVED_CHANGES_TEXT: &str = "You have unsaved changes.";
-const KEEP_EDITING_TEXT: &str = "Keep editing";
-const DISCARD_CHANGES_TEXT: &str = "Discard changes";
 const BUTTON_FONT_SIZE: f32 = 14.;
 const BUTTON_PADDING: f32 = 12.;
 const MODAL_HORIZONTAL_MARGIN: f32 = 28.;
@@ -46,19 +44,19 @@ impl EnvVarCollectionView {
             appearance,
             self.button_mouse_states.keep_editing_state.clone(),
             EnvVarCollectionAction::CloseUnsavedChangesDialog,
-            KEEP_EDITING_TEXT,
+            t!("env_vars_ui.unsaved.keep_editing").as_ref(),
         );
 
         let discard_changes_button = self.render_unsaved_changes_dialog_button(
             appearance,
             self.button_mouse_states.discard_changes_state.clone(),
             EnvVarCollectionAction::ForceClose,
-            DISCARD_CHANGES_TEXT,
+            t!("env_vars_ui.unsaved.discard_changes").as_ref(),
         );
 
         Container::new(
             Dialog::new(
-                UNSAVED_CHANGES_TEXT.to_string(),
+                t!("env_vars_ui.unsaved.message").to_string(),
                 None,
                 dialog_styles(appearance),
             )

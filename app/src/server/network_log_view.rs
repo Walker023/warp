@@ -24,6 +24,7 @@ use crate::appearance::Appearance;
 use crate::code::editor::scroll::{ScrollPosition, ScrollTrigger};
 use crate::code::editor::view::{CodeEditorRenderOptions, CodeEditorView};
 use crate::editor::InteractionState;
+use crate::i18n::t;
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::view::{self, HeaderContent, StandardHeader, StandardHeaderOptions};
 use crate::pane_group::{BackingView, PaneConfiguration, PaneEvent, PaneHeaderAction};
@@ -31,10 +32,9 @@ use crate::ui_components::buttons::icon_button_with_color;
 use crate::ui_components::{blended_colors, icons};
 
 /// Header text for the network log pane.
-pub const NETWORK_LOG_HEADER_TEXT: &str = "Network log";
-
-/// Tooltip shown on hover over the refresh button in the pane header.
-const REFRESH_TOOLTIP: &str = "Refresh";
+pub fn network_log_header_text() -> String {
+    t!("common_extra.network_log.title").to_string()
+}
 
 /// Event emitted by the [`NetworkLogView`].
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -65,7 +65,7 @@ pub struct NetworkLogView {
 impl NetworkLogView {
     pub fn new(ctx: &mut ViewContext<Self>) -> Self {
         let pane_configuration =
-            ctx.add_model(|_ctx| PaneConfiguration::new(NETWORK_LOG_HEADER_TEXT));
+            ctx.add_model(|_ctx| PaneConfiguration::new(network_log_header_text()));
 
         // Capture a one-shot snapshot of the model. We intentionally do not
         // subscribe to the model: new items that arrive after the pane is
@@ -153,7 +153,7 @@ impl NetworkLogView {
         )
         .with_tooltip(move || {
             ui_builder
-                .tool_tip(REFRESH_TOOLTIP.to_string())
+                .tool_tip(t!("common_extra.network_log.refresh").to_string())
                 .build()
                 .finish()
         })
@@ -229,7 +229,7 @@ impl BackingView for NetworkLogView {
         app: &AppContext,
     ) -> HeaderContent {
         HeaderContent::Standard(StandardHeader {
-            title: NETWORK_LOG_HEADER_TEXT.to_string(),
+            title: network_log_header_text(),
             title_secondary: None,
             title_style: None,
             title_clip_config: ClipConfig::start(),

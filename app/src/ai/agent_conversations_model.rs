@@ -44,6 +44,7 @@ use crate::ai::conversation_navigation::ConversationNavigationData;
 use crate::auth::auth_manager::{AuthManager, AuthManagerEvent};
 use crate::auth::AuthStateProvider;
 use crate::cloud_object::CloudObjectLookup as _;
+use crate::i18n::t;
 use crate::network::{NetworkStatus, NetworkStatusEvent, NetworkStatusKind};
 use crate::server::cloud_objects::update_manager::{UpdateManager, UpdateManagerEvent};
 use crate::server::ids::{ServerId, SyncId};
@@ -389,7 +390,7 @@ impl AgentRunDisplayStatus {
                     .status_message
                     .as_ref()
                     .map(|m| m.message.clone())
-                    .unwrap_or_else(|| "Task blocked".to_string()),
+                    .unwrap_or_else(|| t!("ai_ui.ambient_task.task_blocked").to_string()),
             },
             AmbientAgentTaskState::Cancelled => Self::TaskCancelled,
             AmbientAgentTaskState::Unknown => Self::TaskUnknown,
@@ -492,24 +493,35 @@ impl AgentRunDisplayStatus {
 impl std::fmt::Display for AgentRunDisplayStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AgentRunDisplayStatus::TaskQueued => write!(f, "Queued"),
-            AgentRunDisplayStatus::TaskPending => write!(f, "Pending"),
-            AgentRunDisplayStatus::TaskClaimed => write!(f, "Claimed"),
-            AgentRunDisplayStatus::TaskInProgress
-            | AgentRunDisplayStatus::ConversationInProgress => write!(f, "In progress"),
-            AgentRunDisplayStatus::TaskSucceeded | AgentRunDisplayStatus::ConversationSucceeded => {
-                write!(f, "Done")
+            AgentRunDisplayStatus::TaskQueued => {
+                write!(f, "{}", t!("ai_ui.ambient_task.status.queued"))
             }
-            AgentRunDisplayStatus::TaskFailed => write!(f, "Failed"),
+            AgentRunDisplayStatus::TaskPending => {
+                write!(f, "{}", t!("ai_ui.ambient_task.status.pending"))
+            }
+            AgentRunDisplayStatus::TaskClaimed => {
+                write!(f, "{}", t!("ai_ui.ambient_task.status.claimed"))
+            }
+            AgentRunDisplayStatus::TaskInProgress
+            | AgentRunDisplayStatus::ConversationInProgress => {
+                write!(f, "{}", t!("ai_ui.conversation_status.in_progress"))
+            }
+            AgentRunDisplayStatus::TaskSucceeded | AgentRunDisplayStatus::ConversationSucceeded => {
+                write!(f, "{}", t!("ai_ui.conversation_status.done"))
+            }
+            AgentRunDisplayStatus::TaskFailed | AgentRunDisplayStatus::TaskUnknown => {
+                write!(f, "{}", t!("ai_ui.agent_management.status.failed"))
+            }
             AgentRunDisplayStatus::TaskError | AgentRunDisplayStatus::ConversationError => {
-                write!(f, "Error")
+                write!(f, "{}", t!("ai_ui.conversation_status.error"))
             }
             AgentRunDisplayStatus::TaskBlocked { .. }
-            | AgentRunDisplayStatus::ConversationBlocked { .. } => write!(f, "Blocked"),
-            AgentRunDisplayStatus::TaskCancelled | AgentRunDisplayStatus::ConversationCancelled => {
-                write!(f, "Cancelled")
+            | AgentRunDisplayStatus::ConversationBlocked { .. } => {
+                write!(f, "{}", t!("ai_ui.conversation_status.blocked"))
             }
-            AgentRunDisplayStatus::TaskUnknown => write!(f, "Failed"),
+            AgentRunDisplayStatus::TaskCancelled | AgentRunDisplayStatus::ConversationCancelled => {
+                write!(f, "{}", t!("ai_ui.conversation_status.cancelled"))
+            }
         }
     }
 }

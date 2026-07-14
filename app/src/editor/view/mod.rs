@@ -101,6 +101,7 @@ use crate::editor::accept_autosuggestion_keybinding_view::AcceptAutosuggestionKe
 use crate::editor::autosuggestion_ignore_view::{AutosuggestionIgnore, AutosuggestionIgnoreEvent};
 use crate::editor::RangeExt;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::ai_context_menu::view::{
     AIContextMenu, AIContextMenuCategory, AIContextMenuEvent,
@@ -136,8 +137,6 @@ const CURSOR_BLINK_INTERVAL: Duration = Duration::from_millis(500);
 const DEFAULT_TAB_SIZE: usize = 4;
 
 pub const ACCEPT_AUTOSUGGESTION_KEYBINDING_NAME: &str = "editor_view:insert_autosuggestion";
-pub const VOICE_LIMIT_HIT_TOAST_TEXT: &str = "You have hit the limit for Voice requests. Your limit will be refreshed as a part of your next cycle.";
-pub const VOICE_ERROR_TOAST_TEXT: &str = "An error occurred while processing your voice input.";
 
 pub const MAX_IMAGES_PER_CONVERSATION: usize = 200;
 
@@ -1703,28 +1702,32 @@ impl ImageContextOptions {
         } = self
         {
             if *unsupported_model {
-                return "Image attachment isn't supported by this model".into();
+                return t!("code_editor_extra.editor.image.unsupported_model").to_string();
             }
 
             if *is_processing_attached_images {
-                return "Loading...".into();
+                return t!("code_editor_extra.editor.image.loading").to_string();
             }
 
             if *num_images_attached >= MAX_IMAGE_COUNT_FOR_QUERY {
-                return format!(
-                    "Image attachment is disabled — limit is {MAX_IMAGE_COUNT_FOR_QUERY} per query"
-                );
+                return t!(
+                    "code_editor_extra.editor.image.attachment_disabled_per_query",
+                    limit = MAX_IMAGE_COUNT_FOR_QUERY
+                )
+                .to_string();
             }
 
             let total_images = *num_images_attached + *num_images_in_conversation;
             if total_images >= MAX_IMAGES_PER_CONVERSATION {
-                return format!(
-                    "Image attachment is disabled — limit is {MAX_IMAGES_PER_CONVERSATION} per conversation"
-                );
+                return t!(
+                    "code_editor_extra.editor.image.attachment_disabled_per_conversation",
+                    limit = MAX_IMAGES_PER_CONVERSATION
+                )
+                .to_string();
             }
         }
 
-        "Attach images".into()
+        t!("code_editor_extra.editor.image.attach_images").to_string()
     }
 
     pub fn num_images_attached(&self) -> usize {
@@ -5021,7 +5024,7 @@ impl EditorView {
                             ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                                 toast_stack.add_ephemeral_toast(
                                     DismissibleToast::error(
-                                        "The selected model does not support images as context."
+                                        t!("code_editor_extra.editor.image.unsupported_model")
                                             .to_string(),
                                     ),
                                     window_id,
@@ -5043,20 +5046,34 @@ impl EditorView {
                             .max(num_excess_images_by_conversation_limit);
 
                         if num_excess_images > 0 {
-                            let limit_reason = if num_excess_images
-                                == num_excess_images_by_query_limit
-                            {
-                                format!("limit is {MAX_IMAGE_COUNT_FOR_QUERY} per query")
-                            } else {
-                                format!("limit is {MAX_IMAGES_PER_CONVERSATION} per conversation")
-                            };
+                            let limit_reason =
+                                if num_excess_images == num_excess_images_by_query_limit {
+                                    t!(
+                                        "code_editor_extra.editor.image.limit_per_query",
+                                        limit = MAX_IMAGE_COUNT_FOR_QUERY
+                                    )
+                                    .to_string()
+                                } else {
+                                    t!(
+                                        "code_editor_extra.editor.image.limit_per_conversation",
+                                        limit = MAX_IMAGES_PER_CONVERSATION
+                                    )
+                                    .to_string()
+                                };
 
                             let message = if num_excess_images == 1 {
-                                format!("1 image wasn't attached - {limit_reason}.")
-                            } else {
-                                format!(
-                                    "{num_excess_images} images weren't attached - {limit_reason}."
+                                t!(
+                                    "code_editor_extra.editor.image.one_not_attached",
+                                    reason = limit_reason
                                 )
+                                .to_string()
+                            } else {
+                                t!(
+                                    "code_editor_extra.editor.image.many_not_attached",
+                                    count = num_excess_images,
+                                    reason = limit_reason
+                                )
+                                .to_string()
                             };
 
                             ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
@@ -5127,7 +5144,7 @@ impl EditorView {
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
                         DismissibleToast::error(
-                            "The selected model does not support images as context".to_owned(),
+                            t!("code_editor_extra.editor.image.unsupported_model").to_string(),
                         ),
                         window_id,
                         ctx,
@@ -5185,11 +5202,15 @@ impl EditorView {
             move |this, (images, num_unsupported_images, num_read_errors), ctx| {
                 if num_unsupported_images > 0 {
                     let message = if num_unsupported_images == 1 && num_images_user_attached == 1 {
-                        "Image cannot be attached - supported types are PNG, JPG, GIF, WEBP.".into()
+                        t!("code_editor_extra.editor.image.unsupported_format").to_string()
                     } else if num_unsupported_images == 1 {
-                        "1 image wasn't attached - supported types are PNG, JPG, GIF, WEBP.".into()
+                        t!("code_editor_extra.editor.image.one_unsupported_format").to_string()
                     } else {
-                        format!("{num_unsupported_images} images weren't attached - supported types are PNG, JPG, GIF, WEBP.")
+                        t!(
+                            "code_editor_extra.editor.image.many_unsupported_format",
+                            count = num_unsupported_images
+                        )
+                        .to_string()
                     };
 
                     ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
@@ -5203,11 +5224,15 @@ impl EditorView {
 
                 if num_read_errors > 0 {
                     let message = if num_read_errors == 1 && num_images_user_attached == 1 {
-                        "Image cannot be attached - failed to read file.".into()
+                        t!("code_editor_extra.editor.image.read_failed").to_string()
                     } else if num_read_errors == 1 {
-                        "1 image wasn't attached - failed to read file.".into()
+                        t!("code_editor_extra.editor.image.one_read_failed").to_string()
                     } else {
-                        format!("{num_read_errors} images weren't attached - failed to read files.")
+                        t!(
+                            "code_editor_extra.editor.image.many_read_failed",
+                            count = num_read_errors
+                        )
+                        .to_string()
                     };
 
                     ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
@@ -5220,7 +5245,11 @@ impl EditorView {
                 }
 
                 if !images.is_empty() {
-                    this.process_and_attach_images_as_ai_context(num_images_user_attached, images, ctx);
+                    this.process_and_attach_images_as_ai_context(
+                        num_images_user_attached,
+                        images,
+                        ctx,
+                    );
                 }
             },
         );
@@ -5242,7 +5271,7 @@ impl EditorView {
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
                         DismissibleToast::error(
-                            "The selected model does not support images as context".to_owned(),
+                            t!("code_editor_extra.editor.image.unsupported_model").to_string(),
                         ),
                         window_id,
                         ctx,
@@ -5311,13 +5340,15 @@ impl EditorView {
 
                 if num_oversized_images > 0 {
                     let message = if num_oversized_images == 1 && num_images_user_attached == 1 {
-                        "Image cannot be attached - file is too large.".into()
+                        t!("code_editor_extra.editor.image.too_large").to_string()
                     } else if num_oversized_images == 1 {
-                        "1 image wasn't attached — file is too large.".into()
+                        t!("code_editor_extra.editor.image.one_too_large").to_string()
                     } else {
-                        format!(
-                            "{num_oversized_images} images weren't attached — files are too large."
+                        t!(
+                            "code_editor_extra.editor.image.many_too_large",
+                            count = num_oversized_images
                         )
+                        .to_string()
                     };
 
                     ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
@@ -5331,13 +5362,15 @@ impl EditorView {
 
                 if num_unprocessed_images > 0 {
                     let message = if num_unprocessed_images == 1 && num_images_user_attached == 1 {
-                        "Image cannot be attached - error processing.".into()
+                        t!("code_editor_extra.editor.image.processing_failed").to_string()
                     } else if num_unprocessed_images == 1 {
-                        "1 image wasn't attached - error processing.".into()
+                        t!("code_editor_extra.editor.image.one_processing_failed").to_string()
                     } else {
-                        format!(
-                            "{num_unprocessed_images} images weren't attached - error processing."
+                        t!(
+                            "code_editor_extra.editor.image.many_processing_failed",
+                            count = num_unprocessed_images
                         )
+                        .to_string()
                     };
 
                     ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
@@ -8139,19 +8172,18 @@ impl EditorView {
             padding: Some(Coords::uniform(icon_size / 10.)),
             ..Default::default()
         });
-        let button =
-            button
-                .with_tooltip_position(ButtonTooltipPosition::Above)
-                .with_tooltip(self.render_menu_button_tooltip(
-                    "Search files and directories".to_string(),
-                    appearance,
-                ))
-                .build()
-                .with_cursor(Cursor::PointingHand)
-                .on_click(move |ctx, _, _| {
-                    ctx.dispatch_typed_action(EditorAction::SetAIContextMenuOpen(true));
-                })
-                .finish();
+        let button = button
+            .with_tooltip_position(ButtonTooltipPosition::Above)
+            .with_tooltip(self.render_menu_button_tooltip(
+                t!("code_editor_extra.editor.search_files_and_directories").to_string(),
+                appearance,
+            ))
+            .build()
+            .with_cursor(Cursor::PointingHand)
+            .on_click(move |ctx, _, _| {
+                ctx.dispatch_typed_action(EditorAction::SetAIContextMenuOpen(true));
+            })
+            .finish();
 
         Some(button)
     }
@@ -8490,7 +8522,11 @@ impl TypedActionView for EditorView {
             | EditorAction::Backspace => ActionAccessibilityContent::Empty,
             EditorAction::Paste => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
-                    format!("Pasting: {}", self.clipboard_content(ctx)),
+                    t!(
+                        "code_editor_extra.editor.a11y.pasting",
+                        content = self.clipboard_content(ctx)
+                    )
+                    .to_string(),
                     WarpA11yRole::UserAction,
                 ))
             }

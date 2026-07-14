@@ -7,6 +7,8 @@
 //!   and starts the transcript-capable TUI draw + input driver.
 //! - Binary entry points under `src/bin/`.
 
+rust_i18n::i18n!("locales", fallback = "en");
+
 mod agent_block;
 mod agent_block_sections;
 mod autoupdate;

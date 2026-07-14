@@ -105,36 +105,33 @@ impl View for ExecutionProfileView {
             .base_model
             .as_ref()
             .and_then(|id| llm_preferences.get_llm_info(id))
-            .map(|info| info.display_name.clone())
+            .map(|info| info.localized_display_name())
             .unwrap_or_else(|| {
                 llm_preferences
                     .get_default_base_model(app)
-                    .display_name
-                    .clone()
+                    .localized_display_name()
             });
 
         let cli_agent_model = profile
             .cli_agent_model
             .as_ref()
             .and_then(|id| llm_preferences.get_llm_info(id))
-            .map(|info| info.display_name.clone())
+            .map(|info| info.localized_display_name())
             .unwrap_or_else(|| {
                 llm_preferences
                     .get_default_cli_agent_model(app)
-                    .display_name
-                    .clone()
+                    .localized_display_name()
             });
 
         let computer_use_model = profile
             .computer_use_model
             .as_ref()
             .and_then(|id| llm_preferences.get_llm_info(id))
-            .map(|info| info.display_name.clone())
+            .map(|info| info.localized_display_name())
             .unwrap_or_else(|| {
                 llm_preferences
                     .get_default_computer_use_model(app)
-                    .display_name
-                    .clone()
+                    .localized_display_name()
             });
 
         Container::new(

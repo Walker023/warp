@@ -28,6 +28,7 @@ pub use self::changelog::get_current_changelog;
 use self::channel_versions::fetch_channel_versions;
 use crate::channel::Channel;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::server::server_api::ServerApi;
 use crate::server::telemetry::TelemetryEvent;
 use crate::workspace::Workspace;
@@ -734,13 +735,13 @@ pub fn accessibility_content(
     match (request_type, update_available) {
         // Found autoupdate
         (RequestType::ManualCheck, Ok(UpdateReady::Yes { .. })) => Some(AccessibilityContent::new(
-            "Update available.",
-            "Use the command palette to install and relaunch Warp",
+            t!("common_extra.autoupdate.available").to_string(),
+            t!("common_extra.autoupdate.available_help").to_string(),
             WarpA11yRole::HelpRole,
         )),
         // Any non-successful autoupdate check
         (RequestType::ManualCheck, _) => Some(AccessibilityContent::new_without_help(
-            "No updates available",
+            t!("common_extra.autoupdate.unavailable").to_string(),
             WarpA11yRole::HelpRole,
         )),
         _ => None,

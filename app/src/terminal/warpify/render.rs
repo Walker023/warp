@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use pathfinder_color::ColorU;
 use pathfinder_geometry::rect::RectF;
@@ -16,6 +18,7 @@ use warpui::{AppContext, Element, EventContext, PaintContext, SingletonEntity as
 use super::settings::WarpifySettings;
 use super::SubshellSource;
 use crate::ai::blocklist::inline_action::inline_action_icons;
+use crate::i18n::t;
 use crate::ui_components::blended_colors;
 
 /// The flag font size varies with the monospace font width, but if it gets too big it will start
@@ -38,7 +41,7 @@ pub const SUBSHELL_DOCS_URL: &str = "https://docs.warp.dev/terminal/warpify/subs
 pub const LEFT_STRIPE_WIDTH: f32 = 5.;
 
 pub fn build_header_row(
-    text: &'static str,
+    text: Cow<'static, str>,
     icon: Icon,
     theme: &WarpTheme,
     appearance: &Appearance,
@@ -77,7 +80,7 @@ pub fn apply_spacing_styles(header_row: Container) -> Container {
 
 /// UI helper to render the header of an SSH rich content block.
 pub fn header_row(
-    text: &'static str,
+    text: Cow<'static, str>,
     icon: Icon,
     theme: &WarpTheme,
     appearance: &Appearance,
@@ -181,7 +184,7 @@ pub fn render_never_warpify_ssh_link(
     let link = appearance
         .ui_builder()
         .link(
-            "Never Warpify this host".into(),
+            t!("terminal_ui.warpify.never_host").to_string(),
             None,
             Some(Box::new({
                 let ssh_host = ssh_host.clone();

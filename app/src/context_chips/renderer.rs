@@ -12,7 +12,6 @@ use warpui::platform::Cursor;
 use warpui::ui_components::components::UiComponent;
 use warpui::{Action, Element};
 
-use super::context_chip::ContextChip;
 use super::display_chip::{chip_container, udi_font_size};
 use super::{spacing, ChipAvailability, ChipValue, ContextChipKind};
 use crate::appearance::Appearance;
@@ -48,7 +47,6 @@ pub enum ChipDragState {
 /// State for rendering a single context chip.
 pub struct Renderer {
     kind: ContextChipKind,
-    chip: ContextChip,
     value: ChipValue,
     styles: RendererStyles,
     draggable_state: DraggableState,
@@ -61,7 +59,6 @@ pub struct Renderer {
 impl Renderer {
     pub fn new(
         kind: ContextChipKind,
-        chip: ContextChip,
         value: ChipValue,
         styles: RendererStyles,
         availability: ChipAvailability,
@@ -70,7 +67,6 @@ impl Renderer {
         let tooltip_override_text = availability.tooltip_override_text();
         Self {
             kind,
-            chip,
             value,
             styles,
             draggable_state: Default::default(),
@@ -95,12 +91,11 @@ impl Renderer {
         is_in_agent_view: bool,
         appearance: &Appearance,
     ) -> Option<Self> {
-        let chip = chip_kind.to_chip()?;
+        chip_kind.to_chip()?;
         let placeholder_value = chip_kind.placeholder_value();
         let styles = chip_kind.default_styles(appearance, is_in_agent_view);
         Some(Self::new(
             chip_kind,
-            chip,
             placeholder_value,
             styles,
             availability,
@@ -199,7 +194,7 @@ impl Renderer {
             let tooltip = appearance.ui_builder().tool_tip(
                 self.tooltip_override_text
                     .clone()
-                    .unwrap_or_else(|| self.chip.title().to_string()),
+                    .unwrap_or_else(|| self.kind.display_title()),
             );
             let mut stack = Stack::new();
             stack.add_child(container.finish());

@@ -6,6 +6,7 @@ use warpui::{AppContext, ModelContext, SingletonEntity};
 
 use crate::ai::agent_sdk::output::{self, TableFormat};
 use crate::ai::mcp::TemplatableMCPServerManager;
+use crate::i18n::t;
 use crate::server::cloud_objects::update_manager::UpdateManager;
 
 /// Handle MCP-related CLI commands.
@@ -60,7 +61,10 @@ struct MCPServerInfo {
 
 impl TableFormat for MCPServerInfo {
     fn header() -> Vec<Cell> {
-        vec![Cell::new("UUID"), Cell::new("Name")]
+        vec![
+            Cell::new(t!("ai_sdk_management.mcp.table.uuid").to_string()),
+            Cell::new(t!("ai_sdk_management.mcp.table.name").to_string()),
+        ]
     }
 
     fn row(&self) -> Vec<Cell> {

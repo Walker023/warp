@@ -69,7 +69,7 @@ impl ConversationSearchItem {
         Flex::row()
             .with_child(
                 Text::new_inline(
-                    "New conversation",
+                    t!("workspace_search_ui.search.new_conversation").to_string(),
                     appearance.ui_font_family(),
                     appearance.monospace_font_size(),
                 )
@@ -90,7 +90,7 @@ impl ConversationSearchItem {
         let appearance = Appearance::as_ref(app);
 
         let action_title = Text::new_inline(
-            "Fork current conversation",
+            t!("workspace_search_ui.search.fork_current_conversation").to_string(),
             appearance.ui_font_family(),
             appearance.monospace_font_size(),
         )
@@ -416,29 +416,37 @@ impl SearchItem for ConversationSearchItem {
 
     fn accessibility_label(&self) -> String {
         match &self.action_info {
-            ConversationAction::Resume(matched_conversation) => {
-                format!(
-                    "Conversation: {}",
-                    matched_conversation.as_ref().conversation.title()
-                )
+            ConversationAction::Resume(matched_conversation) => t!(
+                "workspace_search_ui.search.a11y.conversation",
+                name = matched_conversation.as_ref().conversation.title()
+            )
+            .to_string(),
+            ConversationAction::Fork { title, .. } => t!(
+                "workspace_search_ui.search.a11y.fork_conversation",
+                name = title
+            )
+            .to_string(),
+            ConversationAction::New => {
+                t!("workspace_search_ui.search.a11y.new_conversation").to_string()
             }
-            ConversationAction::Fork { title, .. } => {
-                format!("Fork current conversation ({title})")
-            }
-            ConversationAction::New => "New conversation".to_string(),
         }
     }
 
     fn accessibility_help_message(&self) -> Option<String> {
         match &self.action_info {
-            ConversationAction::Resume(matched_conversation) => Some(format!(
-                "Press enter to navigate to conversation \"{}\".",
-                matched_conversation.as_ref().conversation.title()
-            )),
+            ConversationAction::Resume(matched_conversation) => Some(
+                t!(
+                    "workspace_search_ui.search.a11y.navigate_conversation",
+                    name = matched_conversation.as_ref().conversation.title()
+                )
+                .to_string(),
+            ),
             ConversationAction::Fork { .. } => {
-                Some("Press enter to fork the current conversation into a new conversation.".into())
+                Some(t!("workspace_search_ui.search.a11y.fork_conversation_help").to_string())
             }
-            ConversationAction::New => Some("Press enter to create a new conversation.".into()),
+            ConversationAction::New => {
+                Some(t!("workspace_search_ui.search.a11y.new_conversation_help").to_string())
+            }
         }
     }
 }

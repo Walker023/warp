@@ -21,6 +21,7 @@ use crate::ai::blocklist::inline_action::inline_action_header::{
 };
 use crate::ai::blocklist::inline_action::inline_action_icons::{cancelled_icon, icon_size};
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
 
@@ -36,7 +37,7 @@ pub(super) fn render_todos(
 
     // Add collapsible header.
     let id = id.clone();
-    let mut header_config = HeaderConfig::new("Tasks", app)
+    let mut header_config = HeaderConfig::new(t!("ai_ui.block.todos.tasks").to_string(), app)
         .with_interaction_mode(InteractionMode::ManuallyExpandable(
             ExpandedConfig::new(state.is_expanded, state.header_toggle_mouse_state.clone())
                 .with_toggle_callback(move |ctx| {
@@ -60,7 +61,7 @@ pub(super) fn render_todos(
     let is_list_outdated = has_cancelled_todo
         || todos.len() != conversation.active_todo_list().map_or(0, |list| list.len());
     if is_list_outdated {
-        header_config = header_config.with_badge("Outdated".to_string());
+        header_config = header_config.with_badge(t!("ai_ui.block.todos.outdated").to_string());
     }
 
     let header_element = header_config.render(app);
@@ -186,15 +187,19 @@ pub(super) fn render_completed_todo_items(
 
         if i == 0 {
             if let Some((index, list_len)) = index_and_len {
-                completed_text += format!(
-                    "Completed {} ({}/{})",
-                    completed_item.title,
-                    index + 1,
-                    list_len
+                completed_text += t!(
+                    "ai_ui.block.todos.completed_with_position",
+                    title = completed_item.title.as_str(),
+                    index = index + 1,
+                    total = list_len
                 )
-                .as_str()
+                .as_ref()
             } else {
-                completed_text += format!("Completed {}", completed_item.title).as_str()
+                completed_text += t!(
+                    "ai_ui.block.todos.completed",
+                    title = completed_item.title.as_str()
+                )
+                .as_ref()
             }
         } else if let Some((index, list_len)) = index_and_len {
             completed_text +=

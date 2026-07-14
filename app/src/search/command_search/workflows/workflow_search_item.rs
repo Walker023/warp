@@ -10,6 +10,7 @@ use warpui::ui_components::components::{UiComponent, UiComponentStyles};
 use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::command_search::searcher::{AcceptedWorkflow, CommandSearchItemAction};
 use crate::search::item::SearchItem;
 use crate::search::result_renderer::ItemHighlightState;
@@ -258,7 +259,11 @@ impl SearchItem for WorkflowSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Workflow: {}", self.workflow_data().name())
+        t!(
+            "workspace_search_ui.search.a11y.workflow",
+            name = self.workflow_data().name()
+        )
+        .to_string()
     }
 }
 

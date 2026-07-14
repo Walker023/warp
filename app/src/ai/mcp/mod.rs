@@ -24,6 +24,7 @@ use crate::cloud_object::{
 use crate::drive::items::mcp_server::WarpDriveMCPServer;
 use crate::drive::items::WarpDriveItem;
 use crate::drive::CloudObjectTypeAndId;
+use crate::i18n::t;
 #[cfg(not(target_family = "wasm"))]
 use crate::persistence::model::MCPEnvironmentVariables;
 use crate::server::ids::SyncId;
@@ -507,12 +508,12 @@ pub enum MCPProvider {
 }
 
 impl MCPProvider {
-    pub fn display_name(&self) -> &str {
+    pub fn display_name(&self) -> String {
         match self {
-            MCPProvider::Warp => "Warp",
-            MCPProvider::Claude => "Claude",
-            MCPProvider::Codex => "Codex",
-            MCPProvider::Agents => "Other Agents",
+            MCPProvider::Warp => "Warp".to_string(),
+            MCPProvider::Claude => "Claude".to_string(),
+            MCPProvider::Codex => "Codex".to_string(),
+            MCPProvider::Agents => t!("ai_ui.mcp.other_agents").to_string(),
         }
     }
 

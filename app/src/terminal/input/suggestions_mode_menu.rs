@@ -15,13 +15,13 @@ use warpui::presenter::ChildView;
 use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 
 use super::{
-    DynamicEnumSuggestionStatus, Input, InputAction, MenuPositioning, DYNAMIC_ENUM_FAILURE_MESSAGE,
-    DYNAMIC_ENUM_GENERATE_MESSAGE, DYNAMIC_ENUM_HORIZONTAL_TEXT_PADDING,
-    DYNAMIC_ENUM_MENU_HEIGHT_OFFSET, DYNAMIC_ENUM_MENU_PADDING, DYNAMIC_ENUM_NO_RESULTS_MESSAGE,
-    DYNAMIC_ENUM_PENDING_MESSAGE, DYNAMIC_ENUM_RUN_MESSAGE, HISTORY_DETAILS_VIEW_WIDTH_REQUIREMENT,
+    DynamicEnumSuggestionStatus, Input, InputAction, MenuPositioning,
+    DYNAMIC_ENUM_HORIZONTAL_TEXT_PADDING, DYNAMIC_ENUM_MENU_HEIGHT_OFFSET,
+    DYNAMIC_ENUM_MENU_PADDING, HISTORY_DETAILS_VIEW_WIDTH_REQUIREMENT,
     RUN_DYNAMIC_ENUM_COMMAND_KEYSTROKE, TERMINAL_VIEW_PADDING_LEFT,
 };
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::input_suggestions::{
     DETAILS_PANEL_MARGIN, DETAILS_PANEL_PADDING, HISTORY_DETAILS_PANEL_WIDTH,
     LABEL_PADDING as InputSuggestionsLabelPadding,
@@ -153,16 +153,22 @@ impl Input {
                 SuggestionsResizeConfig::WidthOnly,
             ),
             DynamicEnumSuggestionStatus::Pending => (
-                self.render_dynamic_enum_status_message(DYNAMIC_ENUM_PENDING_MESSAGE, appearance),
+                self.render_dynamic_enum_status_message(
+                    t!("terminal_ui.input.dynamic_enum.pending").to_string(),
+                    appearance,
+                ),
                 SuggestionsResizeConfig::WidthAndHeight,
             ),
             DynamicEnumSuggestionStatus::Failure => (
-                self.render_dynamic_enum_status_message(DYNAMIC_ENUM_FAILURE_MESSAGE, appearance),
+                self.render_dynamic_enum_status_message(
+                    t!("terminal_ui.input.dynamic_enum.failure").to_string(),
+                    appearance,
+                ),
                 SuggestionsResizeConfig::WidthAndHeight,
             ),
             DynamicEnumSuggestionStatus::Success if suggestions.is_empty() => (
                 self.render_dynamic_enum_status_message(
-                    DYNAMIC_ENUM_NO_RESULTS_MESSAGE,
+                    t!("terminal_ui.input.dynamic_enum.no_results").to_string(),
                     appearance,
                 ),
                 SuggestionsResizeConfig::WidthAndHeight,
@@ -290,7 +296,7 @@ impl Input {
                 ConstrainedBox::new(
                     Container::new(
                         Text::new_inline(
-                            String::from(DYNAMIC_ENUM_GENERATE_MESSAGE),
+                            t!("terminal_ui.input.dynamic_enum.generate").to_string(),
                             appearance.ui_font_family(),
                             appearance.ui_font_size(),
                         )
@@ -341,7 +347,7 @@ impl Input {
                                 1.,
                                 Container::new(
                                     Text::new_inline(
-                                        String::from(DYNAMIC_ENUM_RUN_MESSAGE),
+                                        t!("terminal_ui.input.dynamic_enum.run").to_string(),
                                         appearance.ui_font_family(),
                                         appearance.ui_font_size(),
                                     )
@@ -365,7 +371,7 @@ impl Input {
     /// Renders a status message for dynamic enum suggestions.
     fn render_dynamic_enum_status_message(
         &self,
-        message: &str,
+        message: String,
         appearance: &Appearance,
     ) -> Box<dyn Element> {
         let theme = appearance.theme();
@@ -373,7 +379,7 @@ impl Input {
             Align::new(
                 Container::new(
                     Text::new_inline(
-                        String::from(message),
+                        message,
                         appearance.monospace_font_family(),
                         appearance.monospace_font_size(),
                     )

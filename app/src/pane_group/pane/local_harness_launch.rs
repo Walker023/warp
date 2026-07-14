@@ -19,6 +19,7 @@ use crate::ai::ambient_agents::task::{
 };
 use crate::ai::ambient_agents::{AgentConfigSnapshot, AmbientAgentTaskId};
 use crate::ai::local_harness_setup::local_harness_product_disabled_message;
+use crate::i18n::t;
 use crate::server::server_api::ai::AIClient;
 use crate::terminal::cli_agent_sessions::plugin_manager::{
     plugin_manager_for, CliAgentPluginManager,
@@ -72,14 +73,10 @@ pub(super) fn normalize_local_child_harness(harness_type: &str) -> Option<Harnes
 pub(super) fn validate_local_harness_shell(shell_type: Option<ShellType>) -> Result<(), String> {
     match shell_type {
         Some(ShellType::Bash) | Some(ShellType::Zsh) | Some(ShellType::Fish) => Ok(()),
-        Some(ShellType::PowerShell) => Err(
-            "Local child harnesses currently require bash, zsh, or fish; PowerShell is not supported."
-                .to_string(),
-        ),
-        None => Err(
-            "Local child harnesses currently require a detected bash, zsh, or fish session."
-                .to_string(),
-        ),
+        Some(ShellType::PowerShell) => {
+            Err(t!("pane_group_ui.child_agent.powershell_unsupported").to_string())
+        }
+        None => Err(t!("pane_group_ui.child_agent.shell_not_detected").to_string()),
     }
 }
 
@@ -175,9 +172,13 @@ pub(super) async fn prepare_local_harness_child_launch(
     let Some(harness) = normalize_local_child_harness(&harness_type) else {
         let harness_name = harness_type.trim();
         return Err(if harness_name.is_empty() {
-            "Local child harness type is missing.".to_string()
+            t!("pane_group_ui.child_agent.harness_missing").to_string()
         } else {
-            format!("Unsupported local child harness '{harness_name}'.")
+            t!(
+                "pane_group_ui.child_agent.harness_unsupported",
+                harness = harness_name
+            )
+            .to_string()
         });
     };
     if let Some(message) = local_harness_product_disabled_message(harness) {
@@ -249,10 +250,12 @@ pub(super) async fn prepare_local_harness_child_launch(
         )
         .await
         .map_err(|error| {
-            format!(
-                "Failed to create local {} child task: {error}",
-                harness.display_name()
+            t!(
+                "pane_group_ui.child_agent.create_harness_task_failed",
+                harness = harness.display_name(),
+                error = error
             )
+            .to_string()
         })?;
 
     let mut env_vars = task_env_vars(Some(&task_id), parent_run_id.as_deref(), harness);

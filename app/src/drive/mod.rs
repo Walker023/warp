@@ -25,6 +25,7 @@ use warpui::AppContext;
 
 use crate::cloud_object::model::view::{CloudViewModel, UpdateTimestamp};
 use crate::cloud_object::{CloudObject, ObjectType};
+use crate::i18n::t;
 use crate::server::ids::ServerId;
 use crate::ui_components::icons::Icon;
 use crate::workflows::CloudWorkflow;
@@ -213,13 +214,21 @@ impl DriveSortOrder {
     }
 
     /// Returns the text that is used to display the sorting option in the KnowledgeIndex's sorting menu
-    pub fn menu_text(&self, index_variant: DriveIndexVariant) -> &str {
+    pub fn menu_text(&self, index_variant: DriveIndexVariant) -> String {
         match (self, index_variant) {
-            (DriveSortOrder::ByTimestamp, DriveIndexVariant::MainIndex) => "Last updated",
-            (DriveSortOrder::ByTimestamp, DriveIndexVariant::Trash) => "Last trashed",
-            (DriveSortOrder::AlphabeticalDescending, _) => "A to Z",
-            (DriveSortOrder::AlphabeticalAscending, _) => "Z to A",
-            (DriveSortOrder::ByObjectType, _) => "Type",
+            (DriveSortOrder::ByTimestamp, DriveIndexVariant::MainIndex) => {
+                t!("drive_extra.sorting.last_updated").to_string()
+            }
+            (DriveSortOrder::ByTimestamp, DriveIndexVariant::Trash) => {
+                t!("drive_extra.sorting.last_trashed").to_string()
+            }
+            (DriveSortOrder::AlphabeticalDescending, _) => {
+                t!("drive_extra.sorting.a_to_z").to_string()
+            }
+            (DriveSortOrder::AlphabeticalAscending, _) => {
+                t!("drive_extra.sorting.z_to_a").to_string()
+            }
+            (DriveSortOrder::ByObjectType, _) => t!("drive_extra.sorting.type").to_string(),
         }
     }
 }

@@ -29,6 +29,7 @@ use super::utils::{
 };
 use super::AI_ASSISTANT_SVG_PATH;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::{SaveAsWorkflowModalSource, TelemetryEvent, WarpAIActionType};
 use crate::ui_components::blended_colors;
@@ -51,13 +52,10 @@ const COPY_BUTTON_SIZE: f32 = 14.;
 const TERMINAL_INPUT_BUTTON_SIZE: f32 = 20.;
 const SAVE_AS_WORKFLOW_BUTTON_SIZE: f32 = 20.;
 
-const HOW_DO_I_FIX_PROMPT: &str = "How do I fix this?";
-const SHOW_EXAMPLES_PROMPT: &str = "Show examples.";
-const WHAT_TO_DO_NEXT_PROMPT: &str = "What should I do next?";
-const IN_FLIGHT_REQUEST_TEXT: &str = "Generating answer...";
-const ACCURACY_NOTICE_TEXT: &str = "AI responses can be inaccurate.";
-const MISSING_CONTEXT_NOTICE_TEXT: &str =
-    "Warp AI might forget earlier answers as conversations get long.";
+// These static values are stable telemetry payloads; the corresponding UI text is localized.
+const HOW_DO_I_FIX_PROMPT_TELEMETRY: &str = "How do I fix this?";
+const SHOW_EXAMPLES_PROMPT_TELEMETRY: &str = "Show examples.";
+const WHAT_TO_DO_NEXT_PROMPT_TELEMETRY: &str = "What should I do next?";
 
 lazy_static::lazy_static! {
     static ref SCROLL_BUFFER_OFFSET_PX: Pixels = (10.).into_pixels();
@@ -428,7 +426,7 @@ impl Transcript {
             .finish();
 
         buttons.add_child(appearance.ui_builder().tool_tip_on_element(
-            "Copy code to clipboard [Cmd + C]".to_string(),
+            t!("ai_ui.legacy.transcript.copy_code_tooltip").to_string(),
             mouse_state_handles.copy_button_tooltip.clone(),
             copy_button,
             ParentAnchor::TopRight,
@@ -463,7 +461,7 @@ impl Transcript {
 
             buttons.add_child(
                 Container::new(appearance.ui_builder().tool_tip_on_element(
-                    "Insert code into terminal input [Cmd + Enter]".to_string(),
+                    t!("ai_ui.legacy.transcript.insert_code_tooltip").to_string(),
                     mouse_state_handles.play_button_tooltip.clone(),
                     insert_button,
                     ParentAnchor::TopRight,
@@ -498,7 +496,7 @@ impl Transcript {
             buttons.add_child(
                 SavePosition::new(
                     Container::new(appearance.ui_builder().tool_tip_on_element(
-                        "Save as workflow [Cmd + S]".to_string(),
+                        t!("ai_ui.legacy.transcript.save_workflow_tooltip").to_string(),
                         mouse_state_handles.save_as_workflow_button_tooltip.clone(),
                         save_as_workflow_button,
                         ParentAnchor::TopRight,
@@ -560,7 +558,7 @@ impl Transcript {
                     .finish();
 
                 appearance.ui_builder().tool_tip_on_element(
-                    "Copy answer to clipboard".to_string(),
+                    t!("ai_ui.legacy.transcript.copy_answer_tooltip").to_string(),
                     tooltip_handle,
                     copy_button,
                     ParentAnchor::TopRight,
@@ -762,7 +760,8 @@ impl Transcript {
                 self.mouse_state_handles.what_to_do_next_button.clone(),
                 None,
                 Some(8.),
-                WHAT_TO_DO_NEXT_PROMPT,
+                t!("ai_ui.legacy.prepared_prompt.next").to_string(),
+                WHAT_TO_DO_NEXT_PROMPT_TELEMETRY,
             ))
             .with_child(
                 Container::new(render_prepared_response_button(
@@ -770,7 +769,8 @@ impl Transcript {
                     self.mouse_state_handles.show_examples_button.clone(),
                     None,
                     Some(8.),
-                    SHOW_EXAMPLES_PROMPT,
+                    t!("ai_ui.legacy.prepared_prompt.examples").to_string(),
+                    SHOW_EXAMPLES_PROMPT_TELEMETRY,
                 ))
                 .with_margin_left(10.)
                 .with_margin_right(10.)
@@ -781,7 +781,8 @@ impl Transcript {
                 self.mouse_state_handles.how_do_i_fix_button.clone(),
                 None,
                 Some(8.),
-                HOW_DO_I_FIX_PROMPT,
+                t!("ai_ui.legacy.prepared_prompt.fix").to_string(),
+                HOW_DO_I_FIX_PROMPT_TELEMETRY,
             ))
             .finish()
     }
@@ -828,10 +829,12 @@ impl View for Transcript {
             blocks.add_child(self.render_user_prompt(request, appearance));
 
             let transcript_part_index = transcript.len();
+            let in_flight_request_text =
+                t!("ai_ui.legacy.transcript.generating_answer").to_string();
             let in_flight_request_markdown = markdown_segments_from_text(
                 transcript_part_index,
                 TranscriptPartSubType::Answer,
-                IN_FLIGHT_REQUEST_TEXT,
+                &in_flight_request_text,
             );
             blocks.add_child(self.render_assistant_answer(
                 transcript_part_index,
@@ -840,7 +843,7 @@ impl View for Transcript {
                     copy_all_tooltip_and_button_mouse_handles: None,
                     formatted_message: FormattedTranscriptMessage {
                         markdown: in_flight_request_markdown,
-                        raw: IN_FLIGHT_REQUEST_TEXT.to_owned(),
+                        raw: in_flight_request_text,
                     },
                 },
                 appearance,
@@ -880,9 +883,10 @@ impl View for Transcript {
                 .current_transcript_summarized();
 
             blocks.add_child(
-                Container::new(
-                    self.render_warning_message(ACCURACY_NOTICE_TEXT.to_string(), appearance),
-                )
+                Container::new(self.render_warning_message(
+                    t!("ai_ui.legacy.transcript.accuracy_notice").to_string(),
+                    appearance,
+                ))
                 .with_margin_top(DETAILS_BOTTOM_MARGIN)
                 .with_margin_bottom(if current_transcript_summarized {
                     DETAILS_BOTTOM_MARGIN / 2.
@@ -895,7 +899,7 @@ impl View for Transcript {
             if current_transcript_summarized {
                 blocks.add_child(
                     Container::new(self.render_warning_message(
-                        MISSING_CONTEXT_NOTICE_TEXT.to_string(),
+                        t!("ai_ui.legacy.transcript.missing_context_notice").to_string(),
                         appearance,
                     ))
                     .with_margin_bottom(DETAILS_BOTTOM_MARGIN)

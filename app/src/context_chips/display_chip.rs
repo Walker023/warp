@@ -45,6 +45,7 @@ use crate::context_chips::git_branch_on_click::{
 };
 use crate::context_chips::node_version_popup::{NodeVersionPopupEvent, NodeVersionPopupView};
 use crate::context_chips::spacing;
+use crate::i18n::t;
 use crate::settings::{AISettings, AISettingsChangedEvent, InputSettings};
 use crate::settings_view::keybindings::{KeybindingChangedEvent, KeybindingChangedNotifier};
 use crate::terminal::cli_agent_sessions::CLIAgentSessionsModel;
@@ -584,24 +585,33 @@ impl GitBranchTrackingStatus {
 
     fn tooltip_text(&self) -> String {
         match &self.upstream {
-            Some(upstream) if self.is_rebased() => {
-                format!("Tracking {upstream} • branch was rebased")
-            }
-            Some(upstream) if self.counts_available => format!(
-                "Tracking {upstream} • ahead {}, behind {}",
-                self.ahead, self.behind
-            ),
-            Some(upstream) => {
-                format!("Tracking {upstream}; ahead/behind counts are unavailable")
-            }
+            Some(upstream) if self.is_rebased() => t!(
+                "common_extra.context_chips.tracking.rebased",
+                upstream = upstream
+            )
+            .to_string(),
+            Some(upstream) if self.counts_available => t!(
+                "common_extra.context_chips.tracking.ahead_behind",
+                upstream = upstream,
+                ahead = self.ahead,
+                behind = self.behind
+            )
+            .to_string(),
+            Some(upstream) => t!(
+                "common_extra.context_chips.tracking.counts_unavailable",
+                upstream = upstream
+            )
+            .to_string(),
             None if self.is_rebased() => {
-                "Branch was rebased; upstream name is unavailable".to_string()
+                t!("common_extra.context_chips.tracking.rebased_no_upstream").to_string()
             }
-            None if self.counts_available => format!(
-                "Ahead {}, behind {}; upstream name is unavailable",
-                self.ahead, self.behind
-            ),
-            None => "No upstream configured".to_string(),
+            None if self.counts_available => t!(
+                "common_extra.context_chips.tracking.ahead_behind_no_upstream",
+                ahead = self.ahead,
+                behind = self.behind
+            )
+            .to_string(),
+            None => t!("common_extra.context_chips.tracking.no_upstream").to_string(),
         }
     }
 }
@@ -714,8 +724,8 @@ impl GitBranch {
         }
 
         if branch.is_linked_worktree {
-            return PromptChipShellCommand::Echo {
-                message: "The branch is already checked out in another worktree, but Warp couldn't find its path.",
+            return PromptChipShellCommand::LocalizedEcho {
+                message_key: "common_extra.context_chips.linked_worktree_path_missing",
             };
         }
 
@@ -781,7 +791,11 @@ impl GenericMenuItem for CreateGitBranch {
     }
 
     fn name(&self) -> String {
-        format!("Create new branch \"{}\"", self.0)
+        t!(
+            "common_extra.context_chips.create_branch",
+            branch = self.0.as_str()
+        )
+        .to_string()
     }
 
     fn icon(&self, _app: &AppContext) -> Option<Icon> {
@@ -945,7 +959,7 @@ impl DisplayChip {
                     DisplayChipMenu::new(
                         Vec::<DirectoryItem>::new(),
                         Some(FixedFooter::new(Arc::new(DirectoryItem {
-                            name: ".. (Parent Directory)".to_string(),
+                            name: format!(".. ({})", t!("common.parent_directory")),
                             directory_type: DirectoryType::NavigateToParent,
                         }))), // Show parent directory option
                         ChipMenuType::Directories,
@@ -1074,10 +1088,10 @@ impl DisplayChip {
                             // nvm-windows has documented issues when installed alongside an existing Node.js installation.
                             // https://github.com/coreybutler/nvm-windows?tab=readme-ov-file#star-star-uninstall-any-pre-existing-node-installations-star-star
                             // Prompt the agent to remove this first.
-                            "Uninstall existing Node.js installation and install nvm for me"
+                            t!("common_extra.context_chips.agent.uninstall_node_install_nvm")
                                 .to_string()
                         } else {
-                            "Install nvm for me".to_string()
+                            t!("common_extra.context_chips.agent.install_nvm").to_string()
                         }));
                         me.close_node_version_popup(ctx);
                     }
@@ -1099,7 +1113,7 @@ impl DisplayChip {
 
         let quota_reset_popup = ctx.add_typed_action_view(|_| {
             FeaturePopup::alert_icon(NewFeaturePopupLabel::FromString(
-                "Monthly AI credits reset!".to_string(),
+                t!("common_extra.context_chips.monthly_ai_credits_reset").to_string(),
             ))
         });
 
@@ -1390,7 +1404,7 @@ impl DisplayChip {
             if state.is_hovered() && is_interactive && !menu_open {
                 let tool_tip = appearance
                     .ui_builder()
-                    .tool_tip("Change git branch".to_string())
+                    .tool_tip(t!("common_extra.context_chips.change_branch").to_string())
                     .build()
                     .finish();
                 stack.add_positioned_overlay_child(tool_tip, udi_tooltip_positioning());
@@ -1457,7 +1471,7 @@ impl DisplayChip {
             if state.is_hovered() {
                 let tool_tip = appearance
                     .ui_builder()
-                    .tool_tip("View pull request".to_string())
+                    .tool_tip(t!("common_extra.context_chips.view_pull_request").to_string())
                     .build()
                     .finish();
                 stack.add_positioned_overlay_child(tool_tip, udi_tooltip_positioning());
@@ -1758,7 +1772,7 @@ impl DisplayChip {
                 if state.is_hovered() {
                     let tool_tip = appearance
                         .ui_builder()
-                        .tool_tip("Change working directory".to_string())
+                        .tool_tip(t!("common_extra.context_chips.change_directory").to_string())
                         .build()
                         .finish();
 
@@ -1805,7 +1819,7 @@ impl DisplayChip {
                 if state.is_hovered() && !is_cli_agent_active {
                     let tool_tip = appearance
                         .ui_builder()
-                        .tool_tip("Working directory".to_string())
+                        .tool_tip(t!("common_extra.context_chips.working_directory").to_string())
                         .build()
                         .finish();
 
@@ -2054,6 +2068,11 @@ pub enum PromptChipShellCommand {
         /// This is very intentionally a `&'static str` to ensure that the message is a compile-time constant.
         /// This is to prevent accidental injection of user input into the message.
         message: &'static str,
+    },
+    LocalizedEcho {
+        /// A compile-time translation key, kept static for the same injection-safety reason as
+        /// [`Self::Echo::message`].
+        message_key: &'static str,
     },
 }
 

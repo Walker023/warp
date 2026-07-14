@@ -1,0 +1,49 @@
+tab_configs_ui:
+  sidecar:
+    make_default: "Make default"
+    already_default: "Already the default"
+    edit_config: "Edit config"
+    remove: "Remove"
+  repo_picker:
+    add_new_repo: "+ Add new repo..."
+  branch_picker:
+    fetching: "Fetching branches..."
+  session:
+    terminal: "Terminal"
+    built_in_agent: "Built-in agent"
+    untitled: "untitled"
+    default_config_name: "My Tab Config"
+    worktree_config_name: "Worktree: %{repo}"
+    new_tab_config_name: "New tab: %{repo}"
+    worktree_branch_description: "New worktree branch name"
+  session_form:
+    session_type: "Session type"
+    select_directory: "Select directory"
+    worktree_requires_repo: "Select a Git repository to enable worktree support"
+    create_worktree: "Automatically create a worktree when opening a new tab"
+    autogenerate_requires_worktree: "Enable automatic worktree creation before selecting this option"
+    autogenerate_branch_name: "Auto-generate worktree branch name"
+  session_modal:
+    submit: "Get Warping"
+    title: "Create your first tab config"
+    subtitle_with_type: "Set up a reusable starting point for your tabs. Pick a repo, choose a session type, and optionally attach a worktree. Use it whenever you want to open a new tab with this setup."
+    subtitle_without_type: "Set up a reusable starting point for your tabs. Pick a repo, optionally attach a worktree, and use it whenever you want to open a new tab with this setup."
+  new_worktree:
+    title: "New worktree"
+    select_repository: "Select repository"
+    select_branch: "Select branch"
+    autogenerate_branch_name: "Autogenerate worktree branch name"
+    worktree_branch_name: "Worktree branch name"
+    invalid_branch_name: "Name can only contain letters, numbers, hyphens, and underscores"
+    cancel: "Cancel"
+    open: "Open"
+  remove_dialog:
+    cancel: "Cancel"
+    remove: "Remove"
+    title: "Remove '%{name}'?"
+    body: "This tab config will be permanently deleted. This action cannot be undone."
+  params_modal:
+    cancel: "Cancel"
+    open_tab: "Open Tab"
+    enter_value: "Enter %{name}"
+    default_value: "Default: %{value}"

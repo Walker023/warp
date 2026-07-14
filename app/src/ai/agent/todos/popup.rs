@@ -19,6 +19,7 @@ use crate::ai::blocklist::{
     BlocklistAIContextEvent, BlocklistAIContextModel, BlocklistAIHistoryEvent,
     BlocklistAIHistoryModel,
 };
+use crate::i18n::t;
 use crate::ui_components::blended_colors;
 
 pub struct AgentTodosPopupView {
@@ -136,7 +137,7 @@ impl AgentTodosPopupView {
 
         let mut header_row = Flex::row().with_cross_axis_alignment(CrossAxisAlignment::Center);
         let mut header = Text::new(
-            "Tasks".to_string(),
+            t!("ai_ui.block.todos.tasks").to_string(),
             appearance.header_font_family(),
             styles.detail_font_size + 2.,
         )

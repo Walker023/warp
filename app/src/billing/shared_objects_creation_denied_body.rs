@@ -10,22 +10,13 @@ use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View
 
 use crate::appearance::Appearance;
 use crate::drive::DriveObjectType;
+use crate::i18n::t;
 use crate::ui_components::blended_colors;
 use crate::workspaces::workspace::{BillingMetadata, CustomerType};
 
 const BUTTON_PADDING: f32 = 12.;
 const BUTTON_FONT_SIZE: f32 = 14.;
 const BUTTON_BORDER_RADIUS: f32 = 4.;
-
-const DEFAULT_DELINQUENT_ADMIN_MODAL_SUBHEADER: &str = "Shared drive objects have been restricted due to a subscription payment issue.\n\nPlease update your payment information to restore access.";
-const DEFAULT_DELINQUENT_ADMIN_ENTERPRISE_MODAL_SUBHEADER: &str = "Shared drive objects have been restricted due to a subscription payment issue.\n\nPlease contact support@warp.dev to restore access.";
-const DEFAULT_DELINQUENT_MODAL_SUBHEADER: &str = "Shared drive objects have been restricted due to a subscription payment issue.\n\nPlease contact a team admin to restore access.";
-const DEFAULT_ADMIN_PROSUMER_MODAL_SUBHEADER: &str = "Warp's Pro plan comes with a limited number of shared drive objects.\n\nFor access to unlimited shared drive objects, upgrade to the Turbo plan.";
-const DEFAULT_PROSUMER_MODAL_SUBHEADER: &str = "Warp's Pro plan comes with a limited number of shared drive objects.\n\nFor access to unlimited shared drive objects, contact a team admin to upgrade to the Turbo plan.";
-const DEFAULT_ADMIN_MODAL_SUBHEADER: &str = "Warp's free plan comes with a limited number of shared drive objects.\n\nFor access to unlimited shared drive objects, upgrade to a paid plan.";
-const DEFAULT_MODAL_SUBHEADER: &str = "Warp's free plan comes with a limited number of shared drive objects.\n\nFor access to unlimited shared drive objects, contact a team admin to upgrade to a paid plan.";
-const VIEW_PLANS_TEXT: &str = "Compare plans";
-const MANAGE_BILLING_BUTTON_TEXT: &str = "Manage billing";
 
 #[derive(Default)]
 struct MouseStateHandles {
@@ -49,6 +40,33 @@ pub enum SharedObjectsCreationDeniedBodyAction {
 pub enum SharedObjectsCreationDeniedBodyEvent {
     Upgrade,
     ManageBilling,
+}
+
+pub(super) fn localized_object_types(object_type: Option<DriveObjectType>) -> String {
+    match object_type {
+        None => t!("billing_extra.object_types.drive_objects").to_string(),
+        Some(DriveObjectType::Workflow) => t!("billing_extra.object_types.workflows").to_string(),
+        Some(DriveObjectType::AgentModeWorkflow) => {
+            t!("billing_extra.object_types.prompts").to_string()
+        }
+        Some(DriveObjectType::AIFact) => t!("billing_extra.object_types.ai_facts").to_string(),
+        Some(DriveObjectType::AIFactCollection) => {
+            t!("billing_extra.object_types.ai_fact_collections").to_string()
+        }
+        Some(DriveObjectType::Notebook { .. }) => {
+            t!("billing_extra.object_types.notebooks").to_string()
+        }
+        Some(DriveObjectType::Folder) => t!("billing_extra.object_types.folders").to_string(),
+        Some(DriveObjectType::EnvVarCollection) => {
+            t!("billing_extra.object_types.env_var_collections").to_string()
+        }
+        Some(DriveObjectType::MCPServer) => {
+            t!("billing_extra.object_types.mcp_servers").to_string()
+        }
+        Some(DriveObjectType::MCPServerCollection) => {
+            t!("billing_extra.object_types.mcp_server_collections").to_string()
+        }
+    }
 }
 
 impl SharedObjectsCreationDeniedBody {
@@ -91,47 +109,50 @@ impl View for SharedObjectsCreationDeniedBody {
         let appearance = Appearance::as_ref(app);
         let is_stripe_paid_plan = BillingMetadata::is_stripe_paid_plan(self.customer_type);
 
-        let sub_header = match self.object_type {
-            Some(object_type) => {
-                match (self.is_delinquent_due_to_payment_issue, self.has_admin_permissions, self.customer_type) {
-                    (true, true, _) => {
-                        if is_stripe_paid_plan {
-                            format!("Shared {object_type}s have been restricted due to a subscription payment issue.\n\nPlease update your payment information to restore access.")
-                        } else {
-                            format!("Shared {object_type}s have been restricted due to a subscription payment issue.\n\nPlease contact support@warp.dev to restore access.")
-                        }
-                    },
-                    (true, false, _) => format!("Shared {object_type}s have been restricted due to a subscription payment issue.\n\nPlease contact a team admin to restore access."),
-                    (false, true, CustomerType::Prosumer) => {
-                        format!("Warp's Pro plan comes with a limited number of shared {object_type}s.\n\nFor access to unlimited shared {object_type}s, upgrade to the Build plan.")
-                    }
-                    (false, false, CustomerType::Prosumer) => {
-                        format!("Warp's Pro plan comes with a limited number of shared {object_type}s.\n\nFor access to unlimited shared {object_type}s, contact a team admin to upgrade to the Build plan.")
-                    }
-                    (false, true, _) => format!("Warp's free plan comes with a limited number of shared {object_type}s.\n\nFor access to unlimited shared {object_type}s, upgrade to a paid plan."),
-                    (false, false, _) => format!("Warp's free plan comes with a limited number of shared {object_type}s.\n\nFor access to unlimited shared {object_type}s, contact a team admin to upgrade to a paid plan."),
-                }
+        let object_types = localized_object_types(self.object_type);
+        let has_specific_object_type = self.object_type.is_some();
+        let sub_header = match (
+            self.is_delinquent_due_to_payment_issue,
+            self.has_admin_permissions,
+            self.customer_type,
+        ) {
+            (true, true, _) if is_stripe_paid_plan => t!(
+                "billing_extra.restricted_update",
+                object_types = object_types
+            )
+            .to_string(),
+            (true, true, _) => t!(
+                "billing_extra.restricted_support",
+                object_types = object_types
+            )
+            .to_string(),
+            (true, false, _) => t!(
+                "billing_extra.restricted_admin",
+                object_types = object_types
+            )
+            .to_string(),
+            (false, true, CustomerType::Prosumer) if has_specific_object_type => t!(
+                "billing_extra.pro_upgrade_build",
+                object_types = object_types
+            )
+            .to_string(),
+            (false, false, CustomerType::Prosumer) if has_specific_object_type => {
+                t!("billing_extra.pro_admin_build", object_types = object_types).to_string()
             }
-            _ => match (
-                self.is_delinquent_due_to_payment_issue,
-                self.has_admin_permissions,
-                self.customer_type,
-            ) {
-                (true, true, _) => {
-                    if is_stripe_paid_plan {
-                        DEFAULT_DELINQUENT_ADMIN_MODAL_SUBHEADER.into()
-                    } else {
-                        DEFAULT_DELINQUENT_ADMIN_ENTERPRISE_MODAL_SUBHEADER.into()
-                    }
-                }
-                (true, false, _) => DEFAULT_DELINQUENT_MODAL_SUBHEADER.into(),
-                (false, true, CustomerType::Prosumer) => {
-                    DEFAULT_ADMIN_PROSUMER_MODAL_SUBHEADER.into()
-                }
-                (false, false, CustomerType::Prosumer) => DEFAULT_PROSUMER_MODAL_SUBHEADER.into(),
-                (false, true, _) => DEFAULT_ADMIN_MODAL_SUBHEADER.into(),
-                (false, false, _) => DEFAULT_MODAL_SUBHEADER.into(),
-            },
+            (false, true, CustomerType::Prosumer) => t!(
+                "billing_extra.pro_upgrade_turbo",
+                object_types = object_types
+            )
+            .to_string(),
+            (false, false, CustomerType::Prosumer) => {
+                t!("billing_extra.pro_admin_turbo", object_types = object_types).to_string()
+            }
+            (false, true, _) => {
+                t!("billing_extra.free_upgrade", object_types = object_types).to_string()
+            }
+            (false, false, _) => {
+                t!("billing_extra.free_admin", object_types = object_types).to_string()
+            }
         };
 
         let mut body = Flex::column()
@@ -167,7 +188,7 @@ impl View for SharedObjectsCreationDeniedBody {
                                 0.5,
                                 self.render_button(
                                     appearance,
-                                    MANAGE_BILLING_BUTTON_TEXT.into(),
+                                    t!("billing_extra.manage_billing").to_string(),
                                     self.button_mouse_states.button_mouse_state.clone(),
                                     SharedObjectsCreationDeniedBodyAction::ManageBilling,
                                 ),
@@ -189,7 +210,7 @@ impl View for SharedObjectsCreationDeniedBody {
                                 0.5,
                                 self.render_button(
                                     appearance,
-                                    VIEW_PLANS_TEXT.into(),
+                                    t!("billing_extra.compare_plans").to_string(),
                                     self.button_mouse_states.button_mouse_state.clone(),
                                     SharedObjectsCreationDeniedBodyAction::Upgrade,
                                 ),

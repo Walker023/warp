@@ -26,7 +26,7 @@ use super::model::{AIBlockModel, AIBlockModelImpl, AIBlockOutputStatus};
 use super::view_impl::common::{
     render_switch_control_to_user_button, render_warping_indicator, render_warping_indicator_base,
     AutoExecuteButtonProps, ButtonProps, ForceRefreshButtonProps, MaybeShimmeringText,
-    WarpingIndicatorProps, WarpingProps, LOAD_OUTPUT_MESSAGE, WAITING_FOR_USER_INPUT_MESSAGE,
+    WarpingIndicatorProps, WarpingProps,
 };
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent::{
@@ -49,6 +49,7 @@ use crate::ai::blocklist::{
 };
 use crate::ai::llms::LLMPreferences;
 use crate::ai::AgentTip;
+use crate::i18n::t;
 use crate::server::telemetry::TelemetryEvent;
 use crate::settings::{InputModeSettings, InputSettings};
 use crate::settings_view::keybindings::KeybindingChangedNotifier;
@@ -828,9 +829,8 @@ impl BlocklistAIStatusBar {
             app,
         );
         let default_warping_text = fallback_warping_text
-            .as_deref()
-            .unwrap_or(LOAD_OUTPUT_MESSAGE)
-            .to_owned();
+            .clone()
+            .unwrap_or_else(|| t!("ai_ui.block.loading.warping").to_string());
         let secondary_element = if fallback_warping_text.is_some() {
             Some(render_fallback_explanation(model.as_ref(), app))
         } else {
@@ -951,14 +951,18 @@ impl BlocklistAIStatusBar {
         if let Some(auth_url) = ambient_agent_model.github_auth_url() {
             let error_message = ambient_agent_model
                 .github_auth_error_message()
-                .unwrap_or("Missing GitHub authentication.");
+                .map(str::to_owned)
+                .unwrap_or_else(|| t!("ai_ui.block.status.missing_github_auth").to_string());
             return Some(render_wrapping_standard_message_bar(
                 CoreIcon::Triangle,
                 error_color,
                 error_color,
                 vec![
                     FormattedTextFragment::plain_text(format!("{error_message} ")),
-                    FormattedTextFragment::hyperlink("Authenticate GitHub", auth_url.to_owned()),
+                    FormattedTextFragment::hyperlink(
+                        t!("ai_ui.block.status.authenticate_github").to_string(),
+                        auth_url.to_owned(),
+                    ),
                 ],
                 app,
             ));
@@ -971,7 +975,7 @@ impl BlocklistAIStatusBar {
                 color,
                 color,
                 vec![FormattedTextFragment::plain_text(
-                    "Cloud agent run cancelled",
+                    t!("ai_ui.block.status.cloud_run_cancelled").to_string(),
                 )],
                 app,
             ));
@@ -1034,7 +1038,10 @@ fn render_agent_tip(tip: &AgentTip, app: &AppContext) -> Box<dyn Element> {
         fragments.push(FormattedTextFragment::hyperlink_action(text, action));
     } else if let Some(link_target) = tip.link.clone() {
         fragments.push(FormattedTextFragment::plain_text(" "));
-        fragments.push(FormattedTextFragment::hyperlink("Learn more", link_target));
+        fragments.push(FormattedTextFragment::hyperlink(
+            t!("common.learn_more").to_string(),
+            link_target,
+        ));
     }
 
     let formatted_text =
@@ -1091,12 +1098,10 @@ fn render_fallback_explanation<V: View>(
     let base_model_id = model.base_model(app);
     let primary_name = base_model_id
         .and_then(|base_id| llm_prefs.get_llm_info(base_id))
-        .map(|info| info.base_model_name.as_str());
+        .map(|info| info.localized_base_model_name());
     let text = match primary_name {
-        Some(primary) => {
-            format!("The primary model ({primary}) failed. Retrying with the fallback model.")
-        }
-        None => "The primary model failed. Retrying with the fallback model.".to_owned(),
+        Some(primary) => t!("ai_ui.block.status.primary_model_failed", model = primary).to_string(),
+        None => t!("ai_ui.block.status.primary_model_failed_unknown").to_string(),
     };
     let appearance = Appearance::as_ref(app);
     Text::new_inline(
@@ -1149,8 +1154,8 @@ fn resolve_fallback_warping_message<V: View>(
         return None;
     }
     Some(match display_name.as_deref() {
-        Some(name) => format!("Warping with {name}."),
-        None => "Warping with another model.".to_owned(),
+        Some(name) => t!("ai_ui.block.status.warping_with_model", model = name).to_string(),
+        None => t!("ai_ui.block.status.warping_with_another_model").to_string(),
     })
 }
 
@@ -1188,7 +1193,7 @@ impl View for BlocklistAIStatusBar {
                     WarpingIndicatorProps {
                         icon: None,
                         warping_indicator_text: MaybeShimmeringText::Shimmering {
-                            text: "Setting up environment".into(),
+                            text: t!("ai_ui.block.status.setting_up_environment"),
                             shimmering_text_handle: self.shimmering_text_handle.clone(),
                         },
                         non_shimmering_text: None,
@@ -1214,14 +1219,14 @@ impl View for BlocklistAIStatusBar {
                 render_warping_indicator_base(
                     WarpingIndicatorProps {
                         icon: Some(icons::gray_clock_icon(appearance).finish()),
-                        warping_indicator_text: MaybeShimmeringText::Static(
-                            WAITING_FOR_USER_INPUT_MESSAGE.into(),
-                        ),
+                        warping_indicator_text: MaybeShimmeringText::Static(t!(
+                            "ai_ui.block.loading.waiting_for_instructions"
+                        )),
                         non_shimmering_text: None,
                         non_shimmering_suffix: None,
                         buttons: Some(render_switch_control_to_user_button(
-                            "Exit",
-                            "Exit agent input",
+                            t!("ai_ui.block.status.exit").to_string(),
+                            t!("ai_ui.block.status.exit_agent_input").to_string(),
                             ButtonProps {
                                 button_handle: &self.state_handles.take_over_button,
                                 keystroke: self.set_terminal_input_keystroke.as_ref(),

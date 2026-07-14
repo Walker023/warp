@@ -10,6 +10,7 @@
 use std::path::PathBuf;
 
 use ai::project_context::model::ProjectContextModel;
+use rust_i18n::t;
 use warp::tui_export::{ChangelogModel, ChangelogState, SkillManager};
 use warp_core::channel::ChannelState;
 use warp_util::local_or_remote_path::LocalOrRemotePath;
@@ -41,7 +42,9 @@ fn render_left_column(cwd: Option<&str>, builder: &TuiUiBuilder, app: &AppContex
     let header_style = builder.primary_text_style().add_modifier(Modifier::BOLD);
     let muted = builder.muted_text_style();
 
-    let version = ChannelState::app_version().unwrap_or("dev build");
+    let version = ChannelState::app_version()
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| t!("warp_tui.zero_state.dev_build").to_string());
     let mut column = TuiFlex::column()
         .child(
             TuiText::new("Warp Agent")
@@ -54,7 +57,7 @@ fn render_left_column(cwd: Option<&str>, builder: &TuiUiBuilder, app: &AppContex
     let bullets = changelog_bullets(app);
     if !bullets.is_empty() {
         column = column.child(blank_row()).child(
-            TuiText::new("What's new")
+            TuiText::new(t!("warp_tui.zero_state.whats_new").to_string())
                 .with_style(header_style)
                 .truncate()
                 .finish(),
@@ -128,7 +131,7 @@ fn render_project_section(
         // nothing may be known yet; this also covers projects with no
         // context at all.
         return column.child(
-            TuiText::new("Discovering project context…")
+            TuiText::new(t!("warp_tui.zero_state.discovering_project_context").to_string())
                 .with_style(builder.dim_text_style())
                 .truncate()
                 .finish(),
@@ -144,14 +147,24 @@ fn render_project_section(
         )
     };
     for file in rule_files {
-        column = status_row(column, format!("{file} loaded"));
-    }
-    if project_skill_count > 0 {
-        let plural = if project_skill_count == 1 { "" } else { "s" };
         column = status_row(
             column,
-            format!("{project_skill_count} skill{plural} discovered"),
+            t!("warp_tui.zero_state.rule_loaded", file = file).to_string(),
         );
+    }
+    if project_skill_count > 0 {
+        let discovered_skills = if project_skill_count == 1 {
+            t!(
+                "warp_tui.zero_state.one_skill_discovered",
+                count = project_skill_count
+            )
+        } else {
+            t!(
+                "warp_tui.zero_state.skills_discovered",
+                count = project_skill_count
+            )
+        };
+        column = status_row(column, discovered_skills.to_string());
     }
     column
 }

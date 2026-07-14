@@ -8,6 +8,7 @@ use crate::appearance::Appearance;
 use crate::cloud_object::CloudObjectMetadata;
 use crate::drive::index::DriveIndexAction;
 use crate::drive::{CloudObjectTypeAndId, DriveObjectType};
+use crate::i18n::t;
 use crate::notebooks::CloudNotebook;
 use crate::themes::theme::Fill;
 
@@ -58,7 +59,7 @@ impl WarpDriveItem for WarpDriveNotebook {
     fn preview(&self, appearance: &Appearance) -> Option<Box<dyn Element>> {
         let title_text = self.notebook.model().title.clone();
         let title_to_render = if title_text.is_empty() {
-            "Untitled".to_string()
+            t!("drive_extra.common.untitled").to_string()
         } else {
             title_text
         };

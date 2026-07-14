@@ -10,6 +10,7 @@ use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
 use crate::cloud_object::{GenericStringObjectFormat, JsonObjectType, ObjectType};
+use crate::i18n::t;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::ai_context_menu::{safe_truncate, styles};
 use crate::search::item::SearchItem;
@@ -170,10 +171,10 @@ impl SearchItem for RuleSearchItem {
             if !name.is_empty() {
                 name.clone()
             } else {
-                "Rule".to_string()
+                t!("workspace_search_ui.search.rule").to_string()
             }
         } else {
-            "Rule".to_string()
+            t!("workspace_search_ui.search.rule").to_string()
         };
 
         // Create title element
@@ -226,6 +227,10 @@ impl SearchItem for RuleSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Rule: {}", self.rule_content)
+        t!(
+            "workspace_search_ui.search.a11y.rule",
+            name = self.rule_content
+        )
+        .to_string()
     }
 }

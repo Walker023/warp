@@ -7,6 +7,7 @@ use warpui::elements::{ConstrainedBox, Container, Icon};
 use warpui::{AppContext, Element};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::ai_context_menu::styles;
 use crate::search::files::icon::icon_from_file_path;
@@ -79,9 +80,17 @@ impl SearchItem for FileSearchItem {
 
     fn accessibility_label(&self) -> String {
         if self.is_directory {
-            format!("Directory: {}", self.path.display())
+            t!(
+                "workspace_search_ui.search.a11y.directory",
+                name = self.path.display()
+            )
+            .to_string()
         } else {
-            format!("File: {}", self.path.display())
+            t!(
+                "workspace_search_ui.search.a11y.file",
+                name = self.path.display()
+            )
+            .to_string()
         }
     }
 }

@@ -22,8 +22,7 @@ use warpui::{
 
 use super::model_spec_scores::{
     render_model_spec_header, render_model_spec_scores, CostRow, CostRowTooltip,
-    ModelSpecScoresLayout, CUSTOM_MODEL_ROUTER_DESCRIPTION, CUSTOM_MODEL_ROUTER_TITLE,
-    MODEL_SPECS_DESCRIPTION, MODEL_SPECS_TITLE, REASONING_LEVEL_DESCRIPTION, REASONING_LEVEL_TITLE,
+    ModelSpecScoresLayout,
 };
 use crate::ai::custom_model_routers::is_custom_router_id;
 use crate::ai::execution_profiles::model_menu_items::is_auto;
@@ -48,8 +47,6 @@ use crate::terminal::view::ambient_agent::AmbientAgentViewModel;
 use crate::workspace::WorkspaceAction;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
-const AUTO_BEDROCK_TOOLTIP: &str = "Warp uses Bedrock when the model Auto selects supports it; otherwise it may use Warp-hosted inference.";
-
 #[derive(Clone, Debug)]
 pub struct AcceptModel {
     pub id: LLMId,
@@ -68,7 +65,7 @@ impl InlineMenuAction for AcceptModel {
                 key: "enter".to_owned(),
                 ..Default::default()
             }),
-            MessageItem::text(" to select"),
+            MessageItem::text(t!("terminal_ui.input.models.select")),
             MessageItem::keystroke(if OperatingSystem::get().is_mac() {
                 Keystroke {
                     key: "enter".to_owned(),
@@ -83,7 +80,7 @@ impl InlineMenuAction for AcceptModel {
                     ..Default::default()
                 }
             }),
-            MessageItem::text(" select and save to profile"),
+            MessageItem::text(t!("terminal_ui.input.models.select_and_save")),
         ];
 
         if args.inline_menu_model.tab_configs().len() > 1 {
@@ -92,7 +89,9 @@ impl InlineMenuAction for AcceptModel {
                 shift: true,
                 ..Default::default()
             }));
-            items.push(MessageItem::text(" to cycle tabs"));
+            items.push(MessageItem::text(t!(
+                "terminal_ui.input.inline_menu.cycle_tabs"
+            )));
         }
 
         items.push(MessageItem::clickable(
@@ -101,7 +100,7 @@ impl InlineMenuAction for AcceptModel {
                     key: "escape".to_owned(),
                     ..Default::default()
                 }),
-                MessageItem::text(" to dismiss"),
+                MessageItem::text(t!("terminal_ui.input.inline_menu.dismiss")),
             ],
             |ctx| {
                 ctx.dispatch_typed_action(
@@ -262,10 +261,21 @@ impl SyncDataSource for ModelSelectorDataSource {
         Ok(choices
             .into_iter()
             .filter_map(|llm| {
-                let match_result = match_indices_case_insensitive(
-                    llm.display_name.to_lowercase().as_str(),
+                let localized_display_name = llm.localized_display_name().to_lowercase();
+                let localized_match_result = match_indices_case_insensitive(
+                    localized_display_name.as_str(),
                     query_text.as_str(),
-                )?;
+                );
+                let (match_result, name_match_result) =
+                    if let Some(match_result) = localized_match_result {
+                        (match_result.clone(), Some(match_result))
+                    } else {
+                        let match_result = match_indices_case_insensitive(
+                            llm.display_name.to_lowercase().as_str(),
+                            query_text.as_str(),
+                        )?;
+                        (match_result, None)
+                    };
 
                 // Avoid spamming results with extremely weak matches.
                 if query_text.len() > 1 && match_result.score < 10 {
@@ -274,7 +284,7 @@ impl SyncDataSource for ModelSelectorDataSource {
 
                 Some(QueryResult::from(
                     ModelSearchItem::new(llm, &active_llm_id, app)
-                        .with_name_match_result(Some(match_result.clone()))
+                        .with_name_match_result(name_match_result)
                         .with_score(OrderedFloat(match_result.score as f64)),
                 ))
             })
@@ -344,7 +354,7 @@ impl ModelSearchItem {
             leading_icon,
             credential_icon,
             byo_key_source,
-            display_text: llm.display_name.clone(),
+            display_text: llm.localized_display_name(),
             is_selected: &llm.id == active_llm_id,
             is_custom_router,
             description: llm.description.clone(),
@@ -451,7 +461,7 @@ impl SearchItem for ModelSearchItem {
         }
 
         if self.is_selected {
-            let selected_label = "(selected)";
+            let selected_label = t!("terminal_ui.input.a11y.selected_parenthetical");
             let selected_text = Text::new_inline(
                 selected_label.to_string(),
                 appearance.ui_font_family(),
@@ -470,7 +480,7 @@ impl SearchItem for ModelSearchItem {
         }
 
         if self.is_disabled() {
-            let disabled_label = "(disabled)";
+            let disabled_label = t!("terminal_ui.input.models.disabled_parenthetical");
             let disabled_text = Text::new_inline(
                 disabled_label.to_string(),
                 appearance.ui_font_family(),
@@ -495,7 +505,11 @@ impl SearchItem for ModelSearchItem {
             let discount_percentage = self.discount_percentage.unwrap_or(0.);
             let chip = Container::new(
                 Text::new_inline(
-                    format!("{}% off!", discount_percentage.round() as u32),
+                    t!(
+                        "terminal_ui.input.models.discount",
+                        percent = discount_percentage.round() as u32
+                    )
+                    .to_string(),
                     appearance.ui_font_family(),
                     font_size,
                 )
@@ -530,11 +544,9 @@ impl SearchItem for ModelSearchItem {
 
         // Custom auto models get an informational blurb instead of spec bars.
         if self.is_custom_router {
-            let header = render_model_spec_header(
-                CUSTOM_MODEL_ROUTER_TITLE,
-                CUSTOM_MODEL_ROUTER_DESCRIPTION,
-                app,
-            );
+            let title = t!("terminal_ui.input.models.custom_router_title");
+            let description = t!("terminal_ui.input.models.custom_router_description");
+            let header = render_model_spec_header(&title, &description, app);
             let source_text = Text::new(
                 self.description.as_deref().unwrap_or("").to_string(),
                 appearance.ui_font_family(),
@@ -554,11 +566,17 @@ impl SearchItem for ModelSearchItem {
         }
 
         let (title, description) = if self.reasoning_level.is_some() {
-            (REASONING_LEVEL_TITLE, REASONING_LEVEL_DESCRIPTION)
+            (
+                t!("terminal_ui.input.models.reasoning_level_title"),
+                t!("terminal_ui.input.models.reasoning_level_description"),
+            )
         } else {
-            (MODEL_SPECS_TITLE, MODEL_SPECS_DESCRIPTION)
+            (
+                t!("terminal_ui.input.models.specs_title"),
+                t!("terminal_ui.input.models.specs_description"),
+            )
         };
-        let header = render_model_spec_header(title, description, app);
+        let header = render_model_spec_header(&title, &description, app);
 
         let cost_row = if self.is_using_bedrock || self.byo_key_source.is_some() {
             let search_query = if self.is_using_bedrock {
@@ -595,17 +613,24 @@ impl SearchItem for ModelSearchItem {
                 .finish();
             CostRow::BilledToProvider {
                 label: if self.is_using_bedrock && self.is_auto {
-                    "Inference may use Bedrock"
+                    t!("terminal_ui.input.models.inference_may_use_bedrock").to_string()
                 } else if self.is_using_bedrock {
-                    "Inference via Bedrock"
+                    t!("terminal_ui.input.models.inference_via_bedrock").to_string()
                 } else if let Some(source) = self.byo_key_source {
-                    source.inference_label()
+                    match source {
+                        ByoKeySource::UserProvided => {
+                            t!("terminal_ui.input.models.inference_via_user_key").to_string()
+                        }
+                        ByoKeySource::TeamProvided => {
+                            t!("terminal_ui.input.models.inference_via_team_key").to_string()
+                        }
+                    }
                 } else {
-                    "Inference via API key"
+                    t!("terminal_ui.input.models.inference_via_api_key").to_string()
                 },
                 tooltip: if self.is_using_bedrock && self.is_auto {
                     Some(CostRowTooltip {
-                        text: AUTO_BEDROCK_TOOLTIP,
+                        text: t!("terminal_ui.input.models.auto_bedrock_tooltip").to_string(),
                         mouse_state: self.cost_row_tooltip_mouse_state.clone(),
                     })
                 } else {
@@ -657,16 +682,25 @@ impl SearchItem for ModelSearchItem {
                 );
 
             let mut text_fragments = vec![
-                FormattedTextFragment::plain_text(format!(
-                    "{display_name} is not available for free users. "
-                )),
-                FormattedTextFragment::hyperlink("Upgrade", upgrade_url),
+                FormattedTextFragment::plain_text(
+                    t!(
+                        "terminal_ui.input.models.unavailable_for_free",
+                        name = display_name
+                    )
+                    .to_string(),
+                ),
+                FormattedTextFragment::hyperlink(
+                    t!("terminal_ui.input.models.upgrade").to_string(),
+                    upgrade_url,
+                ),
             ];
 
             if byok_available {
-                text_fragments.push(FormattedTextFragment::plain_text(" or ".to_string()));
+                text_fragments.push(FormattedTextFragment::plain_text(
+                    t!("terminal_ui.input.models.or").to_string(),
+                ));
                 text_fragments.push(FormattedTextFragment::hyperlink_action(
-                    "bring your own key",
+                    t!("terminal_ui.input.models.bring_your_own_key").to_string(),
                     WorkspaceAction::ShowSettingsPageWithSearch {
                         search_query: "api".to_string(),
                         section: Some(SettingsSection::WarpAgent),
@@ -735,18 +769,32 @@ impl SearchItem for ModelSearchItem {
     }
 
     fn tooltip(&self) -> Option<String> {
-        self.disable_reason
-            .as_ref()
-            .map(|reason| reason.tooltip_text().to_string())
+        self.disable_reason.as_ref().map(|reason| match reason {
+            DisableReason::AdminDisabled => {
+                t!("terminal_ui.input.models.disabled.admin").to_string()
+            }
+            DisableReason::OutOfRequests => {
+                t!("terminal_ui.input.models.disabled.out_of_requests").to_string()
+            }
+            DisableReason::ProviderOutage => {
+                t!("terminal_ui.input.models.disabled.provider_outage").to_string()
+            }
+            DisableReason::RequiresUpgrade => {
+                t!("terminal_ui.input.models.disabled.requires_upgrade").to_string()
+            }
+            DisableReason::Unavailable => {
+                t!("terminal_ui.input.models.disabled.unavailable").to_string()
+            }
+        })
     }
 
     fn accessibility_label(&self) -> String {
-        let mut label = format!("Model: {}", self.display_text);
+        let mut label = t!("terminal_ui.input.a11y.model", name = self.display_text).to_string();
         if self.is_selected {
-            label.push_str(" (selected)");
+            label.push_str(&t!("terminal_ui.input.a11y.selected_suffix"));
         }
         if self.is_disabled() {
-            label.push_str(" (disabled)");
+            label.push_str(&t!("terminal_ui.input.a11y.disabled_suffix"));
         }
         label
     }

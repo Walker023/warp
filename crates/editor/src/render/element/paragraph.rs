@@ -1,3 +1,7 @@
+use std::borrow::Cow;
+
+use rust_i18n::t;
+
 use super::RenderableBlock;
 use super::paint::RenderContext;
 use super::placeholder::{self, BlockPlaceholder};
@@ -7,16 +11,11 @@ use crate::render::model::viewport::ViewportItem;
 use crate::render::model::{BlockItem, RenderState};
 
 /// The placeholder text to show in empty plain-text blocks.
-pub(super) const PARAGRAPH_PLACEHOLDER_TEXT: &str =
-    "Type text or Markdown, or '/' to insert content";
-
-pub(super) const PARAGRAPH_PLACEHOLDER_TEXT_WITHOUT_SLASH: &str = "Type text or Markdown";
-
-pub fn paragraph_placeholder_text(slash_menu_enabled: bool) -> &'static str {
+pub fn paragraph_placeholder_text(slash_menu_enabled: bool) -> Cow<'static, str> {
     if slash_menu_enabled {
-        PARAGRAPH_PLACEHOLDER_TEXT
+        t!("editor.placeholder.paragraph_with_slash")
     } else {
-        PARAGRAPH_PLACEHOLDER_TEXT_WITHOUT_SLASH
+        t!("editor.placeholder.paragraph_without_slash")
     }
 }
 
@@ -46,10 +45,11 @@ impl RenderableBlock for RenderableParagraph {
         ctx: &mut warpui_core::LayoutContext,
         app: &warpui_core::AppContext,
     ) {
+        let placeholder_text = paragraph_placeholder_text(model.selections().len() == 1);
         self.placeholder
             .layout(&self.viewport_item, model, ctx, app, |_| {
                 placeholder::Options {
-                    text: paragraph_placeholder_text(model.selections().len() == 1),
+                    text: placeholder_text.as_ref(),
                     block_style: BufferBlockStyle::PlainText,
                 }
             });

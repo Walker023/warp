@@ -1,0 +1,6 @@
+ai_misc:
+  conversation_prefix:
+    fork: "(Fork) "
+    pre_rewind: "(Pre-Rewind) "
+  document:
+    updated_plan_query: "I've updated the plan."

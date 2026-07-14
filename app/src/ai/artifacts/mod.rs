@@ -15,6 +15,7 @@ use crate::ai::artifact_download::default_download_filename;
 use crate::ai::artifact_download::sanitized_basename;
 #[cfg(feature = "local_fs")]
 use crate::ai::artifact_download::{default_download_directory, download_artifact_bytes};
+use crate::i18n::t;
 use crate::notebooks::NotebookId;
 use crate::server::server_api::ai::ArtifactDownloadResponse;
 use crate::server::server_api::ServerApiProvider;
@@ -178,8 +179,8 @@ impl From<api::message::artifact_event::FileArtifact> for Artifact {
                 .file_name()
                 .and_then(|file_name| file_name.to_str())
                 .filter(|file_name| !file_name.trim().is_empty())
-                .unwrap_or("File")
-                .to_string(),
+                .map(str::to_string)
+                .unwrap_or_else(|| t!("ai_ui.artifacts.file").to_string()),
             mime_type: file.mime_type,
             description: if file.description.is_empty() {
                 None
@@ -294,7 +295,7 @@ pub fn file_button_label(filename: &str, filepath: &str) -> String {
     {
         return filepath_basename.to_string();
     }
-    "File".to_string()
+    t!("ai_ui.artifacts.file").to_string()
 }
 
 pub fn open_screenshot_lightbox<V: warpui::View>(
@@ -362,7 +363,7 @@ fn screenshot_lightbox_image_from_download_result(
             log::warn!("Failed to load screenshot artifact {index}: {e}");
             Some(LightboxImage {
                 source: LightboxImageSource::Loading,
-                description: Some("Failed to load".to_string()),
+                description: Some(t!("ai_ui.artifacts.failed_to_load").to_string()),
             })
         }
     }
@@ -388,7 +389,9 @@ pub fn download_file_artifact<V: warpui::View>(
                 log::warn!("Failed to load file artifact {artifact_uid}: {error}");
                 show_file_download_toast(
                     &artifact_uid,
-                    DismissibleToast::error("Failed to prepare file download.".to_string()),
+                    DismissibleToast::error(
+                        t!("ai_ui.artifacts.prepare_download_failed").to_string(),
+                    ),
                     ctx,
                 );
             }
@@ -457,9 +460,13 @@ fn open_file_download_picker<V: warpui::View>(
                         log::warn!("Failed to download file artifact {artifact_uid}: {error}");
                         show_file_download_toast(
                             &artifact_uid,
-                            DismissibleToast::error(format!(
-                                "Failed to download {toast_filename}."
-                            )),
+                            DismissibleToast::error(
+                                t!(
+                                    "ai_ui.artifacts.download_failed",
+                                    filename = &toast_filename
+                                )
+                                .to_string(),
+                            ),
                             ctx,
                         );
                     }
@@ -487,25 +494,25 @@ fn download_toast_filename(path: &Path) -> String {
     path.file_name()
         .and_then(|file_name| file_name.to_str())
         .filter(|file_name| !file_name.is_empty())
-        .unwrap_or("file")
-        .to_string()
+        .map(str::to_string)
+        .unwrap_or_else(|| t!("ai_ui.artifacts.file_lower").to_string())
 }
 
 /// The platform-appropriate label for the toast link that reveals a downloaded
 /// file in the system file manager.
 #[cfg(feature = "local_fs")]
-fn reveal_in_file_manager_label() -> &'static str {
+fn reveal_in_file_manager_label() -> String {
     #[cfg(target_os = "macos")]
     {
-        "View in Finder"
+        t!("ai_ui.artifacts.view_in_finder").to_string()
     }
     #[cfg(target_os = "windows")]
     {
-        "Show in Explorer"
+        t!("ai_ui.artifacts.show_in_explorer").to_string()
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        "Open folder"
+        t!("ai_ui.artifacts.open_folder").to_string()
     }
 }
 
@@ -513,7 +520,12 @@ fn reveal_in_file_manager_label() -> &'static str {
 /// including the directory the file landed in.
 #[cfg(feature = "local_fs")]
 fn download_success_message(filename: &str, directory: &Path) -> String {
-    format!("{filename} was downloaded to {}.", directory.display())
+    t!(
+        "ai_ui.artifacts.downloaded_to",
+        filename = filename,
+        directory = directory.display()
+    )
+    .to_string()
 }
 
 /// Builds the success toast for a completed file-artifact download. When the
@@ -526,10 +538,12 @@ fn file_download_success_toast(
     file_path: &Path,
 ) -> DismissibleToast<WorkspaceAction> {
     let Some(directory) = file_path.parent() else {
-        return DismissibleToast::success(format!("Downloaded {filename}."));
+        return DismissibleToast::success(
+            t!("ai_ui.artifacts.downloaded", filename = filename).to_string(),
+        );
     };
     DismissibleToast::success(download_success_message(filename, directory)).with_link(
-        ToastLink::new(reveal_in_file_manager_label().to_string()).with_onclick_action(
+        ToastLink::new(reveal_in_file_manager_label()).with_onclick_action(
             WorkspaceAction::OpenInExplorer {
                 path: file_path.to_path_buf(),
             },

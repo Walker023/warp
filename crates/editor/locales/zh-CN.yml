@@ -1,0 +1,18 @@
+editor:
+  broken_embedding:
+    not_found: "未找到嵌入内容"
+  hidden_section:
+    unmodified_line: "%{count} 行未修改"
+    unmodified_lines: "%{count} 行未修改"
+    expand_all_lines: "展开所有行"
+  image:
+    too_large: "图片过大，无法显示"
+  mermaid:
+    rendering: "正在渲染 Mermaid 图表…"
+    render_error: "渲染 Mermaid 图表时出错，请检查语法。"
+    render_failure: "无法渲染 Mermaid 图表"
+  placeholder:
+    paragraph_with_slash: "输入文本或 Markdown，或输入“/”插入内容"
+    paragraph_without_slash: "输入文本或 Markdown"
+    task_list: "待办列表"
+    list: "列表"

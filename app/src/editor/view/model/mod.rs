@@ -46,6 +46,7 @@ use warpui::{AppContext, Entity, ModelAsRef, ModelContext, ModelHandle, Singleto
 use self::buffer::Peer;
 use super::{movement, PlainTextEditorViewAction, SelectionInsertion, ValidInputType};
 use crate::editor::RangeExt;
+use crate::i18n::t;
 use crate::vim_registers::VimRegisters;
 
 lazy_static! {
@@ -527,15 +528,16 @@ impl EditorModel {
                 let action = if inclusive_contains(&selection_after, start)
                     && inclusive_contains(&selection_after, end)
                 {
-                    "selected"
+                    t!("code_editor_extra.editor.a11y.selected").to_string()
                 } else {
-                    "unselected"
+                    t!("code_editor_extra.editor.a11y.unselected").to_string()
                 };
-                AccessibilityContent::new(delta, format!(", {action}"), WarpA11yRole::UserAction)
+                AccessibilityContent::new(delta, action, WarpA11yRole::UserAction)
             }
-            (true, false) => {
-                AccessibilityContent::new_without_help("Unselected", WarpA11yRole::UserAction)
-            }
+            (true, false) => AccessibilityContent::new_without_help(
+                t!("code_editor_extra.editor.a11y.unselected_only").to_string(),
+                WarpA11yRole::UserAction,
+            ),
         }
     }
 
@@ -2298,7 +2300,7 @@ impl EditorModel {
 
         ctx.emit_a11y_content(AccessibilityContent::new(
             self.selected_text(ctx),
-            ", deleted",
+            t!("code_editor_extra.editor.a11y.deleted").to_string(),
             WarpA11yRole::UserAction,
         ));
         self.change_selections(new_selections, ctx);
@@ -2322,7 +2324,7 @@ impl EditorModel {
 
         ctx.emit_a11y_content(AccessibilityContent::new(
             self.selected_text(ctx),
-            ", deleted",
+            t!("code_editor_extra.editor.a11y.deleted").to_string(),
             WarpA11yRole::UserAction,
         ));
         self.change_selections(new_selections, ctx);

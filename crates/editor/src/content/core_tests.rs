@@ -33,7 +33,7 @@ fn replace_oversized_data_uri_images_swaps_in_placeholder() {
     assert!(matches!(&lines[0], FormattedTextLine::Line(_)));
     assert_eq!(
         lines[0].raw_text(),
-        format!("{IMAGE_TOO_LARGE_PLACEHOLDER}\n")
+        format!("{}\n", rust_i18n::t!("editor.image.too_large"))
     );
 
     // ... while an in-limit image is left untouched.

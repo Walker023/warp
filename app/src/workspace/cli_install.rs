@@ -7,6 +7,12 @@ use command::blocking::Command;
 use warp_core::channel::ChannelState;
 use warp_util::path::ShellFamily;
 
+use crate::i18n::t;
+
+fn escape_applescript_string(value: &str) -> String {
+    value.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
 /// Compute the target path where the Oz CLI symlink should be installed, based on channel
 fn oz_install_target_path() -> PathBuf {
     PathBuf::from("/usr/local/bin").join(ChannelState::channel().cli_command_name())
@@ -26,13 +32,16 @@ fn warpctrl_install_target_path() -> PathBuf {
 /// Warp Control subcommands such as `tab` would reach the normal parser and be
 /// rejected as unknown.
 fn warpctrl_bundle_source_path() -> Result<PathBuf> {
-    let current_binary =
-        std::env::current_exe().context("Failed to get current executable path")?;
+    let current_binary = std::env::current_exe().context(
+        t!("workspace_search_ui.workspace.cli.current_executable_path_failed").to_string(),
+    )?;
     let bundle_root = current_binary
         .parent()
         .and_then(|p| p.parent())
         .and_then(|p| p.parent())
-        .ok_or_else(|| anyhow!("Current executable is not inside a bundled app"))?;
+        .ok_or_else(|| {
+            anyhow!(t!("workspace_search_ui.workspace.cli.not_bundled_app").to_string())
+        })?;
     Ok(bundle_root
         .join("Contents/Resources/bin")
         .join(ChannelState::channel().warpctrl_command_name()))
@@ -60,19 +69,30 @@ pub fn is_warpctrl_installed() -> bool {
 /// This function uses macOS's osascript to prompt for administrator privileges
 /// and create a symlink
 fn create_symlink_with_admin(source: &Path, target: &Path) -> Result<()> {
-    let source_str = source
-        .to_str()
-        .ok_or_else(|| anyhow!("Source path contains invalid UTF-8: {source:?}"))?;
-    let target_str = target
-        .to_str()
-        .ok_or_else(|| anyhow!("Target path contains invalid UTF-8: {target:?}"))?;
+    let source_str = source.to_str().ok_or_else(|| {
+        anyhow!(t!(
+            "workspace_search_ui.workspace.cli.invalid_source_path",
+            path = format!("{source:?}")
+        )
+        .to_string())
+    })?;
+    let target_str = target.to_str().ok_or_else(|| {
+        anyhow!(t!(
+            "workspace_search_ui.workspace.cli.invalid_target_path",
+            path = format!("{target:?}")
+        )
+        .to_string())
+    })?;
 
     let escaped_source = ShellFamily::Posix.shell_escape(source_str);
     let escaped_target = ShellFamily::Posix.shell_escape(target_str);
+    let prompt = escape_applescript_string(
+        t!("workspace_search_ui.workspace.cli.admin_install_prompt").as_ref(),
+    );
 
     // Use osascript to run the ln command with admin privileges, with a custom prompt
     let script = format!(
-        "do shell script \"ln -sf {escaped_source} {escaped_target}\" with prompt \"Warp needs administrator privileges to install the command in /usr/local/bin.\" with administrator privileges"
+        "do shell script \"ln -sf {escaped_source} {escaped_target}\" with prompt \"{prompt}\" with administrator privileges"
     );
 
     log::debug!("Creating symlink with admin privileges");
@@ -81,16 +101,21 @@ fn create_symlink_with_admin(source: &Path, target: &Path) -> Result<()> {
         .arg("-e")
         .arg(&script)
         .output()
-        .context("Failed to execute osascript for admin privileges")?;
+        .context(t!("workspace_search_ui.workspace.cli.execute_osascript_failed").to_string())?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         if stderr.contains("User canceled") || stderr.contains("cancelled") {
-            return Err(anyhow!("Installation cancelled by user."));
+            return Err(anyhow!(t!(
+                "workspace_search_ui.workspace.cli.installation_cancelled"
+            )
+            .to_string()));
         }
-        return Err(anyhow!(
-            "Failed to create symlink with admin privileges: {stderr}"
-        ));
+        return Err(anyhow!(t!(
+            "workspace_search_ui.workspace.cli.create_symlink_admin_failed",
+            error = stderr
+        )
+        .to_string()));
     }
 
     Ok(())
@@ -106,9 +131,12 @@ fn remove_file_with_admin(target: &Path) -> Result<()> {
         .ok_or_else(|| anyhow!("Target path contains invalid UTF-8: {target:?}"))?;
 
     let escaped_target = ShellFamily::Posix.shell_escape(target_str);
+    let prompt = escape_applescript_string(
+        t!("workspace_search_ui.workspace.cli.admin_uninstall_prompt").as_ref(),
+    );
 
     let script = format!(
-        "do shell script \"rm {escaped_target}\" with prompt \"Warp needs administrator privileges to uninstall the command from /usr/local/bin.\" with administrator privileges"
+        "do shell script \"rm {escaped_target}\" with prompt \"{prompt}\" with administrator privileges"
     );
 
     log::debug!("Removing file with admin privileges");
@@ -117,16 +145,21 @@ fn remove_file_with_admin(target: &Path) -> Result<()> {
         .arg("-e")
         .arg(&script)
         .output()
-        .context("Failed to execute osascript for admin privileges")?;
+        .context(t!("workspace_search_ui.workspace.cli.execute_osascript_failed").to_string())?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         if stderr.contains("User canceled") || stderr.contains("cancelled") {
-            return Err(anyhow!("Uninstallation cancelled by user."));
+            return Err(anyhow!(t!(
+                "workspace_search_ui.workspace.cli.uninstallation_cancelled"
+            )
+            .to_string()));
         }
-        return Err(anyhow!(
-            "Failed to remove file with admin privileges: {stderr}"
-        ));
+        return Err(anyhow!(t!(
+            "workspace_search_ui.workspace.cli.remove_symlink_admin_failed",
+            error = stderr
+        )
+        .to_string()));
     }
 
     Ok(())
@@ -139,10 +172,12 @@ fn remove_file_with_admin(target: &Path) -> Result<()> {
 /// to prompting for administrator privileges.
 fn install_symlink(source: &Path, target: &Path, command_name: &str) -> Result<()> {
     if target.exists() && !target.is_symlink() {
-        return Err(anyhow!(
-            "Cannot install {command_name}: {:?} exists but is not a symlink. Please remove it manually first.",
-            target
-        ));
+        return Err(anyhow!(t!(
+            "workspace_search_ui.workspace.cli.cannot_install_existing",
+            command = command_name,
+            path = format!("{target:?}")
+        )
+        .to_string()));
     }
 
     match symlink(source, target) {
@@ -155,8 +190,9 @@ fn install_symlink(source: &Path, target: &Path, command_name: &str) -> Result<(
         }
         Err(_) => {
             log::debug!("{command_name} symlink creation failed, trying with admin privileges");
-            create_symlink_with_admin(source, target)
-                .context("Failed to create symlink even with admin privileges")?;
+            create_symlink_with_admin(source, target).context(
+                t!("workspace_search_ui.workspace.cli.create_symlink_failed").to_string(),
+            )?;
             log::debug!("{command_name} installed successfully with admin privileges");
         }
     }
@@ -171,14 +207,20 @@ fn install_symlink(source: &Path, target: &Path, command_name: &str) -> Result<(
 /// prompting for administrator privileges.
 fn uninstall_symlink(target: &Path, command_name: &str) -> Result<()> {
     if !target.exists() {
-        return Err(anyhow!("{command_name} is not currently installed."));
+        return Err(anyhow!(t!(
+            "workspace_search_ui.workspace.cli.not_installed",
+            command = command_name
+        )
+        .to_string()));
     }
 
     if !target.is_symlink() {
-        return Err(anyhow!(
-            "Cannot uninstall {command_name}: {:?} exists but is not a symlink. Please remove it manually.",
-            target
-        ));
+        return Err(anyhow!(t!(
+            "workspace_search_ui.workspace.cli.cannot_uninstall_existing",
+            command = command_name,
+            path = format!("{target:?}")
+        )
+        .to_string()));
     }
 
     match fs::remove_file(target) {
@@ -187,8 +229,9 @@ fn uninstall_symlink(target: &Path, command_name: &str) -> Result<()> {
         }
         Err(_) => {
             log::debug!("{command_name} file removal failed, trying with admin privileges");
-            remove_file_with_admin(target)
-                .context("Failed to remove symlink even with admin privileges")?;
+            remove_file_with_admin(target).context(
+                t!("workspace_search_ui.workspace.cli.remove_symlink_failed").to_string(),
+            )?;
             log::debug!("{command_name} uninstalled successfully with admin privileges");
         }
     }
@@ -203,8 +246,9 @@ fn uninstall_symlink(target: &Path, command_name: &str) -> Result<()> {
 /// GUI when no subcommand is provided.
 pub fn install_oz() -> Result<()> {
     let oz_path = oz_install_target_path();
-    let current_binary =
-        std::env::current_exe().context("Failed to get current executable path")?;
+    let current_binary = std::env::current_exe().context(
+        t!("workspace_search_ui.workspace.cli.current_executable_path_failed").to_string(),
+    )?;
     install_symlink(&current_binary, &oz_path, "Oz CLI")
 }
 
@@ -224,10 +268,11 @@ pub fn install_warpctrl() -> Result<()> {
     let warpctrl_source = warpctrl_bundle_source_path()?;
 
     if !warpctrl_source.exists() {
-        return Err(anyhow!(
-            "Cannot install Warp Control CLI: bundled wrapper not found at {}",
-            warpctrl_source.display()
-        ));
+        return Err(anyhow!(t!(
+            "workspace_search_ui.workspace.cli.wrapper_not_found",
+            path = warpctrl_source.display()
+        )
+        .to_string()));
     }
 
     install_symlink(&warpctrl_source, &warpctrl_path, "Warp Control CLI")

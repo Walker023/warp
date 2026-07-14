@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local, Utc};
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
 use warp_core::features::FeatureFlag;
 use warp_graphql::object_permissions::OwnerType;
@@ -37,7 +37,9 @@ use crate::modal::{Modal, ModalEvent, ModalViewState};
 use crate::search_bar::SearchBar;
 use crate::server::ids::ApiKeyUid;
 use crate::ui_components::icons::Icon;
-use crate::util::time_format::format_approx_duration_from_now_utc;
+use crate::util::time_format::{
+    format_approx_duration_from_now_utc, format_localized_datetime, LocalizedDateTimeFormat,
+};
 
 const MODAL_WIDTH: f32 = 460.;
 const MODAL_HEIGHT: f32 = 320.;
@@ -759,7 +761,9 @@ impl PlatformPageWidget {
             .unwrap_or_else(|| t!("settings.platform.never").to_string());
         let expires_at = key
             .expires_at
-            .map(|dt| format!("{}", dt.format("%b %-d, %Y")))
+            .map(|dt| {
+                format_localized_datetime(dt.with_timezone(&Local), LocalizedDateTimeFormat::Date)
+            })
             .unwrap_or_else(|| t!("settings.platform.never").to_string());
         let name_column_width = view.api_key_table_column_widths.name_width();
         let key_column_width = API_KEY_KEY_COLUMN_WIDTH;

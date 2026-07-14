@@ -14,6 +14,7 @@ use anyhow::Result;
 use geometry::rect::RectF;
 use itertools::Itertools;
 use parking_lot::Mutex;
+use rust_i18n::t;
 use serde::de::IntoDeserializer;
 use warp_errors::report_error;
 use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
@@ -366,14 +367,15 @@ impl platform::Delegate for AppDelegate {
                     // native-dialog doesn't support file-or-directory or multi-directory pickers,
                     // so if folders are allowed, it can only show a directory picker.
                     let result = if file_picker_config.allows_folder() {
+                        let title = t!("warpui.file_dialog.choose_directory").to_string();
                         native_dialog::FileDialog::new()
-                            .set_title("Choose directory...")
+                            .set_title(&title)
                             .show_open_single_dir()
                             .map(|opt| opt.into_iter().collect())
                             .map_err(|e| FilePickerError::DialogFailed(e.to_string()))
                     } else {
-                        let mut file_dialog =
-                            native_dialog::FileDialog::new().set_title("Choose file...");
+                        let title = t!("warpui.file_dialog.choose_file").to_string();
+                        let mut file_dialog = native_dialog::FileDialog::new().set_title(&title);
                         if !allowed_extensions.is_empty() {
                             file_dialog = file_dialog.add_filter(
                                 file_type_names.as_str(),
@@ -437,8 +439,8 @@ impl platform::Delegate for AppDelegate {
             std::thread::Builder::new()
                 .name("Save File Picker".to_string())
                 .spawn(move || {
-                    let mut file_dialog =
-                        native_dialog::FileDialog::new().set_title("Save file as...");
+                    let title = t!("warpui.file_dialog.save_file_as").to_string();
+                    let mut file_dialog = native_dialog::FileDialog::new().set_title(&title);
 
                     if let Some(default_filename) = config.default_filename.as_ref() {
                         file_dialog = file_dialog.set_filename(default_filename);

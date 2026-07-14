@@ -384,8 +384,8 @@ impl HoaOnboardingFlow {
 
     fn render_callout_content(
         &self,
-        title: &'static str,
-        description: &'static str,
+        title: String,
+        description: String,
         extra_child: Option<Box<dyn Element>>,
         button: &ViewHandle<ActionButton>,
         appearance: &Appearance,
@@ -435,7 +435,7 @@ impl HoaOnboardingFlow {
             .finish();
 
         let checkbox_label = Text::new_inline(
-            "Switch back to horizontal tabs".to_string(),
+            t!("workspace_search_ui.workspace.hoa_onboarding.switch_to_horizontal").to_string(),
             appearance.ui_font_family(),
             12.,
         )
@@ -456,8 +456,9 @@ impl HoaOnboardingFlow {
         };
 
         self.render_callout_content(
-            "Introducing vertical tabs - the new default",
-            "Vertical tabs show all open agent and terminal panes, grouped by tab. Customize what information you want to see to support your workflow.",
+            t!("workspace_search_ui.workspace.hoa_onboarding.vertical_tabs_title").to_string(),
+            t!("workspace_search_ui.workspace.hoa_onboarding.vertical_tabs_description")
+                .to_string(),
             Some(checkbox_row),
             button,
             appearance,
@@ -466,7 +467,7 @@ impl HoaOnboardingFlow {
 
     fn render_inbox_callout(&self, appearance: &Appearance) -> Box<dyn Element> {
         let title = Text::new(
-            "Meet your new agent inbox",
+            t!("workspace_search_ui.workspace.hoa_onboarding.agent_inbox_title").to_string(),
             appearance.ui_font_family(),
             16.,
         )
@@ -476,7 +477,7 @@ impl HoaOnboardingFlow {
 
         // Build the description with an inline "Learn more" hyperlink.
         let learn_more_fragment = FormattedTextFragment {
-            text: "Learn more".into(),
+            text: t!("common.learn_more").to_string(),
             styles: FormattedTextStyles {
                 underline: true,
                 hyperlink: Some(Hyperlink::Url(
@@ -488,7 +489,8 @@ impl HoaOnboardingFlow {
 
         let formatted = FormattedText::new([FormattedTextLine::Line(vec![
             FormattedTextFragment::plain_text(
-                "Warp pipes through notifications from any CLI coding agent into a unified notification center that works across all coding agents and harnesses. ",
+                t!("workspace_search_ui.workspace.hoa_onboarding.agent_inbox_description")
+                    .to_string(),
             ),
             learn_more_fragment,
         ])]);

@@ -552,7 +552,7 @@ pub fn render_info_icon<T: Clone + Action>(
 ) -> Box<dyn Element> {
     let tooltip_text = additional_info
         .tooltip_override_text
-        .unwrap_or("Click to learn more in docs".to_owned());
+        .unwrap_or_else(|| t!("settings_extra.tooltips.learn_more_docs").to_string());
     let icon = Container::new(
         ConstrainedBox::new(
             Icon::Info
@@ -610,7 +610,7 @@ pub fn render_local_only_icon(
         .ui_builder()
         .local_only_icon_with_tooltip(
             13.,
-            custom_tooltip.unwrap_or("This setting is not synced to your other devices".to_owned()),
+            custom_tooltip.unwrap_or_else(|| t!("settings_extra.tooltips.not_synced").to_string()),
             mouse_state.clone(),
         )
         .finish();
@@ -1022,9 +1022,6 @@ pub(crate) fn render_settings_info_banner(
     .finish()
 }
 
-const WORKSPACE_OVERRIDE_TOOLTIP_TEXT: &str =
-    "This option is enforced by your organization's settings and cannot be customized.";
-
 pub struct InputListItem<SettingsPageAction: Action + Clone> {
     pub item: String,
     pub mouse_state_handle: MouseStateHandle,
@@ -1132,7 +1129,7 @@ fn render_workspace_override_row_tooltip(
         if state.is_hovered() {
             let tooltip = appearance
                 .ui_builder()
-                .tool_tip(WORKSPACE_OVERRIDE_TOOLTIP_TEXT.to_string())
+                .tool_tip(t!("settings_extra.tooltips.organization_enforced").to_string())
                 .build()
                 .finish();
             stack.add_positioned_child(

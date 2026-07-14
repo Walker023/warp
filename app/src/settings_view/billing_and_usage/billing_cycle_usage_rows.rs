@@ -17,6 +17,7 @@ use warpui::{AppContext, Element, EventContext, SingletonEntity};
 
 use crate::ai::AIRequestUsageModel;
 use crate::auth::AuthStateProvider;
+use crate::i18n::t;
 use crate::settings_view::billing_and_usage::billing_cycle_usage_common::{
     aggregate_segments, cost_type_color, format_cost_cents, format_credits,
     render_breakdown_tooltip, render_section_subheader, BarSegment, BillingUsageMouseStates,
@@ -50,11 +51,11 @@ pub enum SourceFilter {
 }
 
 impl SourceFilter {
-    pub fn label(self) -> &'static str {
+    pub fn label(self) -> String {
         match self {
-            SourceFilter::All => "All",
-            SourceFilter::Local => "Local",
-            SourceFilter::Cloud => "Cloud",
+            SourceFilter::All => t!("settings_extra.billing.all").to_string(),
+            SourceFilter::Local => t!("settings_extra.billing.local").to_string(),
+            SourceFilter::Cloud => t!("settings_extra.billing.cloud").to_string(),
         }
     }
 
@@ -90,7 +91,7 @@ fn viewer_identity(app: &AppContext) -> (Option<String>, String) {
         .display_name()
         .or_else(|| auth_state.username_for_display())
         .or_else(|| auth_state.user_email())
-        .unwrap_or_else(|| "Your usage".to_string());
+        .unwrap_or_else(|| t!("settings_extra.billing.your_usage").to_string());
     (viewer_uid, display_name)
 }
 
@@ -173,7 +174,7 @@ impl MemberUsageRow {
             subject_type: AiCreditsUsageAndCostSubjectType::Team,
             subject_key: OTHER_MEMBERS_KEY.to_string(),
             subject_uid: None,
-            display_name: "Other members".to_string(),
+            display_name: t!("settings_extra.billing.other_members").to_string(),
             total_credits,
             total_cost_cents,
             segments,
@@ -214,7 +215,7 @@ impl MemberUsageRow {
                 display_name: entry
                     .subject_display_name
                     .clone()
-                    .unwrap_or_else(|| "Unknown".to_string()),
+                    .unwrap_or_else(|| t!("settings_extra.billing.unknown").to_string()),
                 entries: Vec::new(),
             });
             group.entries.push(entry.clone());
@@ -431,7 +432,7 @@ fn render_usage_tooltip_content(row: &MemberUsageRow, appearance: &Appearance) -
 fn render_service_account_info_tooltip(appearance: &Appearance) -> Box<dyn Element> {
     let theme = appearance.theme();
     let text = Text::new_inline(
-        "This is an automated agent on your team.".to_string(),
+        t!("settings_extra.billing.automated_agent_tooltip").to_string(),
         appearance.ui_font_family(),
         12.,
     )
@@ -693,7 +694,7 @@ fn render_source_filter_toggle(
 
         let cell = Hoverable::new(mouse_state, move |_state| {
             let mut cell = Container::new(
-                Text::new_inline(label, font_family, 11.)
+                Text::new_inline(label.clone(), font_family, 11.)
                     .with_color(fg)
                     .finish(),
             )
@@ -791,7 +792,8 @@ fn render_member_header(
     let show_toggle = visibility.granularity == UsageVisibilityGranularity::FullBreakdown
         && has_cloud_usage(entries);
 
-    let subheader = render_section_subheader("Members", appearance);
+    let subheader =
+        render_section_subheader(t!("settings_extra.billing.members").as_ref(), appearance);
     let header = if show_toggle {
         Flex::row()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)

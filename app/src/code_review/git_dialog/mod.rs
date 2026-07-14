@@ -196,7 +196,7 @@ fn render_branch_section(
     let sub_color = theme.sub_text_color(theme.surface_1()).into_solid();
 
     let label = Text::new(
-        "Branch",
+        t!("workspace.view_options.branch").to_string(),
         appearance.ui_font_family(),
         appearance.ui_font_size(),
     )

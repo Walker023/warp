@@ -1,0 +1,202 @@
+ai_sdk_management:
+  admin:
+    login:
+      already_with_email: "You are already logged in as %{username} (%{email})."
+      already_as: "You are already logged in as %{name}."
+      already: "You are already logged in."
+      success: "Logged in successfully"
+      authentication_failed_detail: "Authentication failed: %{error}"
+      authentication_failed: "Authentication failed"
+      open_url: "To log in, open this URL in your browser:\n%{url}"
+      visit_and_enter_code: "To log in, visit %{url} and enter this code: %{code}"
+    whoami:
+      user_id: "User ID: %{id}"
+      service_account_id: "Service account ID: %{id}"
+      display_name: "Display Name: %{name}"
+      email: "Email: %{email}"
+      team_id: "Team ID: %{id}"
+      team_name: "Team Name: %{name}"
+      user_id_unavailable: "Could not determine user ID. Are you logged in?"
+      serialization_failed: "whoami output should serialize"
+      ndjson_unsupported: "`whoami` does not support `--output-format ndjson`"
+    logout:
+      not_logged_in: "You are not logged in."
+      success: "Logged out successfully."
+
+  agent_config:
+    error:
+      invalid_repo: "Invalid repo format: '%{repo}'. Expected 'owner/repo' or 'https://github.com/owner/repo'"
+      max_authorization_attempts: "Exceeded maximum number of authorization attempts (%{count}). Please try again later."
+      private_repo_inaccessible: "Cannot access private repo %{owner}/%{repo}"
+      github_not_connected: "User not connected to GitHub"
+      github_authorization_failed: "GitHub authorization failed. Please try again."
+      github_authorization_expired: "GitHub authorization expired. Please try again."
+      unexpected_oauth_status: "Unexpected OAuth status"
+      oauth_poll_failed: "Error polling OAuth status: %{error}"
+      authorization_flow_missing: "Cannot list agents: authorization required but no auth flow provided"
+      github_auth_check_failed: "Failed to check GitHub auth status"
+    info:
+      private_repo_authorization_required: "\nAuthorization required for private repository access."
+      opening_github_authorization: "Opening browser for GitHub authorization: %{url}\n"
+      authorize_here: "\nAuthorize access here: %{url}\n"
+      rerun_after_authorizing: "After authorizing, please re-run this command."
+      fetching_from_repo: "Fetching agent skills from the specified repository..."
+      fetching_from_environments: "Fetching agent skills from your Warp environments..."
+    output:
+      no_skills: "No skills found."
+      agent: "\nAgent:"
+      agents: "\nAgents (%{count}):"
+      id: "ID: %{id}"
+      description: "Description"
+      base_prompt: "Base Prompt"
+      source: "Source: %{owner}/%{name}"
+      environments: "Environments: %{environments}"
+
+  agent_management:
+    table:
+      uid: "UID"
+      name: "Name"
+      created: "Created"
+      description: "Description"
+      secrets: "Secrets"
+      skills: "Skills"
+      base_model: "Base model"
+      environment: "Environment"
+    status:
+      no_agents: "No agents found."
+      disabled_hidden: "%{count} disabled agents hidden"
+      deleted: "Deleted agent %{uid}."
+    hint:
+      skills: "\n\nLooking for your agent skills? Use `%{binary} agent skills` instead."
+    error:
+      no_updates: "No updates requested"
+      json_sort_unsupported: "--sort-by and --sort-order are not supported with JSON output"
+
+  api_key:
+    scope:
+      personal: "Personal"
+      team: "Team"
+    table:
+      uid: "UID"
+      name: "Name"
+      key: "Key"
+      scope: "Scope"
+      created: "Created"
+      last_used: "Last Used"
+      expires_at: "Expires At"
+    value:
+      never: "Never"
+    prompt:
+      expire: "Expire API key '%{key}'?"
+      expire_help: "This action takes effect immediately"
+      select_to_expire: "Multiple API keys match '%{identifier}'. Select a key to expire:"
+    status:
+      expiration_cancelled: "Expiration cancelled"
+      multiple_matches: "Multiple API keys match '%{identifier}':"
+      created: "API key '%{name}' created."
+      uid: "UID: %{uid}"
+      raw_key: "Raw API key: %{key}"
+      security_warning: "This secret key is shown only once. Store it securely."
+      expired: "API key '%{uid}' expired."
+      not_expired: "API key '%{uid}' was not expired."
+    display:
+      created: "%{name} (%{uid}, created %{created_at})"
+    error:
+      create_failed: "failed to create API key"
+      expire_non_interactive: "Refusing to expire API key without confirmation in non-interactive mode (use --force to bypass)"
+      expire_failed: "failed to expire API key"
+      not_found: "API key '%{identifier}' not found"
+      ambiguous: "Multiple API keys match '%{identifier}'; specify the key by UID"
+      expiration_too_large: "expiration duration is too large"
+      expiration_required: "expiration behavior is required"
+
+  integration:
+    status:
+      creating_without_environment: "Creating integration without an environment."
+      creating_with_environment: "Creating integration with environment %{id}."
+      creation_cancelled: "Integration creation canceled."
+    info:
+      authorize_provider: "Authorize the provider here: %{url}\n"
+      continue_creation: "After authorizing, re-run the command to continue the integration creation process."
+      continue_update: "After authorizing, re-run the command to continue the integration update process."
+    error:
+      max_creation_attempts: "Exceeded maximum number of integration creation attempts (%{count}). Retry."
+      max_update_attempts: "Exceeded maximum number of integration update attempts (%{count}). Retry."
+      oauth_failed: "OAuth authorization failed."
+      oauth_expired: "OAuth authorization expired."
+      oauth_non_terminal_status: "Unexpected non-terminal OAuth status returned"
+      oauth_poll_failed: "Error polling OAuth status: %{error}"
+      creation_auth_url_missing: "Server did not return an authURL for the integration creation process."
+      update_auth_url_missing: "Server did not return an authURL for the integration update process."
+      creation_reported_failure: "Integration creation reported failure: %{message}"
+      update_reported_failure: "Integration update reported failure: %{message}"
+
+  integration_output:
+    heading:
+      none: "No integrations found."
+      one: "\nIntegration:"
+      many: "\nIntegrations:"
+    label:
+      status: "Status"
+      environment: "Environment"
+      model: "Model"
+      base_prompt: "Base prompt"
+      mcp_servers: "MCP servers"
+    timestamp:
+      created: "Created: %{time}"
+      updated: "Updated: %{time}"
+    value:
+      none: "(none)"
+      unknown: "Unknown"
+    status:
+      not_connected: "This integration is not connected."
+      connection_error: "This provider is connected but there is an error."
+      not_configured: "Connection is active, but the agent integration has not been configured yet."
+      not_enabled: "Integration is configured but currently disabled."
+      active: "Integration is connected and enabled."
+    table:
+      provider: "Provider"
+      description: "Description"
+      status: "Status"
+      environment: "Environment"
+      created: "Created"
+      updated: "Updated"
+
+  provider:
+    scope:
+      personal: "personal"
+      team: "team"
+    status:
+      not_connected: "❌ Not Connected"
+    table:
+      name: "NAME"
+      slug: "SLUG"
+      allowed_for: "ALLOWED FOR"
+      status: "STATUS"
+    info:
+      authenticate: "To authenticate %{provider}, open this URL in your browser: %{url}"
+    error:
+      scope_required: "Provider '%{provider}' must be setup for either a team or personal account"
+      not_on_team: "User is not on a team"
+
+  profiles:
+    value:
+      unsynced: "Unsynced"
+    table:
+      id: "ID"
+      name: "Name"
+
+  mcp:
+    table:
+      uuid: "UUID"
+      name: "Name"
+
+  model:
+    table:
+      id: "MODEL ID"
+    error:
+      metadata_refresh_timeout: "Timed out refreshing workspace metadata"
+
+  oauth:
+    waiting: "Waiting for authorization to complete... If this doesn't update after authorizing, please restart the command and try again.\n"
+    timeout: "Timed out waiting for OAuth authorization"

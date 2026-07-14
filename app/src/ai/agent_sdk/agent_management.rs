@@ -16,6 +16,7 @@ use warpui::platform::TerminationMode;
 use warpui::{AppContext, ModelContext, SingletonEntity};
 
 use super::output::TableFormat;
+use crate::i18n::t;
 use crate::server::server_api::ai::{
     AgentResponse, CreateAgentRequest, SecretRef, UpdateAgentRequest,
 };
@@ -225,7 +226,10 @@ impl AgentManagementRunner {
                 },
             };
             if request_is_empty(&request) {
-                return Err(anyhow!("No updates requested"));
+                return Err(anyhow!(t!(
+                    "ai_sdk_management.agent_management.error.no_updates"
+                )
+                .to_string()));
             }
 
             if matches!(output_format, OutputFormat::Json) || json_output.force_json_output() {
@@ -315,9 +319,10 @@ fn ensure_json_sort_is_not_requested(
     if (matches!(output_format, OutputFormat::Json) || json_output.force_json_output())
         && (args.sort_by.is_some() || args.sort_order.is_some())
     {
-        return Err(anyhow!(
-            "--sort-by and --sort-order are not supported with JSON output"
-        ));
+        return Err(anyhow!(t!(
+            "ai_sdk_management.agent_management.error.json_sort_unsupported"
+        )
+        .to_string()));
     }
 
     Ok(())
@@ -362,14 +367,14 @@ fn sort_agents(
 impl TableFormat for AgentResponse {
     fn header() -> Vec<Cell> {
         vec![
-            Cell::new("UID"),
-            Cell::new("Name"),
-            Cell::new("Created"),
-            Cell::new("Description"),
-            Cell::new("Secrets"),
-            Cell::new("Skills"),
-            Cell::new("Base model"),
-            Cell::new("Environment"),
+            Cell::new(t!("ai_sdk_management.agent_management.table.uid").to_string()),
+            Cell::new(t!("ai_sdk_management.agent_management.table.name").to_string()),
+            Cell::new(t!("ai_sdk_management.agent_management.table.created").to_string()),
+            Cell::new(t!("ai_sdk_management.agent_management.table.description").to_string()),
+            Cell::new(t!("ai_sdk_management.agent_management.table.secrets").to_string()),
+            Cell::new(t!("ai_sdk_management.agent_management.table.skills").to_string()),
+            Cell::new(t!("ai_sdk_management.agent_management.table.base_model").to_string()),
+            Cell::new(t!("ai_sdk_management.agent_management.table.environment").to_string()),
         ]
     }
 
@@ -395,7 +400,10 @@ fn print_agents(agents: &[AgentResponse], output_format: OutputFormat) -> anyhow
             let (visible_agents, hidden_count) = visible_agents_and_hidden_count(agents);
             match output_format {
                 OutputFormat::Pretty if visible_agents.is_empty() => {
-                    println!("No agents found.");
+                    println!(
+                        "{}",
+                        t!("ai_sdk_management.agent_management.status.no_agents")
+                    );
                     print_skills_hint();
                 }
                 OutputFormat::Pretty => {
@@ -433,7 +441,13 @@ fn visible_agents_and_hidden_count(agents: &[AgentResponse]) -> (Vec<AgentRespon
 
 fn print_disabled_agents_hidden_notice(hidden_count: usize) {
     if hidden_count > 0 {
-        eprintln!("{hidden_count} disabled agents hidden");
+        eprintln!(
+            "{}",
+            t!(
+                "ai_sdk_management.agent_management.status.disabled_hidden",
+                count = hidden_count
+            )
+        );
     }
 }
 fn print_single_agent(agent: &AgentResponse, output_format: OutputFormat) -> anyhow::Result<()> {
@@ -451,7 +465,13 @@ fn print_single_agent(agent: &AgentResponse, output_format: OutputFormat) -> any
 
 fn print_skills_hint() {
     let binary_name = warp_cli::binary_name().unwrap_or_else(|| "warp".to_string());
-    println!("\n\nLooking for your agent skills? Use `{binary_name} agent skills` instead.");
+    println!(
+        "{}",
+        t!(
+            "ai_sdk_management.agent_management.hint.skills",
+            binary = binary_name
+        )
+    );
 }
 
 #[derive(Serialize)]
@@ -463,7 +483,13 @@ struct DeleteAgentResult<'a> {
 fn print_delete_result(uid: &str, output_format: OutputFormat) -> anyhow::Result<()> {
     match output_format {
         OutputFormat::Pretty => {
-            println!("Deleted agent {uid}.");
+            println!(
+                "{}",
+                t!(
+                    "ai_sdk_management.agent_management.status.deleted",
+                    uid = uid
+                )
+            );
         }
         OutputFormat::Text => {
             let mut stdout = std::io::stdout();

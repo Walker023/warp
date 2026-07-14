@@ -1018,11 +1018,7 @@ impl<V: EditorView> EditorWrapper<V> {
             let mut stack = Stack::new().with_child(container.finish());
             if state.is_hovered() {
                 if let Some(text) = gutter_button.tooltip_text() {
-                    let tooltip = appearance
-                        .ui_builder()
-                        .tool_tip(text.into())
-                        .build()
-                        .finish();
+                    let tooltip = appearance.ui_builder().tool_tip(text).build().finish();
                     stack.add_positioned_overlay_child(
                         tooltip,
                         OffsetPositioning::offset_from_parent(

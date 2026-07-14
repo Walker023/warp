@@ -14,6 +14,7 @@ use warp_managed_secrets::client::IdentityTokenOptions;
 use warp_managed_secrets::ManagedSecretManager;
 use warpui::{ModelContext, ModelHandle, SingletonEntity};
 
+use crate::i18n::t;
 use crate::settings::{AISettings, AISettingsChangedEvent};
 use crate::terminal::event::{AfterBlockCompletedEvent, BlockType, UserBlockCompleted};
 use crate::terminal::model_events::{ModelEvent, ModelEventDispatcher};
@@ -35,9 +36,15 @@ pub enum LoadAwsCredentialsError {
 impl std::fmt::Display for LoadAwsCredentialsError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::NotConfigured => write!(f, "No AWS credentials configured"),
+            Self::NotConfigured => {
+                write!(f, "{}", t!("ai_ui.aws_credentials_errors.not_configured"))
+            }
             Self::CredentialsLoadFailed(msg) => {
-                write!(f, "Failed to load AWS credentials: {msg}")
+                write!(
+                    f,
+                    "{}",
+                    t!("ai_ui.aws_credentials_errors.load_failed", error = msg)
+                )
             }
         }
     }
@@ -47,39 +54,45 @@ fn aws_profile_reference_for_message(profile: &str, capitalize_first_word: bool)
     let profile = profile.trim();
     if profile.is_empty() {
         if capitalize_first_word {
-            "The default AWS profile".to_string()
+            t!("ai_ui.aws_credentials_errors.default_profile_capitalized").to_string()
         } else {
-            "the default AWS profile".to_string()
+            t!("ai_ui.aws_credentials_errors.default_profile").to_string()
         }
+    } else if capitalize_first_word {
+        t!(
+            "ai_ui.aws_credentials_errors.named_profile_capitalized",
+            profile = profile
+        )
+        .to_string()
     } else {
-        let article = if capitalize_first_word { "The" } else { "the" };
-        format!("{article} AWS profile `{profile}`")
+        t!(
+            "ai_ui.aws_credentials_errors.named_profile",
+            profile = profile
+        )
+        .to_string()
     }
 }
 
 fn user_facing_aws_credentials_error_message(err: &CredentialsError, profile: &str) -> String {
     match err {
-        CredentialsError::CredentialsNotLoaded(_) => format!(
-            "AWS credentials were not found for {}. Log in with the AWS CLI or update your AWS credentials configuration, then refresh.",
-            aws_profile_reference_for_message(profile, false)
-        ),
+        CredentialsError::CredentialsNotLoaded(_) => t!(
+            "ai_ui.aws_credentials_errors.credentials_not_found",
+            profile = aws_profile_reference_for_message(profile, false)
+        )
+        .to_string(),
         CredentialsError::ProviderTimedOut(_) => {
-            "Timed out while loading AWS credentials. Refresh and try again.".to_string()
+            t!("ai_ui.aws_credentials_errors.timeout").to_string()
         }
-        CredentialsError::InvalidConfiguration(_) => format!(
-            "{} is invalid or incomplete in your local AWS configuration. Update your AWS profile settings and credentials, then refresh.",
-            aws_profile_reference_for_message(profile, true)
-        ),
+        CredentialsError::InvalidConfiguration(_) => t!(
+            "ai_ui.aws_credentials_errors.invalid_configuration",
+            profile = aws_profile_reference_for_message(profile, true)
+        )
+        .to_string(),
         CredentialsError::ProviderError(_) => {
-            "Unable to load AWS credentials from your configured provider. Refresh your AWS login and try again."
-                .to_string()
+            t!("ai_ui.aws_credentials_errors.provider_error").to_string()
         }
-        CredentialsError::Unhandled(_) => {
-            "Unexpected error while loading AWS credentials. Refresh your AWS login and try again."
-                .to_string()
-        }
-        _ => "Unable to load AWS credentials. Refresh your AWS login and try again."
-            .to_string(),
+        CredentialsError::Unhandled(_) => t!("ai_ui.aws_credentials_errors.unexpected").to_string(),
+        _ => t!("ai_ui.aws_credentials_errors.unable_to_load").to_string(),
     }
 }
 

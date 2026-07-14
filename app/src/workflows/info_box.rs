@@ -34,6 +34,7 @@ use crate::ai::blocklist::ai_brand_color;
 use crate::appearance::Appearance;
 use crate::cloud_object::model::actions::{ObjectActionType, ObjectActions};
 use crate::cloud_object::CloudObjectMetadataExt;
+use crate::i18n::t;
 use crate::server::ids::SyncId;
 use crate::settings::InputModeSettings;
 use crate::terminal::block_list_viewport::InputMode;
@@ -61,9 +62,6 @@ const ENV_VAR_HORIZONTAL_MARGIN: f32 = 20.;
 const ENV_VAR_RIGHT_ELEMENT_VERTICAL_MARGIN: f32 = 5.;
 const ENV_VAR_SPAN_VERTICAL_MARGIN: f32 = 15.;
 const ENV_VAR_BUTTON_HEIGHT: f32 = 30.;
-const ENV_VAR_SPAN: &str = "Environment variables";
-const NEW_ENV_VAR_BUTTON_LABEL: &str = "New environment variables";
-
 /// Scale factor the title should be from the user's current font size.
 const TITLE_FONT_SIZE_SCALE_FACTOR: f32 = 1.12;
 
@@ -252,14 +250,14 @@ impl WorkflowsMoreInfoView {
         appearance: &Appearance,
     ) -> Box<dyn Element> {
         let label = if cloud_workflow.model().data.is_agent_mode_workflow() {
-            "Edit prompt"
+            t!("workflows_ui.info_box.edit_prompt").to_string()
         } else {
-            "Edit workflow"
+            t!("workflows_ui.info_box.edit_workflow").to_string()
         };
         let workflow = cloud_workflow.clone();
         render_hoverable_card_button(
             icons::Icon::Rename,
-            Some(label.to_owned()),
+            Some(label),
             self.button_mouse_states.edit_cloud_workflow.clone(),
             move |ctx: &mut warpui::EventContext<'_>, _, _| {
                 ctx.dispatch_typed_action(TerminalAction::OpenWorkflowModalWithCloudWorkflow(
@@ -330,7 +328,12 @@ impl WorkflowsMoreInfoView {
         appearance: &Appearance,
     ) -> Box<dyn Element> {
         let title_string = match (arg.name(), arg.description()) {
-            (name, Some(description)) => format!("{name}: {description}"),
+            (name, Some(description)) => t!(
+                "workflows_ui.info_box.argument_with_description",
+                name = name,
+                description = description
+            )
+            .to_string(),
             (name, None) => name.to_string(),
         };
 
@@ -438,7 +441,7 @@ impl WorkflowsMoreInfoView {
             .with_child(
                 Container::new(
                     Text::new_inline(
-                        "Command edited.",
+                        t!("workflows_ui.info_box.command_edited").to_string(),
                         appearance.ui_font_family(),
                         appearance.monospace_font_size(),
                     )
@@ -460,7 +463,7 @@ impl WorkflowsMoreInfoView {
                         ButtonVariant::Text,
                         self.button_mouse_states.reset_command.clone(),
                     )
-                    .with_centered_text_label(String::from("Reset"))
+                    .with_centered_text_label(t!("workflows_ui.info_box.reset").to_string())
                     .with_style(UiComponentStyles {
                         font_family_id: Some(appearance.ui_font_family()),
                         font_size: Some(appearance.monospace_font_size()),
@@ -503,7 +506,7 @@ impl WorkflowsMoreInfoView {
                     1.,
                     Container::new(
                         Text::new_inline(
-                            "to cycle parameters",
+                            t!("workflows_ui.info_box.cycle_parameters").to_string(),
                             appearance.ui_font_family(),
                             appearance.monospace_font_size(),
                         )
@@ -537,7 +540,7 @@ impl WorkflowsMoreInfoView {
         let workflow = self.workflow.as_workflow().to_owned();
         render_hoverable_card_button(
             icons::Icon::Workflow,
-            Some("Save as workflow".to_string()),
+            Some(t!("workflows_ui.info_box.save_as_workflow").to_string()),
             self.button_mouse_states.save_as_workflow.clone(),
             move |ctx, _, _| {
                 ctx.dispatch_typed_action(TerminalAction::OpenWorkflowModalForAIWorkflow(
@@ -569,7 +572,7 @@ impl WorkflowsMoreInfoView {
             Align::new(
                 appearance
                     .ui_builder()
-                    .span(ENV_VAR_SPAN.to_string())
+                    .span(t!("workflows_ui.info_box.environment_variables").to_string())
                     .with_style(UiComponentStyles {
                         font_size: Some(ENV_VAR_SPAN_FONT_SIZE),
                         ..Default::default()
@@ -596,7 +599,9 @@ impl WorkflowsMoreInfoView {
                             ButtonVariant::Secondary,
                             self.button_mouse_states.add_env_var_collection.clone(),
                         )
-                        .with_centered_text_label(NEW_ENV_VAR_BUTTON_LABEL.to_owned())
+                        .with_centered_text_label(
+                            t!("workflows_ui.info_box.new_environment_variables").to_string(),
+                        )
                         .build()
                         .on_click(|ctx, _, _| {
                             // Create envvars in personal drive for max extensibility (can be moved
@@ -1008,7 +1013,7 @@ impl WorkflowsMoreInfoView {
             appearance
                 .ui_builder()
                 .link(
-                    "View Context".into(),
+                    t!("workflows_ui.info_box.view_context").to_string(),
                     Some(workflow_source),
                     None,
                     self.button_mouse_states.view_context.clone(),

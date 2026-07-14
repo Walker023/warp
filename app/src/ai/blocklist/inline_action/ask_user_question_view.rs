@@ -49,6 +49,7 @@ use crate::ai::blocklist::inline_action::requested_action::CTRL_C_KEYSTROKE;
 use crate::ai::blocklist::BlocklistAIHistoryModel;
 use crate::ai::execution_profiles::profiles::AIExecutionProfilesModel;
 use crate::ai::execution_profiles::AskUserQuestionPermission;
+use crate::i18n::t;
 use crate::terminal::input::message_bar::common::{
     render_standard_message, standard_message_bar_height, styles,
 };
@@ -741,7 +742,7 @@ impl AskUserQuestionView {
             ctx,
         );
         let skip_button = CompactibleActionButton::new(
-            "Skip all".to_string(),
+            t!("ai_ui.inline_action.ask_user_question.skip_all").to_string(),
             Some(KeystrokeSource::Fixed(CTRL_C_KEYSTROKE.clone())),
             ButtonSize::InlineActionHeader,
             AskUserQuestionViewAction::SkipAll,
@@ -750,7 +751,7 @@ impl AskUserQuestionView {
             ctx,
         );
         let next_button = CompactibleActionButton::new(
-            "Next".to_string(),
+            t!("ai_ui.inline_action.ask_user_question.next").to_string(),
             Some(KeystrokeSource::Fixed(
                 Keystroke::parse("enter").expect("keystroke should parse"),
             )),
@@ -1045,7 +1046,7 @@ impl AskUserQuestionView {
             number,
             accepted_text
                 .clone()
-                .unwrap_or_else(|| "Other...".to_string()),
+                .unwrap_or_else(|| t!("ai_ui.inline_action.ask_user_question.other").to_string()),
             accepted_text.is_some(),
             false,
             true,
@@ -1061,7 +1062,10 @@ impl AskUserQuestionView {
         let initial_text = initial_text.map(String::from);
         let input = ctx.add_view(move |ctx| {
             let input = compact_agent_input::CompactAgentInput::new(ctx);
-            input.set_placeholder_text("Type your answer and press Enter", ctx);
+            input.set_placeholder_text(
+                t!("ai_ui.inline_action.ask_user_question.answer_placeholder").to_string(),
+                ctx,
+            );
             if let Some(initial_text) = initial_text.as_deref() {
                 input.set_text(initial_text, ctx);
             }
@@ -1267,10 +1271,13 @@ impl AskUserQuestionView {
                 .finish(),
         );
         content.add_child(
-            HeaderConfig::new("Agent questions", app)
-                .with_icon(yellow_stop_icon(appearance))
-                .with_corner_radius_override(CornerRadius::with_top(Radius::Pixels(8.)))
-                .render_header(app, Some(header_right.finish())),
+            HeaderConfig::new(
+                t!("ai_ui.inline_action.ask_user_question.agent_questions").to_string(),
+                app,
+            )
+            .with_icon(yellow_stop_icon(appearance))
+            .with_corner_radius_override(CornerRadius::with_top(Radius::Pixels(8.)))
+            .render_header(app, Some(header_right.finish())),
         );
 
         // The body sizes to its content, capped at `body_max_height` (scrolling beyond that). For
@@ -1321,9 +1328,12 @@ impl AskUserQuestionView {
 
     fn render_unavailable(&self, appearance: &Appearance, app: &AppContext) -> Box<dyn Element> {
         wrap_with_agent_output_item_spacing(
-            HeaderConfig::new("Questions unavailable".to_string(), app)
-                .with_icon(inline_action_icons::reverted_icon(appearance))
-                .render(app),
+            HeaderConfig::new(
+                t!("ai_ui.inline_action.ask_user_question.unavailable").to_string(),
+                app,
+            )
+            .with_icon(inline_action_icons::reverted_icon(appearance))
+            .render(app),
             app,
         )
         .finish()
@@ -1361,12 +1371,12 @@ impl AskUserQuestionView {
             }
             AskUserQuestionResult::Error(_) | AskUserQuestionResult::Cancelled => (
                 None,
-                "Questions skipped".to_string(),
+                t!("ai_ui.inline_action.ask_user_question.skipped").to_string(),
                 inline_action_icons::reverted_icon(appearance),
             ),
             AskUserQuestionResult::SkippedByAutoApprove { .. } => (
                 None,
-                "Questions skipped due to auto-approve".to_string(),
+                t!("ai_ui.inline_action.ask_user_question.skipped_auto_approve").to_string(),
                 inline_action_icons::reverted_icon(appearance),
             ),
         };
@@ -1451,7 +1461,7 @@ impl AskUserQuestionView {
         let theme = appearance.theme();
         let dropdown = self.speedbump_dropdown.as_ref()?;
         let row = render_autonomy_dropdown_setting_speedbump_footer(
-            "Allow the agent to ask questions:",
+            t!("ai_ui.inline_action.ask_user_question.allow_questions").to_string(),
             dropdown,
             settings_link_handle,
             app,
@@ -1471,7 +1481,7 @@ impl AskUserQuestionView {
     fn question_display_text(question: &AskUserQuestionItem) -> String {
         let mut text = question.question.clone();
         if question.is_multiselect() {
-            text.push_str(" (select all that apply)");
+            text.push_str(t!("ai_ui.inline_action.ask_user_question.multiselect_hint").as_ref());
         }
         text
     }
@@ -1623,7 +1633,12 @@ impl AskUserQuestionView {
 
         let nav_message = Message::new(vec![
             MessageItem::clickable(
-                vec![MessageItem::keystroke(left_key), MessageItem::text("prev")],
+                vec![
+                    MessageItem::keystroke(left_key),
+                    MessageItem::text(
+                        t!("ai_ui.inline_action.ask_user_question.previous").to_string(),
+                    ),
+                ],
                 |ctx| {
                     ctx.dispatch_typed_action(AskUserQuestionViewAction::NavigatePrev);
                 },
@@ -1631,7 +1646,12 @@ impl AskUserQuestionView {
             ),
             MessageItem::text(" / "),
             MessageItem::clickable(
-                vec![MessageItem::keystroke(right_key), MessageItem::text("next")],
+                vec![
+                    MessageItem::keystroke(right_key),
+                    MessageItem::text(
+                        t!("ai_ui.inline_action.ask_user_question.next_lower").to_string(),
+                    ),
+                ],
                 |ctx| {
                     ctx.dispatch_typed_action(AskUserQuestionViewAction::NavigateNext);
                 },
@@ -1817,21 +1837,27 @@ fn ask_user_question_completion_state(
 
     if answered_count == 0 {
         AskUserQuestionCompletionState {
-            label: "Questions skipped".to_string(),
+            label: t!("ai_ui.inline_action.ask_user_question.skipped").to_string(),
             status_icon: inline_action_icons::reverted_icon(appearance),
         }
     } else {
         let label = if answered_count == total {
             if total == 1 {
-                "Answered question".to_string()
+                t!("ai_ui.inline_action.ask_user_question.answered_one").to_string()
             } else {
-                format!("Answered all {total} questions")
+                t!(
+                    "ai_ui.inline_action.ask_user_question.answered_all",
+                    total = total
+                )
+                .to_string()
             }
         } else {
-            format!(
-                "Answered {answered_count} of {total} question{}",
-                if total == 1 { "" } else { "s" }
+            t!(
+                "ai_ui.inline_action.ask_user_question.answered_partial",
+                answered = answered_count,
+                total = total
             )
+            .to_string()
         };
         AskUserQuestionCompletionState {
             label,
@@ -1854,15 +1880,22 @@ fn render_answers(
     let mut content = Flex::column().with_cross_axis_alignment(CrossAxisAlignment::Stretch);
     for (index, question) in questions.iter().enumerate() {
         let answer = answers.and_then(|answers| answers.get(index));
-        let question_text = format!("Q: {}", question.question);
+        let question_text = t!(
+            "ai_ui.inline_action.ask_user_question.question_prefix",
+            question = &question.question
+        )
+        .to_string();
         let question_label =
             render_text_with_markdown_support(&question_text, font_size, text_color, appearance);
-        let answer_text = format!(
-            "A: {}",
-            answer
+        let answer_text = t!(
+            "ai_ui.inline_action.ask_user_question.answer_prefix",
+            answer = answer
                 .map(AskUserQuestionAnswerItem::display_text)
-                .unwrap_or_else(|| "Skipped".to_string())
-        );
+                .unwrap_or_else(|| {
+                    t!("ai_ui.inline_action.ask_user_question.skipped_answer").to_string()
+                })
+        )
+        .to_string();
         let answer_label =
             render_text_with_markdown_support(&answer_text, font_size, muted_color, appearance);
 

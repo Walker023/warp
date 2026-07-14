@@ -117,7 +117,7 @@ impl HandoffEnvironmentCreationModal {
                 let Some(owner) = owner else {
                     report_error!("Unable to create environment: not logged in");
                     ctx.emit(HandoffEnvironmentCreationModalEvent::CreationFailed {
-                        error_message: "Not logged in".to_string(),
+                        error_message: t!("settings_extra.environments.not_logged_in").to_string(),
                     });
                     return;
                 };

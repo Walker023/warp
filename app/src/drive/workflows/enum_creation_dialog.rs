@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use strum::IntoEnumIterator;
-use strum_macros::{EnumIter, IntoStaticStr};
+use strum_macros::EnumIter;
 use warp_core::features::FeatureFlag;
 use warp_core::ui::appearance::Appearance;
 use warp_editor::editor::NavigationKey;
@@ -24,6 +24,7 @@ use crate::editor::{
     EditorOptions, EditorView, Event, PropagateAndNoOpNavigationKeys, SingleLineEditorOptions,
     TextOptions,
 };
+use crate::i18n::t;
 use crate::server::ids::{ClientId, SyncId};
 use crate::ui_components::buttons::icon_button;
 use crate::ui_components::icons::Icon;
@@ -48,17 +49,6 @@ const EDITOR_FONT_SIZE: f32 = 14.;
 const SECTION_FONT_SIZE: f32 = 16.;
 const SPAN_FONT_SIZE: f32 = 16.;
 const VARIANT_FONT_SIZE: f32 = 13.;
-
-const CANCEL_BUTTON_LABEL: &str = "Close";
-const NEW_ENUM_SPAN: &str = "New enum";
-const EXISTING_ENUM_SPAN: &str = "Edit enum";
-const NAME_PLACEHOLDER_TEXT: &str = "Name";
-const CREATE_BUTTON_LABEL: &str = "Create";
-const SAVE_BUTTON_LABEL: &str = "Save";
-const VARIANT_PLACEHOLDER_TEXT: &str = "Variant";
-const STATIC_LABEL_TEXT: &str = "Variants";
-const DYNAMIC_PLACEHOLDER_TEXT: &str =
-    "# Enter a shell command that generates variants, delimited by newlines.\n\ngit branch -a";
 
 #[derive(Debug, Clone)]
 pub enum EnumCreationDialogAction {
@@ -142,7 +132,7 @@ struct EnumTypeHandles {
     enum_type_mouse_states: Vec<MouseStateHandle>,
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, IntoStaticStr, EnumIter)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, EnumIter)]
 enum EnumType {
     #[default]
     Static,
@@ -162,7 +152,10 @@ impl EnumCreationDialog {
                 };
 
                 let mut editor = EditorView::single_line(options, ctx);
-                editor.set_placeholder_text(NAME_PLACEHOLDER_TEXT, ctx);
+                editor.set_placeholder_text(
+                    t!("drive_extra.workflow.enum_dialog.name_placeholder"),
+                    ctx,
+                );
                 editor
             })
         };
@@ -195,7 +188,10 @@ impl EnumCreationDialog {
                 };
 
                 let mut editor = EditorView::new(options, ctx);
-                editor.set_placeholder_text(DYNAMIC_PLACEHOLDER_TEXT, ctx);
+                editor.set_placeholder_text(
+                    t!("workflows_ui.editor.enum_command_placeholder").to_string(),
+                    ctx,
+                );
                 editor.set_autogrow(true);
                 editor
             })
@@ -548,7 +544,10 @@ impl EnumCreationDialog {
                 },
                 ctx,
             );
-            editor.set_placeholder_text(VARIANT_PLACEHOLDER_TEXT, ctx);
+            editor.set_placeholder_text(
+                t!("drive_extra.workflow.enum_dialog.variant_placeholder"),
+                ctx,
+            );
             editor
         });
 
@@ -627,8 +626,8 @@ impl EnumCreationDialog {
 
     fn render_dialog_header(&self, appearance: &Appearance) -> Box<dyn Element> {
         let text = match self.sync_id {
-            Some(_) => EXISTING_ENUM_SPAN,
-            None => NEW_ENUM_SPAN,
+            Some(_) => t!("drive_extra.workflow.enum_dialog.edit_title").to_string(),
+            None => t!("drive_extra.workflow.enum_dialog.new_title").to_string(),
         };
 
         appearance
@@ -652,7 +651,14 @@ impl EnumCreationDialog {
                         self.enum_type_options
                             .iter()
                             .map(|arg_type| {
-                                let label: &'static str = arg_type.into();
+                                let label = match arg_type {
+                                    EnumType::Static => {
+                                        t!("drive_extra.workflow.enum_dialog.static").to_string()
+                                    }
+                                    EnumType::Dynamic => {
+                                        t!("drive_extra.workflow.enum_dialog.dynamic").to_string()
+                                    }
+                                };
                                 ToggleMenuItem::new(label)
                             })
                             .collect(),
@@ -820,7 +826,7 @@ impl EnumCreationDialog {
                 1.,
                 appearance
                     .ui_builder()
-                    .span(STATIC_LABEL_TEXT.to_string())
+                    .span(t!("drive_extra.workflow.enum_dialog.variants").to_string())
                     .with_style(UiComponentStyles {
                         font_size: Some(SECTION_FONT_SIZE),
                         ..Default::default()
@@ -861,8 +867,8 @@ impl EnumCreationDialog {
     fn render_footer_buttons(&self, appearance: &Appearance, app: &AppContext) -> Box<dyn Element> {
         let disable_save = self.should_disable_save(app);
         let save_button_label = match self.sync_id {
-            None => CREATE_BUTTON_LABEL,
-            Some(_) => SAVE_BUTTON_LABEL,
+            None => t!("drive_extra.common.create").to_string(),
+            Some(_) => t!("drive_extra.common.save").to_string(),
         };
 
         Flex::row()
@@ -876,7 +882,7 @@ impl EnumCreationDialog {
                                 .cancel_button_mouse_state_handle
                                 .clone(),
                             EnumCreationDialogAction::Close,
-                            CANCEL_BUTTON_LABEL,
+                            &t!("drive_extra.common.close"),
                             false,
                             false,
                         ),
@@ -895,7 +901,7 @@ impl EnumCreationDialog {
                             .save_button_mouse_state_handle
                             .clone(),
                         EnumCreationDialogAction::SaveEnum,
-                        save_button_label,
+                        &save_button_label,
                         true,
                         disable_save,
                     ),

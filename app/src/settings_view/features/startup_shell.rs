@@ -96,7 +96,7 @@ impl StartupShellView {
             };
             let mut editor = EditorView::single_line(options, ctx);
             editor.set_placeholder_text(
-                &t!("settings.feature_controls.executable_path").to_string(),
+                t!("settings.feature_controls.executable_path").to_string(),
                 ctx,
             );
 
@@ -137,7 +137,7 @@ impl StartupShellView {
     ) {
         dropdown.update(ctx, |dropdown, ctx| {
             let mut items = vec![DropdownItem::new(
-                "Default",
+                t!("common.default").to_string(),
                 NewSessionShellAction::Set(AvailableShell::default()),
             )];
             let shell_to_index = AvailableShells::handle(ctx).read(ctx, |model, _| {
@@ -155,7 +155,7 @@ impl StartupShellView {
             });
 
             items.push(DropdownItem::new(
-                "Custom",
+                t!("settings_extra.features.custom").to_string(),
                 NewSessionShellAction::ShowCustomPathInput,
             ));
             let custom_index = items.len() - 1;

@@ -1,7 +1,6 @@
 //! Inline conversation menu view for selecting AI conversations.
 
 use std::collections::HashSet;
-use std::sync::LazyLock;
 
 use warpui::elements::ChildView;
 use warpui::{Element, Entity, ModelHandle, SingletonEntity, View, ViewContext, ViewHandle};
@@ -10,6 +9,7 @@ use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
 use crate::ai::agent_conversations_model::AgentConversationEntryId;
 use crate::ai::blocklist::agent_view::AgentViewController;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::search::data_source::{Query, QueryFilter};
 use crate::search::mixer::SearchMixer;
 use crate::terminal::input::buffer_model::{InputBufferModel, InputBufferUpdateEvent};
@@ -32,22 +32,21 @@ pub enum InlineConversationMenuEvent {
     Dismissed,
 }
 
-static TAB_CONFIGS: LazyLock<Vec<InlineMenuTabConfig<InlineConversationMenuTab>>> =
-    LazyLock::new(|| {
-        let mut configs = vec![InlineMenuTabConfig {
-            id: InlineConversationMenuTab::All,
-            label: "All".to_string(),
-            filters: HashSet::new(),
-        }];
-        if FeatureFlag::InlineMenuHeaders.is_enabled() {
-            configs.push(InlineMenuTabConfig {
-                id: InlineConversationMenuTab::CurrentDirectory,
-                label: "Current Directory".to_string(),
-                filters: HashSet::from([QueryFilter::CurrentDirectoryConversations]),
-            });
-        }
-        configs
-    });
+fn tab_configs() -> Vec<InlineMenuTabConfig<InlineConversationMenuTab>> {
+    let mut configs = vec![InlineMenuTabConfig {
+        id: InlineConversationMenuTab::All,
+        label: t!("terminal_ui.input.history.all").to_string(),
+        filters: HashSet::new(),
+    }];
+    if FeatureFlag::InlineMenuHeaders.is_enabled() {
+        configs.push(InlineMenuTabConfig {
+            id: InlineConversationMenuTab::CurrentDirectory,
+            label: t!("terminal_ui.input.conversations.current_directory").to_string(),
+            filters: HashSet::from([QueryFilter::CurrentDirectoryConversations]),
+        });
+    }
+    configs
+}
 
 pub struct InlineConversationMenuView {
     menu_view: ViewHandle<InlineMenuView<AcceptConversation, InlineConversationMenuTab>>,
@@ -69,7 +68,7 @@ impl InlineConversationMenuView {
             ConversationMenuDataSource::new(agent_view_controller.clone(), active_session)
         });
 
-        let tab_configs = TAB_CONFIGS.clone();
+        let tab_configs = tab_configs();
         let initial_filters = tab_configs
             .first()
             .map(|config| config.filters.clone())

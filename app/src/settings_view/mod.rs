@@ -816,6 +816,8 @@ impl<T: Action + Clone> ToggleSettingActionPair<T> {
         use warpui::keymap::macros::id;
 
         let description_suffix = description_suffix.as_ref();
+        let description_suffix = crate::i18n::localize_setting_action_item(description_suffix)
+            .unwrap_or_else(|| description_suffix.to_owned());
         ToggleSettingActionPair {
             descriptions: SettingActionPairDescriptions {
                 enable: t!("common.enable_item", item = description_suffix).to_string(),
@@ -1679,28 +1681,28 @@ impl SettingsView {
 
         if ContextFlag::CreateNewSession.is_enabled() {
             items.extend(vec![
-                MenuItemFields::new("Split pane right")
+                MenuItemFields::new(t!("terminal.split_pane_right").to_string())
                     .with_on_select_action(SettingsAction::Split(Direction::Right))
                     .with_key_shortcut_label(keybinding_name_to_display_string(
                         "pane_group:add_right",
                         ctx,
                     ))
                     .into_item(),
-                MenuItemFields::new("Split pane left")
+                MenuItemFields::new(t!("terminal.split_pane_left").to_string())
                     .with_on_select_action(SettingsAction::Split(Direction::Left))
                     .with_key_shortcut_label(keybinding_name_to_display_string(
                         "pane_group:add_left",
                         ctx,
                     ))
                     .into_item(),
-                MenuItemFields::new("Split pane down")
+                MenuItemFields::new(t!("terminal.split_pane_down").to_string())
                     .with_on_select_action(SettingsAction::Split(Direction::Down))
                     .with_key_shortcut_label(keybinding_name_to_display_string(
                         "pane_group:add_down",
                         ctx,
                     ))
                     .into_item(),
-                MenuItemFields::new("Split pane up")
+                MenuItemFields::new(t!("terminal.split_pane_up").to_string())
                     .with_on_select_action(SettingsAction::Split(Direction::Up))
                     .with_key_shortcut_label(keybinding_name_to_display_string(
                         "pane_group:add_up",
@@ -1729,7 +1731,7 @@ impl SettingsView {
             );
 
             items.push(
-                MenuItemFields::new("Close pane")
+                MenuItemFields::new(t!("terminal.close_pane").to_string())
                     .with_on_select_action(SettingsAction::Close)
                     .with_key_shortcut_label(
                         custom_tag_to_keystroke(CustomAction::CloseCurrentSession.into())
@@ -2418,7 +2420,7 @@ impl SettingsView {
         Container::new(
             Align::new(
                 Flex::column()
-                .with_cross_axis_alignment(CrossAxisAlignment::Center)
+                    .with_cross_axis_alignment(CrossAxisAlignment::Center)
                     .with_children([
                         Text::new(
                             t!("settings.search.no_match").to_string(),
@@ -2429,7 +2431,7 @@ impl SettingsView {
                         .with_color(theme.sub_text_color(theme.background()).into_solid())
                         .finish(),
                         Text::new(
-                            "You may want to try using different keywords or checking for any possible typos.",
+                            t!("settings_extra.search.try_different_keywords").to_string(),
                             appearance.ui_font_family(),
                             appearance.ui_font_size(),
                         )
@@ -2440,7 +2442,7 @@ impl SettingsView {
             )
             .finish(),
         )
-            .with_uniform_margin(16.)
+        .with_uniform_margin(16.)
         .with_corner_radius(CornerRadius::with_all(Radius::Pixels(4.)))
         .with_background(internal_colors::fg_overlay_1(appearance.theme()))
         .finish()

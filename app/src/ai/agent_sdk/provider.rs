@@ -8,6 +8,7 @@ use warpui::platform::TerminationMode;
 use warpui::{AppContext, ModelContext, SingletonEntity};
 
 use crate::ai::agent_sdk::output::{self, TableFormat};
+use crate::i18n::t;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
 /// Handle provider-related CLI commands.
@@ -45,10 +46,11 @@ impl ProviderCommandRunner {
             if provider_type.allowed_in_team_context()
                 && provider_type.allowed_in_personal_context()
             {
-                return Err(anyhow::anyhow!(
-                    "Provider '{}' must be setup for either a team or personal account",
-                    provider_type.slug()
-                ));
+                return Err(anyhow::anyhow!(t!(
+                    "ai_sdk_management.provider.error.scope_required",
+                    provider = provider_type.slug()
+                )
+                .to_string()));
             }
             use_team_auth = provider_type.allowed_in_team_context();
         } else if personal {
@@ -61,7 +63,10 @@ impl ProviderCommandRunner {
             let team_uid = match UserWorkspaces::as_ref(ctx).current_team_uid() {
                 Some(uid) => uid,
                 None => {
-                    return Err(anyhow::anyhow!("User is not on a team"));
+                    return Err(anyhow::anyhow!(t!(
+                        "ai_sdk_management.provider.error.not_on_team"
+                    )
+                    .to_string()));
                 }
             };
             format!("{server_url}/oauth/connect/{slug}?principalType=team&principalId={team_uid}")
@@ -69,7 +74,14 @@ impl ProviderCommandRunner {
             format!("{server_url}/oauth/connect/{slug}")
         };
 
-        println!("To authenticate {slug}, open this URL in your browser: {url}");
+        println!(
+            "{}",
+            t!(
+                "ai_sdk_management.provider.info.authenticate",
+                provider = &slug,
+                url = &url
+            )
+        );
 
         // Open the URL in the default browser
         ctx.open_url(&url);
@@ -94,22 +106,32 @@ impl ProviderCommandRunner {
                 let name = provider.name();
                 let slug = provider.slug();
                 let mut allowed_for = Vec::new();
+                let mut allowed_for_display = Vec::new();
 
                 if provider.allowed_in_personal_context() {
                     allowed_for.push("personal");
+                    allowed_for_display
+                        .push(t!("ai_sdk_management.provider.scope.personal").to_string());
                 }
                 if provider.allowed_in_team_context() {
                     allowed_for.push("team");
+                    allowed_for_display
+                        .push(t!("ai_sdk_management.provider.scope.team").to_string());
                 }
 
                 let allowed_str = allowed_for.join(", ");
+                let allowed_for_formatted = allowed_for_display.join(", ");
                 let status = "❌ Not Connected".to_string(); // TODO(bens): get this from gql
+                let status_formatted =
+                    t!("ai_sdk_management.provider.status.not_connected").to_string();
 
                 ProviderInfo {
                     name,
                     slug,
                     allowed_for: allowed_str,
+                    allowed_for_formatted,
                     status,
+                    status_formatted,
                 }
             })
             .collect();
@@ -133,16 +155,20 @@ struct ProviderInfo {
     name: String,
     slug: String,
     allowed_for: String,
+    #[serde(skip_serializing)]
+    allowed_for_formatted: String,
     status: String,
+    #[serde(skip_serializing)]
+    status_formatted: String,
 }
 
 impl TableFormat for ProviderInfo {
     fn header() -> Vec<Cell> {
         vec![
-            Cell::new("NAME"),
-            Cell::new("SLUG"),
-            Cell::new("ALLOWED FOR"),
-            Cell::new("STATUS"),
+            Cell::new(t!("ai_sdk_management.provider.table.name").to_string()),
+            Cell::new(t!("ai_sdk_management.provider.table.slug").to_string()),
+            Cell::new(t!("ai_sdk_management.provider.table.allowed_for").to_string()),
+            Cell::new(t!("ai_sdk_management.provider.table.status").to_string()),
         ]
     }
 
@@ -150,8 +176,8 @@ impl TableFormat for ProviderInfo {
         vec![
             Cell::new(&self.name),
             Cell::new(&self.slug),
-            Cell::new(&self.allowed_for),
-            Cell::new(&self.status),
+            Cell::new(&self.allowed_for_formatted),
+            Cell::new(&self.status_formatted),
         ]
     }
 }

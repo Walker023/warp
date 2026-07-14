@@ -26,6 +26,7 @@ use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpEscapeKey, PropagateAndNoOpNavigationKeys,
     SingleLineEditorOptions, TextOptions,
 };
+use crate::i18n::t;
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields};
 use crate::terminal::view::ambient_agent::auth_secret_ftux_dropdown::{
     AuthSecretFtuxDropdown, FtuxDropdownEvent,
@@ -143,7 +144,8 @@ pub struct AuthSecretFtuxView {
 
 impl AuthSecretFtuxView {
     pub fn new(harness: Harness, ctx: &mut ViewContext<Self>) -> Self {
-        let name_editor = make_single_line_editor(Some("e.g. My API Key"), false, ctx);
+        let name_placeholder = t!("terminal_ui.ambient_agent.auth.name_placeholder").to_string();
+        let name_editor = make_single_line_editor(Some(&name_placeholder), false, ctx);
 
         ctx.subscribe_to_view(&name_editor, |me, _, event, ctx| {
             me.handle_form_editor_event(0, event, ctx);
@@ -218,7 +220,9 @@ impl AuthSecretFtuxView {
                         state.is_saving = false;
                         state.pending_name = None;
                         let window_id = ctx.window_id();
-                        let message = format!("Failed to save API key: {error}");
+                        let message =
+                            t!("terminal_ui.ambient_agent.auth.save_failed", error = error)
+                                .to_string();
                         ToastStack::handle(ctx).update(ctx, |ts, ctx| {
                             ts.add_ephemeral_toast(
                                 DismissibleToast::error(message),
@@ -553,8 +557,8 @@ impl AuthSecretFtuxView {
         };
         let mut editors = Vec::with_capacity(info.fields.len());
         for (field_idx, field) in info.fields.iter().enumerate() {
-            let placeholder = field.placeholder.unwrap_or(field.label);
-            let editor = make_single_line_editor(Some(placeholder), field.sensitive, ctx);
+            let placeholder = field.localized_placeholder();
+            let editor = make_single_line_editor(Some(&placeholder), field.sensitive, ctx);
             let editor_index = field_idx + 1;
             ctx.subscribe_to_view(&editor, move |me, _, event, ctx| {
                 me.handle_form_editor_event(editor_index, event, ctx);
@@ -570,7 +574,7 @@ impl AuthSecretFtuxView {
             pending_name: None,
         });
         self.ftux_dropdown.update(ctx, |dropdown, ctx| {
-            dropdown.set_display_label(Some(info.display_name.to_string()), ctx);
+            dropdown.set_display_label(Some(info.localized_display_name()), ctx);
         });
         ctx.focus(&self.name_editor);
         ctx.notify();
@@ -723,7 +727,7 @@ impl AuthSecretFtuxView {
         ctx: &mut ViewContext<Self>,
     ) {
         let window_id = ctx.window_id();
-        let message = format!("API key '{name}' saved.");
+        let message = t!("terminal_ui.ambient_agent.auth.saved", name = name.as_str()).to_string();
         ToastStack::handle(ctx).update(ctx, |ts, ctx| {
             ts.add_ephemeral_toast(DismissibleToast::default(message), window_id, ctx);
         });
@@ -741,10 +745,14 @@ impl AuthSecretFtuxView {
 
         let main_text = {
             let description = if self.current_type_info().is_some() {
-                "Enter your credentials below.".to_string()
+                t!("terminal_ui.ambient_agent.auth.enter_credentials").to_string()
             } else {
                 let display_name = harness_display::display_name(self.harness);
-                format!("Select an API key type to use {display_name} in the cloud with Oz.")
+                t!(
+                    "terminal_ui.ambient_agent.auth.select_type",
+                    name = display_name
+                )
+                .to_string()
             };
             Text::new_inline(description, font_family, DESCRIPTION_FONT_SIZE)
                 .with_color(theme.foreground().into())
@@ -753,7 +761,7 @@ impl AuthSecretFtuxView {
         };
 
         let privacy_text = Text::new_inline(
-            "Your credentials are encrypted end-to-end. ".to_string(),
+            t!("terminal_ui.ambient_agent.auth.encrypted").to_string(),
             font_family,
             TYPE_DESCRIPTION_FONT_SIZE,
         )
@@ -766,8 +774,11 @@ impl AuthSecretFtuxView {
             .current_type_info()
             .map(|info| info.learn_more_url)
             .unwrap_or_else(|| learn_more_url_for_harness(self.harness));
-        let learn_more_label =
-            format!("Learn more about authentication for {harness_name} in Warp.");
+        let learn_more_label = t!(
+            "terminal_ui.ambient_agent.auth.learn_more_named",
+            name = harness_name
+        )
+        .to_string();
         let learn_more = Hoverable::new(self.learn_more_mouse_state.clone(), move |state| {
             let color = if state.is_hovered() {
                 accent_color
@@ -874,7 +885,7 @@ impl AuthSecretFtuxView {
         let theme = appearance.theme();
         let label_color = internal_colors::text_sub(theme, theme.surface_1());
         let label = Text::new_inline(
-            "Share with team".to_string(),
+            t!("terminal_ui.ambient_agent.auth.share_with_team").to_string(),
             appearance.ui_font_family(),
             TYPE_DESCRIPTION_FONT_SIZE,
         )
@@ -901,15 +912,21 @@ impl AuthSecretFtuxView {
             .with_spacing(FORM_FIELD_SPACING);
 
         column.add_child(
-            Container::new(self.render_field_label("NAME", app))
-                .with_padding_top(CONTENT_SECTION_SPACING)
-                .finish(),
+            Container::new(
+                self.render_field_label(&t!("terminal_ui.ambient_agent.auth.name_label"), app),
+            )
+            .with_padding_top(CONTENT_SECTION_SPACING)
+            .finish(),
         );
         column.add_child(self.render_editor_container(&self.name_editor, app));
 
         for (idx, field) in info.fields.iter().enumerate() {
             let label = if field.optional {
-                format!("{} (optional)", field.label)
+                t!(
+                    "terminal_ui.ambient_agent.auth.optional_label",
+                    name = field.label
+                )
+                .to_string()
             } else {
                 field.label.to_string()
             };
@@ -926,7 +943,7 @@ impl AuthSecretFtuxView {
 
     fn render_button(
         &self,
-        label: &'static str,
+        label: String,
         mouse_state: MouseStateHandle,
         background: Option<Fill>,
         action: AuthSecretFtuxAction,
@@ -949,7 +966,7 @@ impl AuthSecretFtuxView {
         };
         Hoverable::new(mouse_state, move |_| {
             let inner = Container::new(
-                Text::new_inline(label.to_string(), font_family, BUTTON_FONT_SIZE)
+                Text::new_inline(label.clone(), font_family, BUTTON_FONT_SIZE)
                     .with_style(Properties::default().weight(Weight::Semibold))
                     .with_color(text_color)
                     .finish(),
@@ -986,9 +1003,15 @@ impl AuthSecretFtuxView {
         row.add_child(Expanded::new(1., Empty::new().finish()).finish());
 
         let (label, action) = if self.creation_state.is_some() {
-            ("Back", AuthSecretFtuxAction::Back)
+            (
+                t!("terminal_ui.ambient_agent.auth.back").to_string(),
+                AuthSecretFtuxAction::Back,
+            )
         } else {
-            ("Cancel", AuthSecretFtuxAction::Cancel)
+            (
+                t!("common.cancel").to_string(),
+                AuthSecretFtuxAction::Cancel,
+            )
         };
         row.add_child(self.render_button(
             label,
@@ -1002,7 +1025,7 @@ impl AuthSecretFtuxView {
         let accent_fill = Appearance::as_ref(app).theme().accent();
         let continue_disabled = !self.can_submit_creation_form(app);
         row.add_child(self.render_button(
-            "Continue",
+            t!("terminal.continue").to_string(),
             self.continue_mouse_state.clone(),
             Some(accent_fill),
             AuthSecretFtuxAction::Continue,

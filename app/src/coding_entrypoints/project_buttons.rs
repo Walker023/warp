@@ -21,6 +21,7 @@ use warpui::{
     AppContext, Element, Entity, SingletonEntity as _, TypedActionView, View, ViewContext,
 };
 
+use crate::i18n::t;
 use crate::util::bindings::{keybinding_name_to_display_string, BindingGroup, CustomAction};
 
 const BUTTON_MIN_WIDTH: f32 = 149.;
@@ -223,44 +224,55 @@ impl View for ProjectButtons {
 
         if FeatureFlag::CreateProjectFlow.is_enabled() {
             row.add_children([
-                Container::new(self.glowing_button(
-                    "Create new project",
-                    Icon::Plus,
-                    ProjectButtonsAction::CreateProject,
-                    TooltipData {
-                        text: "Create and initialize a brand new project".to_string(),
-                        keybinding: keybinding_name_to_display_string(
-                            "project_buttons:create_new_project",
-                            app,
-                        ),
-                    },
-                    self.state_handles.create_project_button.clone(),
-                    app,
-                ))
+                Container::new(
+                    self.glowing_button(
+                        t!("coding_entrypoints_ui.project_buttons.create_project"),
+                        Icon::Plus,
+                        ProjectButtonsAction::CreateProject,
+                        TooltipData {
+                            text: t!(
+                                "coding_entrypoints_ui.project_buttons.create_project_tooltip"
+                            )
+                            .to_string(),
+                            keybinding: keybinding_name_to_display_string(
+                                "project_buttons:create_new_project",
+                                app,
+                            ),
+                        },
+                        self.state_handles.create_project_button.clone(),
+                        app,
+                    ),
+                )
                 .with_margin_right(16.)
                 .finish(),
-                Container::new(self.glowing_button(
-                    "Open repository",
-                    Icon::Folder,
-                    ProjectButtonsAction::OpenRepository,
-                    TooltipData {
-                        text: "Open an existing local folder or repository".to_string(),
-                        keybinding: keybinding_name_to_display_string(
-                            "project_buttons:open_repository",
-                            app,
-                        ),
-                    },
-                    self.state_handles.open_repo_button.clone(),
-                    app,
-                ))
+                Container::new(
+                    self.glowing_button(
+                        t!("coding_entrypoints_ui.project_buttons.open_repository"),
+                        Icon::Folder,
+                        ProjectButtonsAction::OpenRepository,
+                        TooltipData {
+                            text: t!(
+                                "coding_entrypoints_ui.project_buttons.open_repository_tooltip"
+                            )
+                            .to_string(),
+                            keybinding: keybinding_name_to_display_string(
+                                "project_buttons:open_repository",
+                                app,
+                            ),
+                        },
+                        self.state_handles.open_repo_button.clone(),
+                        app,
+                    ),
+                )
                 .with_margin_right(16.)
                 .finish(),
                 self.glowing_button(
-                    "Clone repository",
+                    t!("coding_entrypoints_ui.project_buttons.clone_repository"),
                     Icon::Duplicate,
                     ProjectButtonsAction::CloneRepository,
                     TooltipData {
-                        text: "Clone a repo from GitHub or another source".to_string(),
+                        text: t!("coding_entrypoints_ui.project_buttons.clone_repository_tooltip")
+                            .to_string(),
                         keybinding: None,
                     },
                     self.state_handles.clone_repo_button.clone(),
@@ -272,11 +284,14 @@ impl View for ProjectButtons {
                 Expanded::new(
                     1.,
                     self.glowing_button(
-                        "Open repository",
+                        t!("coding_entrypoints_ui.project_buttons.open_repository"),
                         Icon::Plus,
                         ProjectButtonsAction::CreateProject,
                         TooltipData {
-                            text: "Open an existing local folder or repository".to_string(),
+                            text: t!(
+                                "coding_entrypoints_ui.project_buttons.open_repository_tooltip"
+                            )
+                            .to_string(),
                             keybinding: keybinding_name_to_display_string(
                                 "project_buttons:open_repository",
                                 app,

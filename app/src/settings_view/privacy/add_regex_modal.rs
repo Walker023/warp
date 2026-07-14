@@ -53,7 +53,10 @@ impl AddRegexModal {
                 ..Default::default()
             };
             let mut editor = EditorView::single_line(options, ctx);
-            editor.set_placeholder_text("e.g. \"Google API Key\"", ctx);
+            editor.set_placeholder_text(
+                t!("settings_extra.privacy.regex_name_placeholder").to_string(),
+                ctx,
+            );
             editor
         });
 

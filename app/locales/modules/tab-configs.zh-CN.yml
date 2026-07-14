@@ -1,0 +1,49 @@
+tab_configs_ui:
+  sidecar:
+    make_default: "设为默认"
+    already_default: "已是默认项"
+    edit_config: "编辑配置"
+    remove: "移除"
+  repo_picker:
+    add_new_repo: "+ 添加新仓库..."
+  branch_picker:
+    fetching: "正在获取分支..."
+  session:
+    terminal: "终端"
+    built_in_agent: "内置智能体"
+    untitled: "未命名"
+    default_config_name: "我的标签页配置"
+    worktree_config_name: "工作树：%{repo}"
+    new_tab_config_name: "新标签页：%{repo}"
+    worktree_branch_description: "新工作树分支名称"
+  session_form:
+    session_type: "会话类型"
+    select_directory: "选择目录"
+    worktree_requires_repo: "选择 Git 仓库以启用工作树支持"
+    create_worktree: "打开新标签页时自动创建工作树"
+    autogenerate_requires_worktree: "请先启用自动创建工作树，再选择此选项"
+    autogenerate_branch_name: "自动生成工作树分支名称"
+  session_modal:
+    submit: "开始使用 Warp"
+    title: "创建第一个标签页配置"
+    subtitle_with_type: "为标签页设置一个可重复使用的起点。选择仓库和会话类型，并可按需附加工作树。以后可以随时使用此设置打开新标签页。"
+    subtitle_without_type: "为标签页设置一个可重复使用的起点。选择仓库并可按需附加工作树，以后可以随时使用此设置打开新标签页。"
+  new_worktree:
+    title: "新建工作树"
+    select_repository: "选择仓库"
+    select_branch: "选择分支"
+    autogenerate_branch_name: "自动生成工作树分支名称"
+    worktree_branch_name: "工作树分支名称"
+    invalid_branch_name: "名称只能包含字母、数字、连字符和下划线"
+    cancel: "取消"
+    open: "打开"
+  remove_dialog:
+    cancel: "取消"
+    remove: "移除"
+    title: "移除“%{name}”？"
+    body: "此标签页配置将被永久删除，且无法撤销。"
+  params_modal:
+    cancel: "取消"
+    open_tab: "打开标签页"
+    enter_value: "输入%{name}"
+    default_value: "默认值：%{value}"

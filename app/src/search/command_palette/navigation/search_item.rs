@@ -3,6 +3,7 @@ use warpui::elements::Container;
 use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::pane_group::PaneId;
 use crate::search::command_palette::mixer::CommandPaletteItemAction;
 use crate::search::command_palette::navigation::render::render_navigation_session;
@@ -102,17 +103,19 @@ impl crate::search::item::SearchItem for SearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!(
-            "Selected {}. {}.",
-            self.navigation_data().prompt(),
-            self.navigation_data()
+        t!(
+            "workspace_search_ui.search.a11y.selected_with_description",
+            name = self.navigation_data().prompt(),
+            description = self
+                .navigation_data()
                 .command_context()
                 .a11y_description()
                 .unwrap_or_default()
         )
+        .to_string()
     }
 
     fn accessibility_help_message(&self) -> Option<String> {
-        Some("Press enter to navigate to this session.".into())
+        Some(t!("workspace_search_ui.search.a11y.navigate_session").to_string())
     }
 }

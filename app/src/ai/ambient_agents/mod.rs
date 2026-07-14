@@ -8,6 +8,7 @@ use crate::ai::agent::conversation::{AIConversation, ConversationStatus};
 use crate::ai::agent::{
     AIAgentOutputStatus, CancellationReason, FinishedAIAgentOutput, RenderableAIError,
 };
+use crate::i18n::t;
 
 pub mod github_auth_notifier;
 pub mod github_auth_url;
@@ -20,10 +21,13 @@ pub use task::{
     cancel_task_silently, cancel_task_with_toast, AgentConfigSnapshot, AgentSource,
     AmbientAgentLiveSessionState, AmbientAgentTask, AmbientAgentTaskState, TaskStatusMessage,
 };
-pub const OUT_OF_CREDITS_TASK_FAILURE_MESSAGE: &str =
-    "Out of credits. Upgrade your Warp plan to continue running cloud agents.";
-pub const SERVER_OVERLOADED_TASK_FAILURE_MESSAGE: &str =
-    "Warp is temporarily overloaded. Please try again shortly.";
+pub fn out_of_credits_task_failure_message() -> String {
+    t!("ai_ui.task_status.cloud_agents_out_of_credits").to_string()
+}
+
+pub fn server_overloaded_task_failure_message() -> String {
+    t!("ai_ui.task_status.server_overloaded").to_string()
+}
 
 #[derive(Debug, thiserror::Error)]
 #[error("Invalid task ID: {0}")]

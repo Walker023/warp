@@ -87,13 +87,14 @@ impl View for DeleteEnvironmentConfirmationDialog {
 
         let appearance = Appearance::as_ref(app);
 
-        let description = format!(
-            "Are you sure you want to remove the {} environment?",
-            self.env_name
-        );
+        let description = t!(
+            "settings_extra.environments.delete_confirmation",
+            name = self.env_name.clone()
+        )
+        .to_string();
 
         let dialog = Dialog::new(
-            "Delete environment?".to_string(),
+            t!("settings_extra.environments.delete_title").to_string(),
             Some(description),
             dialog_styles(appearance),
         )

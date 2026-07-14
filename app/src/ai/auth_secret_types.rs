@@ -3,6 +3,8 @@ use warp_cli::agent::Harness;
 use warp_graphql::managed_secrets::ManagedSecretType;
 use warp_managed_secrets::ManagedSecretValue;
 
+use crate::i18n::t;
+
 pub struct AuthSecretTypeField {
     pub label: &'static str,
     /// Placeholder text shown inside the input editor. Falls back to `label` if `None`.
@@ -12,11 +14,51 @@ pub struct AuthSecretTypeField {
     pub sensitive: bool,
 }
 
+impl AuthSecretTypeField {
+    pub fn localized_placeholder(&self) -> String {
+        match self.placeholder {
+            Some("Bearer token") => {
+                t!("terminal_ui.ambient_agent.auth.placeholder_bearer_token").to_string()
+            }
+            Some("Secret access key") => {
+                t!("terminal_ui.ambient_agent.auth.placeholder_secret_access_key").to_string()
+            }
+            Some("Session token (temporary credentials only)") => {
+                t!("terminal_ui.ambient_agent.auth.placeholder_session_token").to_string()
+            }
+            Some(placeholder) => placeholder.to_string(),
+            None => self.label.to_string(),
+        }
+    }
+}
+
 pub struct AuthSecretTypeInfo {
     pub display_name: &'static str,
     pub secret_type: ManagedSecretType,
     pub fields: &'static [AuthSecretTypeField],
     pub learn_more_url: &'static str,
+}
+
+impl AuthSecretTypeInfo {
+    pub fn localized_display_name(&self) -> String {
+        match self.secret_type {
+            ManagedSecretType::OpenaiApiKey => {
+                t!("terminal_ui.ambient_agent.auth.type_openai_api_key").to_string()
+            }
+            ManagedSecretType::AnthropicApiKey => {
+                t!("terminal_ui.ambient_agent.auth.type_anthropic_api_key").to_string()
+            }
+            ManagedSecretType::AnthropicBedrockApiKey => {
+                t!("terminal_ui.ambient_agent.auth.type_bedrock_api_key").to_string()
+            }
+            ManagedSecretType::AnthropicBedrockAccessKey => {
+                t!("terminal_ui.ambient_agent.auth.type_bedrock_access_key").to_string()
+            }
+            ManagedSecretType::RawValue | ManagedSecretType::Dotenvx => {
+                self.display_name.to_string()
+            }
+        }
+    }
 }
 
 pub fn auth_secret_types_for_harness(harness: Harness) -> &'static [AuthSecretTypeInfo] {

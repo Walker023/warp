@@ -2,6 +2,7 @@ use std::ops::Range;
 
 use enum_iterator::all;
 use markdown_parser::{FormattedText, FormattedTextFragment, FormattedTextLine};
+use rust_i18n::t;
 use string_offset::CharOffset;
 use sum_tree::SumTree;
 use warpui_core::elements::ListIndentLevel;
@@ -23,17 +24,15 @@ use crate::content::text::{
     StyleSummary,
 };
 
-/// Placeholder shown in place of an embedded image whose `data:` payload
-/// exceeds the asset layer's render limit (see
-/// `asset_cache::data_uri_exceeds_limit`).
-const IMAGE_TOO_LARGE_PLACEHOLDER: &str = "Image too large to display";
+/// Replaces an embedded image whose `data:` payload exceeds the asset layer's render limit with a
+/// visible placeholder (see `asset_cache::data_uri_exceeds_limit`).
 fn replace_oversized_data_uri_images(mut text: FormattedText) -> FormattedText {
     for line in text.lines.iter_mut() {
         if let FormattedTextLine::Image(image) = line
             && asset_cache::data_uri_exceeds_limit(&image.source)
         {
             *line = FormattedTextLine::Line(vec![FormattedTextFragment::plain_text(
-                IMAGE_TOO_LARGE_PLACEHOLDER,
+                t!("editor.image.too_large").to_string(),
             )]);
         }
     }

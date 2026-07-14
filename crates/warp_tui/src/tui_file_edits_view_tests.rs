@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use ai::diff_validation::{DiffDelta, DiffType};
 use futures::channel::oneshot;
+use rust_i18n::t;
 use warp::appearance::Appearance;
 use warp::editor::{CodeEditorModel, CodeEditorModelEvent};
 use warp::tui_export::FileDiff;
@@ -36,11 +37,20 @@ fn verbs_follow_the_diff_op() {
         "/tmp/a/new.rs".to_owned(),
         DiffType::creation("fn main() {}\n".to_owned()),
     );
-    assert_eq!(verb_and_name(&create), ("Created", "new.rs".to_owned()));
+    assert_eq!(
+        verb_and_name(&create),
+        (
+            t!("warp_tui.file_edits.created").to_string(),
+            "new.rs".to_owned()
+        )
+    );
 
     assert_eq!(
         verb_and_name(&update_diff("/tmp/a/lib.rs", None)),
-        ("Updated", "lib.rs".to_owned())
+        (
+            t!("warp_tui.file_edits.updated").to_string(),
+            "lib.rs".to_owned()
+        )
     );
 
     let delete = FileDiff::new(
@@ -50,19 +60,31 @@ fn verbs_follow_the_diff_op() {
             delta: delta(1..2, ""),
         },
     );
-    assert_eq!(verb_and_name(&delete), ("Deleted", "old.rs".to_owned()));
+    assert_eq!(
+        verb_and_name(&delete),
+        (
+            t!("warp_tui.file_edits.deleted").to_string(),
+            "old.rs".to_owned()
+        )
+    );
 }
 
 #[test]
 fn renames_display_old_and_new_names() {
     assert_eq!(
         verb_and_name(&update_diff("/tmp/a/old.rs", Some("/tmp/a/new.rs"))),
-        ("Updated", "old.rs → new.rs".to_owned())
+        (
+            t!("warp_tui.file_edits.updated").to_string(),
+            "old.rs → new.rs".to_owned()
+        )
     );
     // A rename to the same file name (e.g. a directory move) shows one name.
     assert_eq!(
         verb_and_name(&update_diff("/tmp/a/lib.rs", Some("/tmp/b/lib.rs"))),
-        ("Updated", "lib.rs".to_owned())
+        (
+            t!("warp_tui.file_edits.updated").to_string(),
+            "lib.rs".to_owned()
+        )
     );
 }
 

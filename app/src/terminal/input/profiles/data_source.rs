@@ -4,6 +4,7 @@ use warpui::{AppContext, Entity, EntityId, SingletonEntity};
 
 use crate::ai::execution_profiles::profiles::{AIExecutionProfilesModel, ClientProfileId};
 use crate::cloud_object::model::generic_string_model::StringModel;
+use crate::i18n::t;
 use crate::search::data_source::{Query, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;
 use crate::search::SyncDataSource;
@@ -49,7 +50,7 @@ impl SyncDataSource for ProfileSelectorDataSource {
                 ProfileSearchItem::new_manage_profiles_item(),
             ));
         } else if let Some(match_result) =
-            match_indices_case_insensitive("manage profiles", &query_text)
+            match_indices_case_insensitive(&t!("terminal.manage_profiles"), &query_text)
         {
             let score = match_result.score;
             results.push(QueryResult::from(

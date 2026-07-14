@@ -197,7 +197,7 @@ impl MCPServersEditPageView {
 
         let editing_disabled_banner = ctx.add_typed_action_view(|_| {
             Banner::new_without_close(BannerTextContent::plain_text(
-                "Only team admins and the creator of the MCP server can edit the MCP server.",
+                t!("settings_extra.mcp.editing_restricted").to_string(),
             ))
             .with_icon(Icon::Warning)
         });
@@ -638,17 +638,14 @@ impl MCPServersEditPageView {
             ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                 toast_stack.add_ephemeral_toast(
                     DismissibleToast::error(
-                        "Cannot add multiple MCP servers while editing a single server."
-                            .to_string(),
+                        t!("settings_extra.mcp.cannot_add_multiple").to_string(),
                     ),
                     window_id,
                     ctx,
                 );
             });
 
-            return Err(
-                "Cannot add multiple MCP servers while editing a single server.".to_string(),
-            );
+            return Err(t!("settings_extra.mcp.cannot_add_multiple").to_string());
         }
 
         Ok(parsed_templatable_mcp_servers[0].clone())

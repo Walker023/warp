@@ -347,7 +347,7 @@ impl MCPServersListPageView {
             template
                 .description
                 .clone()
-                .or_else(|| Some("Available to install".to_string())),
+                .or_else(|| Some(t!("settings_extra.mcp.available_to_install").to_string())),
             None, // Templates can never have tools
             None, // Templates cannot have an error
             title_chip_text.into_iter().collect(),
@@ -821,7 +821,9 @@ impl MCPServersListPageView {
                 // Show the toast that the server updated, even though we don't update the cloud template in this case
                 let window_id = ctx.window_id();
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                    let toast = DismissibleToast::success(String::from("MCP server updated"));
+                    let toast = DismissibleToast::success(
+                        t!("settings_extra.mcp.server_updated").to_string(),
+                    );
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
             }
@@ -1239,8 +1241,9 @@ impl MCPServersListPageView {
                     Self::separate_server_cards_by_installed(&filtered_server_cards, app);
 
                 if !owned_server_cards.is_empty() {
+                    let section_title = t!("settings_extra.mcp.my_mcps").to_string();
                     page.add_child(self.render_server_cards_section(
-                        "My MCPs",
+                        &section_title,
                         &owned_server_cards,
                         appearance,
                         app,
@@ -1252,8 +1255,11 @@ impl MCPServersListPageView {
                         .current_team()
                         .map(|team| team.name.clone());
                     let shared_by_text = match team_name {
-                        Some(name) => format!("Shared by Warp and {name}"),
-                        None => "Shared by Warp and from other devices".to_string(),
+                        Some(name) => t!("settings_extra.mcp.shared_by_warp_and_team", name = name)
+                            .to_string(),
+                        None => {
+                            t!("settings_extra.mcp.shared_by_warp_and_other_devices").to_string()
+                        }
                     };
 
                     page.add_child(self.render_server_cards_section(
@@ -1263,8 +1269,9 @@ impl MCPServersListPageView {
                         app,
                     ));
                 } else if !filtered_gallery_cards.is_empty() {
+                    let section_title = t!("settings_extra.mcp.shared_from_warp").to_string();
                     page.add_child(self.render_server_cards_section(
-                        "Shared from Warp",
+                        &section_title,
                         &filtered_gallery_cards,
                         appearance,
                         app,
@@ -1273,7 +1280,11 @@ impl MCPServersListPageView {
 
                 // Render one section per provider (e.g. "Detected from Claude").
                 for (provider, cards) in &filtered_file_based_cards {
-                    let section_title = format!("Detected from {}", provider.display_name());
+                    let section_title = t!(
+                        "settings_extra.mcp.detected_from",
+                        name = provider.display_name()
+                    )
+                    .to_string();
                     page.add_child(self.render_server_cards_section(
                         &section_title,
                         cards,
@@ -1519,26 +1530,21 @@ impl MCPServersListPageView {
         .finish()
     }
 
-    fn file_based_root_chip_text(root_path: &PathBuf) -> Option<String> {
+    fn file_based_root_chip(root_path: &PathBuf) -> Option<(String, bool)> {
         // If the path is the user's home directory, set the text to "global".
-        if let Some(home_dir) = dirs::home_dir() {
-            if root_path == &home_dir {
-                return Some("global".to_string());
-            }
-        }
-
-        // If the path is the Warp data directory (e.g. ~/.warp or ~/.warp_dev), set the text to
-        // "global". The Warp provider stores its data directory as the root path rather than the
-        // home directory, unlike other providers that store the home directory directly.
-        if root_path == &crate::warp_managed_paths_watcher::warp_data_dir() {
-            return Some("global".to_string());
+        let is_global = dirs::home_dir().as_ref() == Some(root_path)
+            // The Warp provider stores its data directory as the root path rather than the home
+            // directory, unlike other providers that store the home directory directly.
+            || root_path == &crate::warp_managed_paths_watcher::warp_data_dir();
+        if is_global {
+            return Some((t!("settings_extra.mcp.global_scope").to_string(), true));
         }
 
         // Otherwise, set the text to the final path component.
         root_path
             .file_name()
             .and_then(|name| name.to_str())
-            .map(|name| name.to_string())
+            .map(|name| (name.to_string(), false))
     }
 
     fn get_file_based_title_chips(
@@ -1558,19 +1564,19 @@ impl MCPServersListPageView {
             let paths = FileBasedMCPManager::as_ref(ctx)
                 .directory_paths_for_installation_and_provider(uuid, provider);
             for path in paths {
-                if let Some(text) = Self::file_based_root_chip_text(&path) {
-                    title_chips.push(TitleChip::with_icon(text, provider.icon()));
+                if let Some((text, is_global)) = Self::file_based_root_chip(&path) {
+                    title_chips.push((TitleChip::with_icon(text, provider.icon()), is_global));
                 }
             }
         }
 
         // If global is present, only show global chips (global scope implies project-scope
         // chips are redundant).
-        if title_chips.iter().any(|chip| chip.text == "global") {
-            title_chips.retain(|chip| chip.text == "global");
+        if title_chips.iter().any(|(_, is_global)| *is_global) {
+            title_chips.retain(|(_, is_global)| *is_global);
         }
 
-        title_chips
+        title_chips.into_iter().map(|(chip, _)| chip).collect()
     }
 
     fn register_file_based_template_card(
@@ -1613,7 +1619,9 @@ impl MCPServersListPageView {
                     .templatable_mcp_server()
                     .description
                     .clone()
-                    .or_else(|| Some("Detected from config file".to_string())),
+                    .or_else(|| {
+                        Some(t!("settings_extra.mcp.detected_from_config_file").to_string())
+                    }),
                 None, // tools only available when running
                 None, // no error when not yet started
                 title_chips,
@@ -1747,11 +1755,17 @@ impl MCPServersListPageView {
 
                 if is_shared {
                     match creator {
-                        Some(creator) => Some(TitleChip::text(format!("Shared by: {creator}"))),
-                        None => Some(TitleChip::text("Shared by a team member")),
+                        Some(creator) => Some(TitleChip::text(
+                            t!("settings_extra.mcp.shared_by", name = creator).to_string(),
+                        )),
+                        None => Some(TitleChip::text(
+                            t!("settings_extra.mcp.shared_by_team_member").to_string(),
+                        )),
                     }
                 } else if matches!(item_id, ServerCardItemId::TemplatableMCP(_)) {
-                    Some(TitleChip::text("From another device"))
+                    Some(TitleChip::text(
+                        t!("settings_extra.mcp.from_another_device").to_string(),
+                    ))
                 } else {
                     None
                 }

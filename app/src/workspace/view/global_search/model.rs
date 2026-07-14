@@ -20,6 +20,7 @@ use warp_util::standardized_path::StandardizedPath;
 use warpui::r#async::SpawnedFutureHandle;
 use warpui::{Entity, ModelContext, ModelSpawner, SingletonEntity};
 
+use crate::i18n::t;
 use crate::workspace::view::global_search::view::GlobalSearchEvent;
 use crate::workspace::view::global_search::{GlobalSearchMatch, SearchConfig};
 
@@ -390,7 +391,7 @@ impl GlobalSearch {
         if active.completed_sources == 0 {
             ctx.emit(GlobalSearchEvent::Failed {
                 search_id,
-                error: "Global search failed.".to_string(),
+                error: t!("workspace_search_ui.workspace.global_search.failed").to_string(),
             });
         } else {
             ctx.emit(GlobalSearchEvent::Completed {

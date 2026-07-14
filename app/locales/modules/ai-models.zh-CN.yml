@@ -1,0 +1,10 @@
+ai_models:
+  display_name:
+    auto: "自动"
+    auto_cost_efficient: "自动（成本效益）"
+    auto_responsive: "自动（响应速度）"
+  auto_variant:
+    cost_efficient: "成本效益"
+    responsive: "响应速度"
+  errors:
+    unknown_target_models: "未知目标模型：%{models}"

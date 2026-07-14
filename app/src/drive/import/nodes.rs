@@ -20,6 +20,7 @@ use super::modal_body::{ImportModalBodyAction, BASE_INDENT, IMPORT_FONT_SIZE, IN
 use crate::appearance::Appearance;
 use crate::drive::cloud_object_styling::warp_drive_icon_color;
 use crate::drive::DriveObjectType;
+use crate::i18n::t;
 use crate::notebooks::file::is_markdown_file;
 use crate::server::ids::ClientId;
 use crate::themes::theme::Fill;
@@ -882,7 +883,9 @@ impl FileUploadState {
 
         file_node_to_update.status = match result {
             UploadResult::Success(id) => UploadStatus::Loaded(id),
-            UploadResult::Error(e) => UploadStatus::Error(format!("Failed to parse file: {e}")),
+            UploadResult::Error(e) => UploadStatus::Error(
+                t!("drive_extra.import.parse_file_failed", error = e).to_string(),
+            ),
         };
 
         let parent_id = file_node_to_update.parent_id;

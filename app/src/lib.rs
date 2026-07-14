@@ -162,6 +162,7 @@ use code::editor_management::CodeManager;
 use code::opened_files::OpenedFilesModel;
 use code_review::git_repo_model::GitRepoModels;
 use code_review::GlobalCodeReviewModel;
+use i18n::t;
 use quit_warning::UnsavedStateSummary;
 #[cfg(feature = "local_fs")]
 use repo_metadata::{
@@ -392,6 +393,7 @@ pub(crate) enum LaunchMode {
         /// Whether this CLI invocation is running in a sandboxed environment.
         is_sandboxed: bool,
         /// Override for computer use permission from CLI flags. If None, uses default behavior.
+        #[cfg_attr(feature = "agent_mode_evals", allow(dead_code))]
         computer_use_override: Option<bool>,
     },
     /// Run a test - this may be an integration test or an eval.
@@ -1294,7 +1296,7 @@ pub(crate) fn initialize_app(
     // 语言来源优先级：环境变量 WARP_LANG > 保存的设置 > 默认简体中文。
     // 环境变量让用户无需改代码即可切换，例如 `WARP_LANG=zh-CN`。
     {
-        use crate::i18n::switch_locale;
+        use crate::i18n::{install_binding_description_localizer, switch_locale};
         use crate::settings::{LanguageSettings, Locale};
 
         let locale = match std::env::var("WARP_LANG").ok().as_deref() {
@@ -1305,7 +1307,8 @@ pub(crate) fn initialize_app(
         };
         let locale_str = locale.to_str();
         switch_locale(locale_str);
-        log::info!("Application locale set to: {}", locale_str);
+        install_binding_description_localizer();
+        log::info!("Application locale set to: {locale_str}");
     }
 
     if FeatureFlag::UIZoom.is_enabled() {
@@ -2195,8 +2198,9 @@ pub(crate) fn initialize_app(
                 let Some(window_id) = window_id else {
                     return;
                 };
-                let toast: DismissibleToast<WorkspaceAction> =
-                    DismissibleToast::error(format!("IAP credential refresh failed: {message}"));
+                let toast: DismissibleToast<WorkspaceAction> = DismissibleToast::error(
+                    t!("common_extra.root.iap_refresh_failed", message = message).to_string(),
+                );
                 ToastStack::handle(ctx).update(ctx, |stack, ctx| {
                     stack.add_ephemeral_toast(toast, window_id, ctx);
                 });

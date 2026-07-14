@@ -14,6 +14,7 @@ use warpui::{
 
 use super::styles::{ESTIMATED_RESULT_HEIGHT, MAX_DISPLAYED_RESULT_COUNT};
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::mixer::SearchMixer;
 use crate::search::search_bar::{
     CreateQueryResultRendererFn, SearchBar, SearchBarEvent, SearchBarState, SearchResultOrdering,
@@ -191,7 +192,7 @@ impl<T: Action + Clone> SearchResultsMenuView<T> {
         let theme = appearance.theme();
         Container::new(
             Text::new(
-                "No results found",
+                t!("workspace_search_ui.search.no_results_found").to_string(),
                 appearance.ui_font_family(),
                 appearance.monospace_font_size(),
             )
@@ -339,9 +340,9 @@ impl<T: Action + Clone> View for SearchResultsMenuView<T> {
     }
 }
 
-fn renderable_title_name(query_filter: QueryFilter) -> Option<&'static str> {
+fn renderable_title_name(query_filter: QueryFilter) -> Option<String> {
     if matches!(query_filter, QueryFilter::AgentModeWorkflows) {
-        return Some("Prompts");
+        return Some(t!("workspace_search_ui.search.prompts").to_string());
     }
 
     None

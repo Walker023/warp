@@ -25,6 +25,7 @@ use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, SingleLineEditorOptions,
     TextOptions,
 };
+use crate::i18n::t;
 use crate::modal::ModalAction;
 use crate::tab_configs::branch_picker::BranchPicker;
 use crate::tab_configs::repo_picker::{RepoPicker, RepoPickerEvent};
@@ -148,12 +149,14 @@ pub enum TabConfigParamsModalAction {
 impl TabConfigParamsModal {
     pub fn new(ctx: &mut ViewContext<Self>) -> Self {
         let cancel_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Cancel", NakedTheme).on_click(|ctx| {
-                ctx.dispatch_typed_action(TabConfigParamsModalAction::Cancel);
-            })
+            ActionButton::new(t!("tab_configs_ui.params_modal.cancel"), NakedTheme).on_click(
+                |ctx| {
+                    ctx.dispatch_typed_action(TabConfigParamsModalAction::Cancel);
+                },
+            )
         });
         let submit_button = ctx.add_typed_action_view(|ctx| {
-            ActionButton::new("Open Tab", PrimaryTheme)
+            ActionButton::new(t!("tab_configs_ui.params_modal.open_tab"), PrimaryTheme)
                 .with_keybinding(
                     KeystrokeSource::Fixed(Keystroke::parse("enter").unwrap_or_default()),
                     ctx,
@@ -162,8 +165,9 @@ impl TabConfigParamsModal {
                     ctx.dispatch_typed_action(TabConfigParamsModalAction::Submit);
                 })
         });
-        let submit_button_disabled =
-            ctx.add_typed_action_view(|_| ActionButton::new("Open Tab", DisabledTheme));
+        let submit_button_disabled = ctx.add_typed_action_view(|_| {
+            ActionButton::new(t!("tab_configs_ui.params_modal.open_tab"), DisabledTheme)
+        });
         Self {
             param_fields: Vec::new(),
             pending_config: None,
@@ -281,7 +285,7 @@ impl TabConfigParamsModal {
                 TabConfigParamType::Text => {
                     let default_text = param.default.clone().unwrap_or_default();
                     let placeholder = if default_text.is_empty() {
-                        format!("Enter {name}")
+                        t!("tab_configs_ui.params_modal.enter_value", name = name).to_string()
                     } else {
                         default_text.clone()
                     };
@@ -595,7 +599,11 @@ impl View for TabConfigParamsModal {
                     form.add_child(
                         Container::new(
                             Text::new_inline(
-                                format!("Default: {default_value}"),
+                                t!(
+                                    "tab_configs_ui.params_modal.default_value",
+                                    value = default_value
+                                )
+                                .to_string(),
                                 appearance.ui_font_family(),
                                 appearance.ui_font_size() - 1.,
                             )

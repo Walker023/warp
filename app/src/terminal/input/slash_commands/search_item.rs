@@ -8,6 +8,7 @@ use warpui::{AppContext, Element, SingletonEntity};
 
 use super::{AcceptSlashCommandOrSavedPrompt, InlineItem};
 use crate::ai::blocklist::agent_view::shortcuts::render_keystroke_with_color_overrides;
+use crate::i18n::t;
 use crate::search::item::SearchItemDetail;
 use crate::search::slash_command_menu::static_commands::commands::COMMAND_REGISTRY;
 use crate::search::{ItemHighlightState, SearchItem};
@@ -95,7 +96,7 @@ impl SearchItem for InlineItem {
                 .with_child(name_text.finish())
                 .with_child(
                     Text::new(
-                        " or ",
+                        t!("terminal_ui.input.menu_actions.or"),
                         appearance.ui_font_family(),
                         inline_styles::font_size(appearance),
                     )

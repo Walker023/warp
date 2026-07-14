@@ -72,6 +72,8 @@ pub use tui_autoupdate::*;
 pub use vim_banner::*;
 use warp_core::user_preferences::GetUserPreferences as _;
 
+use crate::i18n::t;
+
 /// Describes errors encountered when loading settings from `settings.toml`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SettingsFileError {
@@ -86,11 +88,29 @@ impl std::fmt::Display for SettingsFileError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::FileParseFailed(_) => {
-                write!(f, "Couldn't parse due to invalid syntax")
+                write!(
+                    f,
+                    "{}",
+                    t!("settings_extra.errors.settings_file.parse_failed")
+                )
             }
             Self::InvalidSettings(keys) => match keys.as_slice() {
-                [key] => write!(f, "Invalid value for '{key}'"),
-                _ => write!(f, "Invalid values for: {}", keys.join(", ")),
+                [key] => write!(
+                    f,
+                    "{}",
+                    t!(
+                        "settings_extra.errors.settings_file.invalid_value",
+                        name = key
+                    )
+                ),
+                _ => write!(
+                    f,
+                    "{}",
+                    t!(
+                        "settings_extra.errors.settings_file.invalid_values",
+                        name = keys.join(", ")
+                    )
+                ),
             },
         }
     }
@@ -104,17 +124,29 @@ impl SettingsFileError {
     pub fn heading_and_description(&self) -> (String, String) {
         match self {
             Self::FileParseFailed(_) => (
-                "Your settings file contains an error.".to_owned(),
-                format!("{self}. Open the file to fix it."),
+                t!("settings_extra.errors.settings_file.heading_one").to_string(),
+                t!(
+                    "settings_extra.errors.settings_file.open_to_fix",
+                    name = self.to_string()
+                )
+                .to_string(),
             ),
             Self::InvalidSettings(keys) => match keys.len() {
                 1 => (
-                    "Your settings file contains an error.".to_owned(),
-                    format!("{self}. The default value is being used."),
+                    t!("settings_extra.errors.settings_file.heading_one").to_string(),
+                    t!(
+                        "settings_extra.errors.settings_file.default_value_one",
+                        name = self.to_string()
+                    )
+                    .to_string(),
                 ),
                 _ => (
-                    "Your settings file contains errors.".to_owned(),
-                    format!("{self}. Default values are being used."),
+                    t!("settings_extra.errors.settings_file.heading_many").to_string(),
+                    t!(
+                        "settings_extra.errors.settings_file.default_values_many",
+                        name = self.to_string()
+                    )
+                    .to_string(),
                 ),
             },
         }
@@ -226,11 +258,17 @@ pub enum CtrlTabBehavior {
 }
 
 impl CtrlTabBehavior {
-    pub fn as_dropdown_label(&self) -> &str {
+    pub fn as_dropdown_label(&self) -> String {
         match self {
-            Self::ActivatePrevNextTab => "Activate previous/next tab",
-            Self::CycleMostRecentSession => "Cycle most recent session",
-            Self::CycleMostRecentTab => "Cycle most recent tab",
+            Self::ActivatePrevNextTab => {
+                t!("settings_extra.options.ctrl_tab.activate_previous_next").to_string()
+            }
+            Self::CycleMostRecentSession => {
+                t!("settings_extra.options.ctrl_tab.cycle_recent_session").to_string()
+            }
+            Self::CycleMostRecentTab => {
+                t!("settings_extra.options.ctrl_tab.cycle_recent_tab").to_string()
+            }
         }
     }
 }
@@ -276,11 +314,15 @@ pub enum GlobalHotkeyMode {
 }
 
 impl GlobalHotkeyMode {
-    pub fn as_dropdown_label(&self) -> &str {
+    pub fn as_dropdown_label(&self) -> String {
         match self {
-            Self::Disabled => "Disabled",
-            Self::QuakeMode => "Dedicated hotkey window",
-            Self::ActivationHotkey => "Show/hide all windows",
+            Self::Disabled => t!("settings_extra.options.disabled").to_string(),
+            Self::QuakeMode => {
+                t!("settings_extra.options.global_hotkey.dedicated_window").to_string()
+            }
+            Self::ActivationHotkey => {
+                t!("settings_extra.options.global_hotkey.show_hide_all_windows").to_string()
+            }
         }
     }
 }

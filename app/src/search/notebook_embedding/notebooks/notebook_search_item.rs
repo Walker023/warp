@@ -172,7 +172,11 @@ impl SearchItem for NotebookSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Notebook: {}", self.cloud_notebook.model().title)
+        t!(
+            "workspace_search_ui.search.a11y.notebook",
+            name = self.cloud_notebook.model().title
+        )
+        .to_string()
     }
 }
 

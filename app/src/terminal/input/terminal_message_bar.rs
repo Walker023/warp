@@ -14,6 +14,7 @@ use crate::ai::blocklist::{
     BlocklistAIContextEvent, BlocklistAIContextModel, BlocklistAIInputModel,
 };
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::slash_command_menu::static_commands::commands;
 use crate::terminal::input::inline_history::{AcceptHistoryItem, HistoryTab};
 use crate::terminal::input::inline_menu::{InlineMenuModel, InlineMenuModelEvent};
@@ -173,10 +174,13 @@ impl MessageProvider<TerminalMessageArgs<'_>> for ErroredBlockMessageProducer {
         let keystroke = keybinding_name_to_keystroke(SELECT_PREVIOUS_BLOCK_ACTION_NAME, args.app)?;
         Some(Message::new(vec![
             MessageItem::keystroke(keystroke),
-            MessageItem::text(format!(
-                " attach `{}` output as agent context",
-                truncated_command_for_block(&block.command_to_string())
-            )),
+            MessageItem::text(
+                t!(
+                    "terminal_ui.input.message_bar.attach_output",
+                    name = truncated_command_for_block(&block.command_to_string())
+                )
+                .to_string(),
+            ),
         ]))
     }
 }
@@ -202,7 +206,7 @@ impl MessageProvider<TerminalMessageArgs<'_>> for AgentMessageProducer {
                     key: "enter".to_owned(),
                     ..Default::default()
                 }),
-                MessageItem::text(" new conversation"),
+                MessageItem::text(t!("terminal_ui.input.message_bar.new_conversation")),
             ])
             .with_color(message_magenta(theme)),
         )
@@ -233,7 +237,7 @@ impl MessageProvider<TerminalMessageArgs<'_>> for PlanMessageProducer {
                     key: "enter".to_owned(),
                     ..Default::default()
                 }),
-                MessageItem::text(" plan with agent"),
+                MessageItem::text(t!("terminal_ui.input.message_bar.plan_with_agent")),
             ])
             .with_color(message_magenta(theme)),
         )
@@ -255,7 +259,7 @@ impl MessageProvider<TerminalMessageArgs<'_>> for ContinueConversationMessagePro
         let keystroke = keybinding_name_to_keystroke(commands::CONVERSATIONS.name, args.app)?;
         Some(Message::new(vec![
             MessageItem::keystroke(keystroke),
-            MessageItem::text(" to continue conversation"),
+            MessageItem::text(t!("terminal_ui.input.message_bar.continue_conversation")),
         ]))
     }
 }
@@ -342,12 +346,12 @@ impl MessageProvider<TerminalMessageArgs<'_>> for DefaultMessageProducer {
         if let Some(keystroke) = keystroke {
             Some(Message::new(vec![
                 MessageItem::keystroke(keystroke),
-                MessageItem::text(" new /agent conversation"),
+                MessageItem::text(t!("terminal_ui.input.message_bar.new_agent_conversation")),
             ]))
         } else {
-            Some(Message::new(vec![MessageItem::text(
-                "/agent for new conversation",
-            )]))
+            Some(Message::new(vec![MessageItem::text(t!(
+                "terminal_ui.input.message_bar.agent_for_new_conversation"
+            ))]))
         }
     }
 }
@@ -361,13 +365,24 @@ impl MessageProvider<Option<&AcceptHistoryItem>> for InlineHistoryMessageProduce
         });
         let items = match selected {
             Some(AcceptHistoryItem::Command { .. }) => {
-                vec![enter, MessageItem::text(" to execute")]
+                vec![
+                    enter,
+                    MessageItem::text(t!("terminal_ui.input.message_bar.execute")),
+                ]
             }
             Some(AcceptHistoryItem::AIPrompt { .. }) => {
-                vec![enter, MessageItem::text(" to send")]
+                vec![
+                    enter,
+                    MessageItem::text(t!("terminal_ui.input.message_bar.send")),
+                ]
             }
             Some(AcceptHistoryItem::Conversation { title, .. }) => {
-                vec![enter, MessageItem::text(format!(" to open '{title}'"))]
+                vec![
+                    enter,
+                    MessageItem::text(
+                        t!("terminal_ui.input.message_bar.open_named", name = title).to_string(),
+                    ),
+                ]
             }
             None => {
                 vec![MessageItem::text("")]
@@ -400,9 +415,9 @@ impl MessageTransformer<TerminalMessageArgs<'_>> for AutodetectedPromptMessageTr
                     });
 
             message.items.extend([
-                MessageItem::text(" (autodetected) "),
+                MessageItem::text(t!("terminal_ui.input.message_bar.autodetected")),
                 MessageItem::keystroke(set_terminal_mode_keystroke),
-                MessageItem::text(" to override"),
+                MessageItem::text(t!("terminal_ui.input.message_bar.override_mode")),
             ]);
         }
         message.set_color(message_magenta(Appearance::as_ref(args.app).theme()));
@@ -427,16 +442,24 @@ impl MessageTransformer<TerminalMessageArgs<'_>> for AttachedBlocksMessageTransf
         };
 
         if context_block_ids.len() == 1 {
-            message.append_text(format!(" with `{}` attached", block_command).as_str());
+            message.append_text(&t!(
+                "terminal_ui.input.message_bar.one_attached",
+                name = block_command
+            ));
         } else {
             let text = if context_block_ids.len() == 2 {
-                format!(" with `{}` and 1 other command attached", block_command)
-            } else {
-                format!(
-                    " with `{}` and {} other commands attached",
-                    block_command,
-                    context_block_ids.len().saturating_sub(1)
+                t!(
+                    "terminal_ui.input.message_bar.two_attached",
+                    name = block_command
                 )
+                .to_string()
+            } else {
+                t!(
+                    "terminal_ui.input.message_bar.many_attached",
+                    name = block_command,
+                    count = context_block_ids.len().saturating_sub(1)
+                )
+                .to_string()
             };
             message.append_text(text.as_str());
         }
@@ -453,7 +476,8 @@ impl MessageTransformer<TerminalMessageArgs<'_>> for AttachedTextSelectionMessag
         {
             return false;
         }
-        message.append_text(" with text selection attached");
+        let text = t!("terminal_ui.input.message_bar.selected_text_attached");
+        message.append_text(&text);
         true
     }
 }

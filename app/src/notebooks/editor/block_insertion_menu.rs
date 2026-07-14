@@ -19,6 +19,7 @@ use crate::appearance::Appearance;
 use crate::cloud_object::model::persistence::CloudModel;
 use crate::cloud_object::{ObjectIdType, Space};
 use crate::drive::CloudObjectTypeAndId;
+use crate::i18n::t;
 use crate::menu::{self, Menu, MenuItemFields};
 use crate::notebooks::telemetry::EmbeddedObjectInfo;
 use crate::search::notebook_embedding::searcher::EmbeddingSearchItemAction;
@@ -97,7 +98,7 @@ impl BlockInsertionMenuState {
 
         if embedded_objects_enabled {
             menu.add_item(
-                MenuItemFields::new("Embed")
+                MenuItemFields::new(t!("notebooks.block.embed"))
                     .with_icon(Icon::EmbedBlock)
                     .with_on_select_action(EditorViewAction::OpenEmbeddedObjectSearch)
                     .into_item(),
@@ -117,7 +118,7 @@ impl BlockInsertionMenuState {
         }
 
         menu.add_item(
-            MenuItemFields::new("Divider")
+            MenuItemFields::new(t!("notebooks.block.divider"))
                 .with_icon(Icon::HorizontalRuleBlock)
                 .with_on_select_action(EditorViewAction::InsertBlock(
                     warp_editor::content::text::BlockType::Item(BufferBlockItem::HorizontalRule),
@@ -237,7 +238,7 @@ impl RichTextEditorView {
             let title = model
                 .get_notebook(id)
                 .map(|notebook| notebook.model().title.clone())
-                .unwrap_or_else(|| "Untitled".to_string());
+                .unwrap_or_else(|| t!("notebooks.common.untitled").to_string());
             let link = model
                 .get_by_uid(&CloudObjectTypeAndId::Notebook(*id).uid())
                 .and_then(|object| object.object_link());
@@ -306,7 +307,7 @@ impl RichTextEditorView {
         })
         .with_tooltip(move || {
             ui_builder
-                .tool_tip("Insert block".to_string())
+                .tool_tip(t!("notebooks.block.insert").to_string())
                 .build()
                 .finish()
         })

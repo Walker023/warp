@@ -10,6 +10,7 @@ use warp_graphql::queries::get_simple_integrations::{
 };
 
 use crate::ai::agent_sdk::output::{self, TableFormat};
+use crate::i18n::t;
 use crate::util::time_format::format_approx_duration_from_now_utc;
 
 const MAX_LINE_WIDTH: usize = 90;
@@ -24,7 +25,10 @@ pub fn print_integrations(graphql_output: &SimpleIntegrationsOutput, output_form
     let integrations = &graphql_output.integrations;
 
     if integrations.is_empty() {
-        println!("No integrations found.");
+        println!(
+            "{}",
+            t!("ai_sdk_management.integration_output.heading.none")
+        );
         return;
     }
 
@@ -40,9 +44,12 @@ pub fn print_integrations(graphql_output: &SimpleIntegrationsOutput, output_form
         OutputFormat::Pretty | OutputFormat::Text => {
             // Use the existing card-style layout for pretty/text output
             if integrations.len() == 1 {
-                println!("\nIntegration:");
+                println!("{}", t!("ai_sdk_management.integration_output.heading.one"));
             } else {
-                println!("\nIntegrations:");
+                println!(
+                    "{}",
+                    t!("ai_sdk_management.integration_output.heading.many")
+                );
             }
 
             for integration in integrations {
@@ -159,10 +166,10 @@ fn print_integration_card(integration: &SimpleIntegration) {
 
     // Row 2: Status: <emoji> Status description
     let emoji = status_emoji(integration.connection_status);
-    let explanation = status_explanation(integration.connection_status);
+    let explanation = localized_status_explanation(integration.connection_status);
     let status_text = format!("{emoji} {explanation}");
     let status_row = crate::ai::agent_sdk::text_layout::render_labeled_wrapped_field(
-        "Status",
+        t!("ai_sdk_management.integration_output.label.status").as_ref(),
         &status_text,
         MAX_LINE_WIDTH,
     );
@@ -173,10 +180,10 @@ fn print_integration_card(integration: &SimpleIntegration) {
         Some(ListedSimpleIntegrationConfig {
             environment_uid, ..
         }) if !environment_uid.is_empty() => environment_uid.clone(),
-        _ => "(none)".to_string(),
+        _ => t!("ai_sdk_management.integration_output.value.none").to_string(),
     };
     let env_row = crate::ai::agent_sdk::text_layout::render_labeled_wrapped_field(
-        "Environment",
+        t!("ai_sdk_management.integration_output.label.environment").as_ref(),
         &env_value,
         MAX_LINE_WIDTH,
     );
@@ -186,7 +193,7 @@ fn print_integration_card(integration: &SimpleIntegration) {
     if let Some(ListedSimpleIntegrationConfig { model_id, .. }) = &integration.integration_config {
         if !model_id.is_empty() {
             let model_row = crate::ai::agent_sdk::text_layout::render_labeled_wrapped_field(
-                "Model",
+                t!("ai_sdk_management.integration_output.label.model").as_ref(),
                 model_id,
                 MAX_LINE_WIDTH,
             );
@@ -199,7 +206,7 @@ fn print_integration_card(integration: &SimpleIntegration) {
     {
         if !base_prompt.is_empty() {
             let base_prompt_row = crate::ai::agent_sdk::text_layout::render_labeled_wrapped_field(
-                "Base prompt",
+                t!("ai_sdk_management.integration_output.label.base_prompt").as_ref(),
                 base_prompt,
                 MAX_LINE_WIDTH,
             );
@@ -211,7 +218,11 @@ fn print_integration_card(integration: &SimpleIntegration) {
     if let Some(config) = &integration.integration_config {
         let lines = mcp_server_display_lines(config);
         if !lines.is_empty() {
-            let row = render_labeled_wrapped_lines("MCP servers", &lines, MAX_LINE_WIDTH);
+            let row = render_labeled_wrapped_lines(
+                t!("ai_sdk_management.integration_output.label.mcp_servers").as_ref(),
+                &lines,
+                MAX_LINE_WIDTH,
+            );
             table.add_row(vec![row]);
         }
     }
@@ -221,7 +232,13 @@ fn print_integration_card(integration: &SimpleIntegration) {
     if let Some(created) = integration.created_at {
         let dt = created.utc();
         let formatted = format_approx_duration_from_now_utc(dt);
-        created_updated.push_str(&format!("Created: {formatted}"));
+        created_updated.push_str(
+            t!(
+                "ai_sdk_management.integration_output.timestamp.created",
+                time = formatted
+            )
+            .as_ref(),
+        );
     }
     if let Some(updated) = integration.updated_at {
         let dt = updated.utc();
@@ -229,7 +246,13 @@ fn print_integration_card(integration: &SimpleIntegration) {
         if !created_updated.is_empty() {
             created_updated.push_str(" | ");
         }
-        created_updated.push_str(&format!("Updated: {formatted}"));
+        created_updated.push_str(
+            t!(
+                "ai_sdk_management.integration_output.timestamp.updated",
+                time = formatted
+            )
+            .as_ref(),
+        );
     }
     if !created_updated.is_empty() {
         let wrapped =
@@ -252,7 +275,8 @@ fn status_emoji(status: SimpleIntegrationConnectionStatus) -> &'static str {
     }
 }
 
-fn status_explanation(status: SimpleIntegrationConnectionStatus) -> &'static str {
+/// Stable values serialized in JSON and NDJSON output.
+fn machine_status_value(status: SimpleIntegrationConnectionStatus) -> &'static str {
     match status {
         SimpleIntegrationConnectionStatus::NotConnected => "This integration is not connected.",
         SimpleIntegrationConnectionStatus::ConnectionError => {
@@ -268,12 +292,34 @@ fn status_explanation(status: SimpleIntegrationConnectionStatus) -> &'static str
     }
 }
 
+fn localized_status_explanation(status: SimpleIntegrationConnectionStatus) -> String {
+    match status {
+        SimpleIntegrationConnectionStatus::NotConnected => {
+            t!("ai_sdk_management.integration_output.status.not_connected").to_string()
+        }
+        SimpleIntegrationConnectionStatus::ConnectionError => {
+            t!("ai_sdk_management.integration_output.status.connection_error").to_string()
+        }
+        SimpleIntegrationConnectionStatus::IntegrationNotConfigured => {
+            t!("ai_sdk_management.integration_output.status.not_configured").to_string()
+        }
+        SimpleIntegrationConnectionStatus::NotEnabled => {
+            t!("ai_sdk_management.integration_output.status.not_enabled").to_string()
+        }
+        SimpleIntegrationConnectionStatus::Active => {
+            t!("ai_sdk_management.integration_output.status.active").to_string()
+        }
+    }
+}
+
 /// Serializable integration info for output.
 #[derive(Serialize)]
 struct IntegrationInfo {
     provider: String,
     description: String,
     status: String,
+    #[serde(skip_serializing)]
+    status_formatted: String,
     environment_uid: Option<String>,
     base_prompt: Option<String>,
     created_at: Option<DateTime<Utc>>,
@@ -288,7 +334,8 @@ impl IntegrationInfo {
     fn from_graphql(integration: &SimpleIntegration) -> Self {
         let provider =
             crate::ai::agent_sdk::text_layout::title_case_identifier(&integration.provider_slug);
-        let status = status_explanation(integration.connection_status).to_string();
+        let status = machine_status_value(integration.connection_status).to_string();
+        let status_formatted = localized_status_explanation(integration.connection_status);
 
         let environment_uid = integration.integration_config.as_ref().and_then(|config| {
             if config.environment_uid.is_empty() {
@@ -311,16 +358,21 @@ impl IntegrationInfo {
 
         let created_at_formatted = created_at
             .map(format_approx_duration_from_now_utc)
-            .unwrap_or_else(|| "Unknown".to_string());
+            .unwrap_or_else(|| {
+                t!("ai_sdk_management.integration_output.value.unknown").to_string()
+            });
 
         let updated_at_formatted = updated_at
             .map(format_approx_duration_from_now_utc)
-            .unwrap_or_else(|| "Unknown".to_string());
+            .unwrap_or_else(|| {
+                t!("ai_sdk_management.integration_output.value.unknown").to_string()
+            });
 
         Self {
             provider,
             description: integration.description.clone(),
             status,
+            status_formatted,
             environment_uid,
             base_prompt,
             created_at,
@@ -334,12 +386,12 @@ impl IntegrationInfo {
 impl TableFormat for IntegrationInfo {
     fn header() -> Vec<Cell> {
         vec![
-            Cell::new("Provider"),
-            Cell::new("Description"),
-            Cell::new("Status"),
-            Cell::new("Environment"),
-            Cell::new("Created"),
-            Cell::new("Updated"),
+            Cell::new(t!("ai_sdk_management.integration_output.table.provider").to_string()),
+            Cell::new(t!("ai_sdk_management.integration_output.table.description").to_string()),
+            Cell::new(t!("ai_sdk_management.integration_output.table.status").to_string()),
+            Cell::new(t!("ai_sdk_management.integration_output.table.environment").to_string()),
+            Cell::new(t!("ai_sdk_management.integration_output.table.created").to_string()),
+            Cell::new(t!("ai_sdk_management.integration_output.table.updated").to_string()),
         ]
     }
 
@@ -347,8 +399,10 @@ impl TableFormat for IntegrationInfo {
         vec![
             Cell::new(&self.provider),
             Cell::new(&self.description),
-            Cell::new(&self.status),
-            Cell::new(self.environment_uid.as_deref().unwrap_or("(none)")),
+            Cell::new(&self.status_formatted),
+            Cell::new(self.environment_uid.clone().unwrap_or_else(|| {
+                t!("ai_sdk_management.integration_output.value.none").to_string()
+            })),
             Cell::new(&self.created_at_formatted),
             Cell::new(&self.updated_at_formatted),
         ]

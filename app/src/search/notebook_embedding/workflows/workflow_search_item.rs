@@ -180,7 +180,11 @@ impl SearchItem for WorkflowSearchItem {
     fn accessibility_label(&self) -> String {
         let workflow = &self.cloud_workflow.model().data;
 
-        format!("Workflow: {}", workflow.name())
+        t!(
+            "workspace_search_ui.search.a11y.workflow",
+            name = workflow.name()
+        )
+        .to_string()
     }
 }
 

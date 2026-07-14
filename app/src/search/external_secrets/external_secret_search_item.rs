@@ -7,6 +7,7 @@ use super::external_secret_fuzzy_match::FuzzyMatchExternalSecretResult;
 use super::searcher::ExternalSecretSearchItemAction;
 use crate::appearance::Appearance;
 use crate::external_secrets::{ExternalSecret, ExternalSecretManager};
+use crate::i18n::t;
 use crate::search::external_secrets::view::styles;
 use crate::search::item::{IconLocation, SearchItem};
 use crate::search::result_renderer::ItemHighlightState;
@@ -94,6 +95,10 @@ impl SearchItem for ExternalSecretSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Secret: {}", &self.external_secret.get_display_name())
+        t!(
+            "workspace_search_ui.search.a11y.secret",
+            name = &self.external_secret.get_display_name()
+        )
+        .to_string()
     }
 }

@@ -34,6 +34,7 @@ use crate::ai::document::plan_publication::{
     prepare_plan_publications, wait_for_plan_publications,
 };
 use crate::ai::local_harness_setup::local_harness_product_disabled_message;
+use crate::i18n::t;
 
 /// Per-child spawn timeout. If a child agent doesn't report back within
 /// this window (e.g. binary not found, server error), the slot is failed
@@ -259,7 +260,7 @@ impl RunAgentsExecutor {
                 && parent_run_id.is_none()
             {
                 slots.push(ChildSlot::Failed(
-                    "Remote child agents require the parent run_id to be available.".to_string(),
+                    t!("ai_actions.start_agent.remote_parent_run_id_missing").to_string(),
                 ));
                 continue;
             }
@@ -305,7 +306,8 @@ impl RunAgentsExecutor {
                                 )) => RunAgentsAgentOutcomeKind::Failed { error },
                                 futures::future::Either::Left((Err(_), _)) => {
                                     RunAgentsAgentOutcomeKind::Failed {
-                                        error: "Cancelled before launch".to_string(),
+                                        error: t!("ai_actions.run_agents.cancelled_before_launch")
+                                            .to_string(),
                                     }
                                 }
                                 futures::future::Either::Right((_, _)) => {
@@ -314,11 +316,11 @@ impl RunAgentsExecutor {
                                         SPAWN_TIMEOUT.as_secs()
                                     );
                                     RunAgentsAgentOutcomeKind::Failed {
-                                        error: format!(
-                                            "Agent failed to start within {} seconds. \
-                                             The harness binary may not be installed.",
-                                            SPAWN_TIMEOUT.as_secs()
-                                        ),
+                                        error: t!(
+                                            "ai_actions.run_agents.spawn_timeout",
+                                            seconds = SPAWN_TIMEOUT.as_secs()
+                                        )
+                                        .to_string(),
                                     }
                                 }
                             }
@@ -495,23 +497,18 @@ fn prepare_request_for_execution(
     }
 
     if status.is_some_and(|status| status.is_disapproved()) {
-        return Some("Orchestration config was disapproved".to_string());
+        return Some(t!("ai_actions.run_agents.config_disapproved").to_string());
     }
 
     if BlocklistAIPermissions::as_ref(ctx)
         .get_run_agents_setting(ctx, Some(terminal_view_id))
         .is_never_allow()
     {
-        return Some(
-            "Running child agents is disabled by the active execution profile.".to_string(),
-        );
+        return Some(t!("ai_actions.run_agents.disabled_by_execution_profile").to_string());
     }
 
     if !can_execute_with_auth_secret(request, ctx) {
-        return Some(
-            "Cloud child agents using this harness require an API key before they can run."
-                .to_string(),
-        );
+        return Some(t!("ai_actions.run_agents.api_key_required").to_string());
     }
 
     None
@@ -553,11 +550,14 @@ fn duplicate_launched_agents_reason(
         .collect::<Vec<_>>()
         .join(", ");
 
-    Some(format!(
-        "Requested agent(s) have already been launched: {duplicate_list}. \
-         Do not start duplicate child agents; send any follow-up with send_message_to_agent \
-         using the existing agent id(s): {addresses}."
-    ))
+    Some(
+        t!(
+            "ai_actions.run_agents.duplicate_agents",
+            agents = &duplicate_list,
+            agent_ids = &addresses
+        )
+        .to_string(),
+    )
 }
 
 fn existing_launched_agents_for_conversation(
@@ -690,7 +690,7 @@ fn resolve_request_from_config(request: &mut RunAgentsRequest, config: &Orchestr
 /// `accept_disabled_reason` check.
 fn validate_request(request: &RunAgentsRequest) -> Result<(), String> {
     if request.agent_run_configs.is_empty() {
-        return Err("orchestrate: empty agent_run_configs".to_string());
+        return Err(t!("ai_actions.run_agents.empty_agent_run_configs").to_string());
     }
     if matches!(request.execution_mode, RunAgentsExecutionMode::Local) {
         if let Some(harness) = Harness::parse_local_child_harness(&request.harness_type) {
@@ -704,7 +704,7 @@ fn validate_request(request: &RunAgentsRequest) -> Result<(), String> {
         RunAgentsExecutionMode::Remote { .. }
     ) && request.harness_type.eq_ignore_ascii_case("opencode")
     {
-        return Err("Remote child agents do not support the opencode harness yet.".to_string());
+        return Err(t!("ai_actions.start_agent.remote_opencode_unsupported").to_string());
     }
     Ok(())
 }
@@ -767,9 +767,7 @@ pub fn run_agents_to_start_agent_mode(
         } => {
             // OpenCode is unsupported on Remote.
             if run_harness_type.eq_ignore_ascii_case("opencode") {
-                return Err(
-                    "Remote child agents do not support the opencode harness yet.".to_string(),
-                );
+                return Err(t!("ai_actions.start_agent.remote_opencode_unsupported").to_string());
             }
             Ok(StartAgentExecutionMode::Remote {
                 environment_id: environment_id.clone(),

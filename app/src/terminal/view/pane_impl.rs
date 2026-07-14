@@ -1075,8 +1075,8 @@ impl TerminalView {
 
 fn default_agent_conversation_title(is_ambient_agent: bool) -> String {
     if is_ambient_agent {
-        "New cloud agent".to_owned()
+        t!("terminal_ui.ambient_agent.new_cloud_agent").to_string()
     } else {
-        "New agent conversation".to_owned()
+        t!("terminal_ui.agent_view.new_conversation").to_string()
     }
 }

@@ -9,6 +9,7 @@ use warpui::fonts::{Properties, Weight};
 use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::ai_context_menu::styles;
 use crate::search::item::SearchItem;
@@ -19,20 +20,32 @@ use crate::util::truncation::truncate_from_end;
 /// Calculate how long ago a timestamp was
 fn time_ago_string(timestamp: Option<&DateTime<Local>>) -> String {
     let Some(timestamp) = timestamp else {
-        return "Just now".to_string();
+        return t!("workspace_search_ui.search.time.just_now").to_string();
     };
 
     let now = Local::now();
     let duration = now.signed_duration_since(*timestamp);
 
     if duration.num_seconds() < 60 {
-        "Just now".to_string()
+        t!("workspace_search_ui.search.time.just_now").to_string()
     } else if duration.num_minutes() < 60 {
-        format!("{} minutes ago", duration.num_minutes())
+        t!(
+            "workspace_search_ui.search.time.minutes_ago",
+            count = duration.num_minutes()
+        )
+        .to_string()
     } else if duration.num_hours() < 24 {
-        format!("{} hours ago", duration.num_hours())
+        t!(
+            "workspace_search_ui.search.time.hours_ago",
+            count = duration.num_hours()
+        )
+        .to_string()
     } else {
-        format!("{} days ago", duration.num_days())
+        t!(
+            "workspace_search_ui.search.time.days_ago",
+            count = duration.num_days()
+        )
+        .to_string()
     }
 }
 
@@ -135,7 +148,7 @@ impl SearchItem for BlockSearchItem {
 
         // Create sub text: last 3 lines of output
         let sub_text = if self.output_lines.is_empty() {
-            "No output".to_string()
+            t!("workspace_search_ui.search.no_output").to_string()
         } else {
             let joined = self.output_lines.join("\n").trim().to_string();
             // Additional safety truncation for the hover card
@@ -206,6 +219,6 @@ impl SearchItem for BlockSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Block: {}", self.command)
+        t!("workspace_search_ui.search.a11y.block", name = self.command).to_string()
     }
 }

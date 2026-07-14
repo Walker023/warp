@@ -1,0 +1,105 @@
+workflows_ui:
+  debug:
+    prompt_chip_log_name: "Tail prompt chip log"
+    prompt_chip_log_description: "Shows the diagnostic log of shell commands run by prompt context chips (dogfood only)"
+  errors:
+    missing_enum_variants: "Missing valid enum variants"
+    expected_workflow_identifier: "workflow identifier"
+    expected_workflow_struct: "struct Workflow"
+  categories:
+    filters:
+      all: "All"
+      my_workflows: "My Workflows"
+      repository_workflows: "Repository Workflows"
+      team_workflows: "Team Workflows"
+    a11y:
+      showing_category: "Showing workflows with category %{category}"
+      showing_all: "Showing all workflows"
+      showing_mine: "Showing my workflows"
+      showing_project: "Showing project workflows"
+      showing_team: "Showing team workflows"
+      selected_workflow: "Selected %{name} %{content}"
+      title: "Workflows"
+      help: "Search or use arrow up and arrow down keys to navigate and find a workflow. Use enter to confirm the workflow and esc to quit."
+    empty:
+      no_matches: "No matching workflows found."
+      try_prefix: "Try "
+      create_own: "creating your own workflow"
+    heading: "Categories"
+    search_placeholder: "Search workflows"
+  info_box:
+    edit_prompt: "Edit prompt"
+    edit_workflow: "Edit workflow"
+    argument_with_description: "%{name}: %{description}"
+    command_edited: "Command edited."
+    reset: "Reset"
+    cycle_parameters: "to cycle parameters"
+    save_as_workflow: "Save as workflow"
+    environment_variables: "Environment variables"
+    new_environment_variables: "New environment variables"
+    view_context: "View Context"
+  editor:
+    untitled: "Untitled"
+    title_placeholder: "Add a title"
+    description_placeholder: "Add a description"
+    command_placeholder: |-
+      echo "Hello {{your_name}}" # insert arguments with curly braces
+      # enter a single-line command or an entire shell script
+    enum_command_placeholder: |-
+      # Enter a shell command that generates variants, delimited by newlines.
+
+      git branch -a
+    prompt_placeholder: "Enter your prompt here... (e.g., 'Create a function to sort an array of objects by date' or 'Help me debug this React component')."
+  buttons:
+    create: "Create"
+    update: "Update"
+    cancel: "Cancel"
+    autofill: "Autofill"
+    loading: "Loading"
+    run_in_warp: "Run in Warp"
+  mode:
+    editing: "Editing"
+    viewing: "Viewing"
+    sign_in_to_edit: "Sign in to edit"
+  aliases:
+    heading: "Aliases"
+    help: "Aliases allow you to create short strings to execute workflows. Each alias can have different argument values and environment variables, and aliases are personal to you."
+    name_placeholder: "alias name"
+    default: "Default"
+    add: "Add alias"
+  unsaved:
+    message: "You have unsaved changes."
+    keep_editing: "Keep editing"
+    discard_changes: "Discard changes"
+  toasts:
+    error_saving_aliases: "Error saving aliases"
+    contains_secrets: "This workflow cannot be saved because it contains secrets"
+    create_failed: "Could not create workflow"
+    prompt_copied: "Prompt copied."
+    command_copied: "Command copied."
+  ai:
+    generate_metadata_tooltip: "Generate a title, descriptions, or parameters with Warp AI"
+    no_credits_contact_admin: "Looks like you're out of AI credits. Contact a team admin to upgrade for more credits."
+    upgrade_for_credits: "Upgrade for more credits."
+    no_credits: "Looks like you're out of AI credits."
+  arguments:
+    heading: "Arguments"
+    description_placeholder: "Description"
+    value_placeholder: "Value (optional)"
+    default_value_placeholder: "Default value (optional)"
+    add_tooltip: "Add a workflow argument"
+    viewer_help: "Fill out the arguments in this workflow and copy it to run in your terminal session"
+    add_environment_variables: "Add environment variables"
+    environment_variables: "Environment variables"
+  environment_variables:
+    none: "None"
+  trash:
+    no_access: "You no longer have access to this workflow"
+    moved: "Workflow moved to trash"
+    restore_tooltip: "Restore workflow from trash"
+    restore: "Restore"
+  menu:
+    copy_link: "Copy link"
+    open_on_desktop: "Open on Desktop"
+    duplicate: "Duplicate"
+    trash: "Trash"

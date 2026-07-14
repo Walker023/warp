@@ -13,6 +13,7 @@ use warpui::elements::{
 use warpui::fonts::{Properties, Weight};
 use warpui::Element;
 
+use crate::i18n::t;
 use crate::settings_view::billing_and_usage_page_v2::{
     AGGREGATE_CREDITS_DOT_COLOR, AMBIENT_CREDITS_DOT_COLOR, BASE_CREDITS_DOT_COLOR,
     BONUS_CREDITS_DOT_COLOR, PAYG_CREDITS_DOT_COLOR,
@@ -91,26 +92,30 @@ pub fn cost_type_color(cost_type: &AiCreditsUsageAndCostType) -> ColorU {
     }
 }
 
-fn cost_type_label(cost_type: &AiCreditsUsageAndCostType) -> &'static str {
+fn cost_type_label(cost_type: &AiCreditsUsageAndCostType) -> String {
     match cost_type {
-        AiCreditsUsageAndCostType::BaseLimit => "Base",
-        AiCreditsUsageAndCostType::BonusGrant => "Add-ons",
-        AiCreditsUsageAndCostType::Payg => "Pay-as-you-go",
-        AiCreditsUsageAndCostType::AmbientBonusGrant => "Cloud-only",
-        AiCreditsUsageAndCostType::Aggregate => "Combined",
-        AiCreditsUsageAndCostType::Other(_) => "Other",
+        AiCreditsUsageAndCostType::BaseLimit => t!("settings_extra.billing.base").to_string(),
+        AiCreditsUsageAndCostType::BonusGrant => t!("settings_extra.billing.add_ons").to_string(),
+        AiCreditsUsageAndCostType::Payg => t!("settings_extra.billing.pay_as_you_go").to_string(),
+        AiCreditsUsageAndCostType::AmbientBonusGrant => {
+            t!("settings_extra.billing.cloud_only").to_string()
+        }
+        AiCreditsUsageAndCostType::Aggregate => t!("settings_extra.billing.combined").to_string(),
+        AiCreditsUsageAndCostType::Other(_) => t!("settings_extra.billing.other").to_string(),
     }
 }
 
-fn bucket_label(bucket: &AiCreditsUsageBucket) -> &'static str {
+fn bucket_label(bucket: &AiCreditsUsageBucket) -> String {
     match bucket {
-        AiCreditsUsageBucket::Ai => "AI",
-        AiCreditsUsageBucket::Compute => "Compute",
-        AiCreditsUsageBucket::Platform => "Platform",
-        AiCreditsUsageBucket::SuggestedCodeDiffs => "Suggested code diffs",
-        AiCreditsUsageBucket::Voice => "Voice",
-        AiCreditsUsageBucket::Aggregate => "Total",
-        AiCreditsUsageBucket::Other(_) => "Other",
+        AiCreditsUsageBucket::Ai => "AI".to_string(),
+        AiCreditsUsageBucket::Compute => t!("settings_extra.billing.compute").to_string(),
+        AiCreditsUsageBucket::Platform => t!("settings_extra.billing.platform").to_string(),
+        AiCreditsUsageBucket::SuggestedCodeDiffs => {
+            t!("settings_extra.billing.suggested_code_diffs").to_string()
+        }
+        AiCreditsUsageBucket::Voice => t!("settings_extra.billing.voice").to_string(),
+        AiCreditsUsageBucket::Aggregate => t!("settings_extra.billing.total").to_string(),
+        AiCreditsUsageBucket::Other(_) => t!("settings_extra.billing.other").to_string(),
     }
 }
 
@@ -281,7 +286,7 @@ pub fn render_breakdown_tooltip(
 
     for line in segments {
         let label = if matches!(line.usage_bucket, AiCreditsUsageBucket::Aggregate) {
-            cost_type_label(&line.cost_type).to_string()
+            cost_type_label(&line.cost_type)
         } else {
             format!(
                 "{} ({})",
@@ -312,7 +317,7 @@ pub fn render_breakdown_tooltip(
 
     column.add_child(render_tooltip_row(
         /* no swatch on the total row */ None,
-        "Total usage".to_string(),
+        t!("settings_extra.billing.total_usage").to_string(),
         total_credits,
         total_cost_cents,
         main,

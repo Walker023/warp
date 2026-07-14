@@ -299,15 +299,13 @@ impl OpenWarpLaunchModal {
         let link_text = openwarp_text(link.text_key);
 
         // Build a formatted description with an inline hyperlink and inline code.
-        let (before, after) = item
-            .description_key
-            .is_empty()
-            .then_some(("", ""))
-            .unwrap_or_else(|| {
-                description
-                    .split_once(&link_text)
-                    .unwrap_or((&description, ""))
-            });
+        let (before, after) = if item.description_key.is_empty() {
+            ("", "")
+        } else {
+            description
+                .split_once(&link_text)
+                .unwrap_or((&description, ""))
+        };
 
         let link_fragment = FormattedTextFragment {
             text: link_text,

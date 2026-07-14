@@ -69,6 +69,34 @@ fn outdated_section_header_text(count: usize) -> Cow<'static, str> {
     }
 }
 
+fn comment_count_text(count: usize) -> String {
+    if count == 1 {
+        t!("code_editor_extra.code_review.comments.one", count = count).to_string()
+    } else {
+        t!(
+            "code_editor_extra.code_review.comments.other",
+            count = count
+        )
+        .to_string()
+    }
+}
+
+fn outdated_comment_count_text(count: usize) -> String {
+    if count == 1 {
+        t!(
+            "code_editor_extra.code_review.comments.outdated_one",
+            count = count
+        )
+        .to_string()
+    } else {
+        t!(
+            "code_editor_extra.code_review.comments.outdated_other",
+            count = count
+        )
+        .to_string()
+    }
+}
+
 /// Convert markdown text to HTML using the editor's buffer serialization.
 /// This function takes a comment editor view that has already been created with markdown content
 /// and extracts the HTML representation from its buffer.
@@ -266,24 +294,12 @@ impl CommentListView {
                 .count();
 
             if non_outdated_count == 0 && total_count > 0 {
-                format!(
-                    "{} outdated comment{}",
-                    total_count,
-                    if total_count == 1 { "" } else { "s" }
-                )
+                outdated_comment_count_text(total_count)
             } else {
-                format!(
-                    "{} comment{}",
-                    non_outdated_count,
-                    if non_outdated_count == 1 { "" } else { "s" }
-                )
+                comment_count_text(non_outdated_count)
             }
         } else {
-            format!(
-                "{} comment{}",
-                total_count,
-                if total_count == 1 { "" } else { "s" }
-            )
+            comment_count_text(total_count)
         };
 
         self.comments_button
@@ -827,7 +843,11 @@ impl CommentListView {
             .finish();
 
             let outdated_text = Text::new(
-                format!("{outdated_count} outdated"),
+                t!(
+                    "code_editor_extra.code_review.comments.outdated_count",
+                    count = outdated_count
+                )
+                .to_string(),
                 appearance.ui_font_family(),
                 appearance.ui_font_size(),
             )

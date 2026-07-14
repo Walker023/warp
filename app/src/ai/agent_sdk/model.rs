@@ -9,6 +9,7 @@ use warpui::{AppContext, ModelContext, SingletonEntity};
 
 use crate::ai::agent_sdk::output::{self, TableFormat};
 use crate::ai::llms::LLMPreferences;
+use crate::i18n::t;
 
 /// Handle model-related CLI commands.
 pub fn run(
@@ -38,7 +39,9 @@ impl ModelCommandRunner {
         ctx.spawn(refresh_future, move |_, refresh_result, ctx| {
             if refresh_result.is_err() {
                 super::report_fatal_error(
-                    anyhow::anyhow!("Timed out refreshing workspace metadata"),
+                    anyhow::anyhow!(
+                        t!("ai_sdk_management.model.error.metadata_refresh_timeout").to_string()
+                    ),
                     ctx,
                 );
                 return;
@@ -76,7 +79,9 @@ struct ModelListItem {
 
 impl TableFormat for ModelListItem {
     fn header() -> Vec<Cell> {
-        vec![Cell::new("MODEL ID")]
+        vec![Cell::new(
+            t!("ai_sdk_management.model.table.id").to_string(),
+        )]
     }
 
     fn row(&self) -> Vec<Cell> {

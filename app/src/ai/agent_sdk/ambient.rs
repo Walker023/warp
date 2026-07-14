@@ -36,6 +36,7 @@ use crate::ai::ambient_agents::{
 use crate::ai::artifacts::Artifact;
 use crate::auth::AuthStateProvider;
 use crate::cloud_object::model::persistence::CloudModel;
+use crate::i18n::t;
 use crate::server::ids::{ServerId, SyncId};
 use crate::server::server_api::ai::{
     AIClient, AgentMessageHeader, AgentRunEvent, AgentSource, ArtifactType, ExecutionLocation,
@@ -232,11 +233,17 @@ impl AmbientAgentRunner {
     }
     fn run_agent(&self, args: RunCloudArgs, ctx: &mut ModelContext<Self>) -> anyhow::Result<()> {
         if !FeatureFlag::AmbientAgentsCommandLine.is_enabled() {
-            return Err(anyhow::anyhow!("Unsupported feature"));
+            return Err(anyhow::anyhow!(t!(
+                "ai_cli.ambient.error.unsupported_feature"
+            )
+            .to_string()));
         }
         let skill_enabled = FeatureFlag::OzPlatformSkills.is_enabled();
         if args.skill.is_some() && !skill_enabled {
-            return Err(anyhow::anyhow!("unexpected argument '--skill' found"));
+            return Err(anyhow::anyhow!(t!(
+                "ai_cli.ambient.error.unexpected_skill_argument"
+            )
+            .to_string()));
         }
 
         let refresh_future = super::common::refresh_workspace_metadata(ctx);
@@ -257,7 +264,9 @@ impl AmbientAgentRunner {
                 || args.conversation.is_some();
             if !has_prompt_source {
                 super::report_fatal_error(
-                    anyhow::anyhow!("Either --prompt, --skill, or --conversation must be provided"),
+                    anyhow::anyhow!(
+                        t!("ai_cli.ambient.error.missing_prompt_source").to_string()
+                    ),
                     ctx,
                 );
                 return;
@@ -275,7 +284,14 @@ impl AmbientAgentRunner {
                         Ok(server_id) => server_id.into(),
                         Err(err) => {
                             super::report_fatal_error(
-                                anyhow::anyhow!("Failed to parse saved prompt ID '{id}': {err}"),
+                                anyhow::anyhow!(
+                                    t!(
+                                        "ai_cli.ambient.error.parse_saved_prompt",
+                                        id = &id,
+                                        error = err
+                                    )
+                                    .to_string()
+                                ),
                                 ctx,
                             );
                             return;
@@ -290,7 +306,10 @@ impl AmbientAgentRunner {
                             Some(prompt_text) => Some(prompt_text.to_string()),
                             None => {
                                 super::report_fatal_error(
-                                    anyhow::anyhow!("'{id}' is not a saved prompt"),
+                                    anyhow::anyhow!(
+                                        t!("ai_cli.ambient.error.not_saved_prompt", id = &id)
+                                            .to_string()
+                                    ),
                                     ctx,
                                 );
                                 return;
@@ -298,7 +317,13 @@ impl AmbientAgentRunner {
                         },
                         None => {
                             super::report_fatal_error(
-                                anyhow::anyhow!("Saved prompt with ID '{id}' not found"),
+                                anyhow::anyhow!(
+                                    t!(
+                                        "ai_cli.ambient.error.saved_prompt_not_found",
+                                        id = &id
+                                    )
+                                    .to_string()
+                                ),
                                 ctx,
                             );
                             return;
@@ -329,7 +354,7 @@ impl AmbientAgentRunner {
             {
                 super::report_fatal_error(
                     anyhow::anyhow!(
-                        "`runner_id` is set in the config file but runner support is not enabled"
+                        t!("ai_cli.ambient.error.runner_support_disabled").to_string()
                     ),
                     ctx,
                 );
@@ -341,9 +366,12 @@ impl AmbientAgentRunner {
             if args.attachment_paths.len() > MAX_ATTACHMENT_COUNT_FOR_CLOUD_QUERY {
                 super::report_fatal_error(
                     anyhow::anyhow!(
-                        "Too many attachments. Maximum {} attachments allowed, but {} were provided.",
-                        MAX_ATTACHMENT_COUNT_FOR_CLOUD_QUERY,
-                        args.attachment_paths.len()
+                        t!(
+                            "ai_cli.ambient.error.too_many_attachments",
+                            maximum = MAX_ATTACHMENT_COUNT_FOR_CLOUD_QUERY,
+                            provided = args.attachment_paths.len()
+                        )
+                        .to_string()
                     ),
                     ctx,
                 );
@@ -371,7 +399,9 @@ impl AmbientAgentRunner {
             } else {
                 if !args.attachment_paths.is_empty() {
                     super::report_fatal_error(
-                        anyhow::anyhow!("Attachment upload is not enabled"),
+                        anyhow::anyhow!(
+                            t!("ai_cli.ambient.error.attachment_upload_disabled").to_string()
+                        ),
                         ctx,
                     );
                     return;
@@ -392,7 +422,7 @@ impl AmbientAgentRunner {
             let environment_id = match EnvironmentChoice::resolve_for_create(environment_args, ctx)
             {
                 Ok(EnvironmentChoice::None) => {
-                    eprintln!("Agent will run without an environment.");
+                    eprintln!("{}", t!("ai_cli.ambient.warning.no_environment"));
                     None
                 },
                 Ok(EnvironmentChoice::Environment { id, .. }) => Some(id),
@@ -526,14 +556,24 @@ impl AmbientAgentRunner {
                     match event_result {
                         Ok(event) => match event {
                             AmbientAgentEvent::TaskSpawned { task_id, .. } => {
-                                println!("Spawned ambient agent with run ID: {task_id}");
-                                println!("View run: {oz_root_url}/runs/{task_id}");
+                                println!(
+                                    "{}",
+                                    t!("ai_cli.ambient.status.spawned", id = &task_id)
+                                );
+                                let run_url = format!("{oz_root_url}/runs/{task_id}");
+                                println!(
+                                    "{}",
+                                    t!("ai_cli.ambient.status.view_run", url = &run_url)
+                                );
                                 spawned_task_id = Some(task_id);
                             }
                             AmbientAgentEvent::AtCapacity => {
-                                println!("Concurrent cloud agent limit reached. This agent run will begin when one of your current cloud runs completes.");
+                                println!("{}", t!("ai_cli.ambient.status.capacity_reached"));
                                 if let Some(url) = &upgrade_link {
-                                    println!("To increase your concurrent agent limit, upgrade your plan: {}", url);
+                                    println!(
+                                        "{}",
+                                        t!("ai_cli.ambient.status.capacity_upgrade", url = url)
+                                    );
                                 }
                             }
                             AmbientAgentEvent::StateChanged {
@@ -546,25 +586,57 @@ impl AmbientAgentRunner {
                                         | AmbientAgentTaskState::Succeeded
                                 ) || state.is_failure_like()
                                 {
-                                    println!("Agent state: {:?}", state);
+                                    println!(
+                                        "{}",
+                                        t!(
+                                            "ai_cli.ambient.status.agent_state",
+                                            state = Self::format_task_state(&state)
+                                        )
+                                    );
                                 }
                                 if state.is_failure_like() {
                                     if let Some(msg) = status_message {
-                                        println!("Error: {}", msg.message);
+                                        println!(
+                                            "{}",
+                                            t!(
+                                                "ai_cli.ambient.status.error",
+                                                message = &msg.message
+                                            )
+                                        );
                                     } else {
-                                        println!("Run failed with no error message");
+                                        println!(
+                                            "{}",
+                                            t!("ai_cli.ambient.status.failed_without_message")
+                                        );
                                     }
                                 }
                             }
                             AmbientAgentEvent::SessionStarted {
                                 session_join_info: info,
                             } => {
-                                println!("View agent session: {}", info.session_link);
+                                println!(
+                                    "{}",
+                                    t!(
+                                        "ai_cli.ambient.status.view_session",
+                                        url = &info.session_link
+                                    )
+                                );
                                 session_join_info = Some(info);
                             }
                             AmbientAgentEvent::TimedOut => {
-                                let task_id_str = spawned_task_id.as_ref().map_or_else(|| "unknown".to_string(), |id| id.to_string());
-                                println!("Agent session with run ID {task_id_str} is not ready after {}s. Check for a sharing link in the ambient agent management panel. See https://docs.warp.dev/agent-platform/cloud-agents/managing-cloud-agents for details.", TASK_STATUS_POLLING_DURATION.as_secs());
+                                let task_id_str = spawned_task_id.as_ref().map_or_else(
+                                    || t!("ai_cli.ambient.run.unknown_id").to_string(),
+                                    ToString::to_string,
+                                );
+                                println!(
+                                    "{}",
+                                    t!(
+                                        "ai_cli.ambient.status.session_timeout",
+                                        id = &task_id_str,
+                                        seconds = TASK_STATUS_POLLING_DURATION.as_secs(),
+                                        url = "https://docs.warp.dev/agent-platform/cloud-agents/managing-cloud-agents"
+                                    )
+                                );
                             }
                         },
                         Err(err) => {
@@ -696,8 +768,8 @@ impl AmbientAgentRunner {
                     response
                 }
                 Err(err) => {
-                    let err = err.context(log_context.error_context());
                     log_context.log_error(&err);
+                    let err = err.context(log_context.error_context());
                     eprintln!("{err:#}");
                     return Err(err);
                 }
@@ -815,6 +887,21 @@ impl AmbientAgentRunner {
         Ok(())
     }
 
+    fn format_task_state(state: &AmbientAgentTaskState) -> String {
+        match state {
+            AmbientAgentTaskState::Queued => t!("ai_cli.ambient.state.queued").to_string(),
+            AmbientAgentTaskState::Pending => t!("ai_cli.ambient.state.pending").to_string(),
+            AmbientAgentTaskState::Claimed => t!("ai_cli.ambient.state.claimed").to_string(),
+            AmbientAgentTaskState::InProgress => t!("ai_cli.ambient.state.in_progress").to_string(),
+            AmbientAgentTaskState::Succeeded => t!("ai_cli.ambient.state.succeeded").to_string(),
+            AmbientAgentTaskState::Failed => t!("ai_cli.ambient.state.failed").to_string(),
+            AmbientAgentTaskState::Error => t!("ai_cli.ambient.state.error").to_string(),
+            AmbientAgentTaskState::Unknown => t!("ai_cli.ambient.state.unknown").to_string(),
+            AmbientAgentTaskState::Blocked => t!("ai_cli.ambient.state.blocked").to_string(),
+            AmbientAgentTaskState::Cancelled => t!("ai_cli.ambient.state.cancelled").to_string(),
+        }
+    }
+
     /// Get the appropriate emoji for a task state.
     fn get_state_emoji(state: &AmbientAgentTaskState) -> &'static str {
         match state {
@@ -833,14 +920,14 @@ impl AmbientAgentRunner {
     /// Print runs in a beautifully formatted ASCII table with card-style layout.
     fn print_tasks_table(tasks: &[AmbientAgentTask]) {
         if tasks.is_empty() {
-            println!("No runs found.");
+            println!("{}", t!("ai_cli.ambient.run.none"));
             return;
         }
 
         if tasks.len() == 1 {
-            println!("\nAgent Run:");
+            println!("\n{}", t!("ai_cli.ambient.run.one"));
         } else {
-            println!("\nAgent Runs ({}):", tasks.len());
+            println!("\n{}", t!("ai_cli.ambient.run.many", count = tasks.len()));
         }
 
         let oz_root_url = ChannelState::oz_root_url();
@@ -851,7 +938,8 @@ impl AmbientAgentRunner {
             let mut table = crate::ai::agent_sdk::output::standard_table();
 
             // Run header with emoji and ID
-            let header = format!("{} {} ({:?})", state_emoji, task.task_id, task.state);
+            let state_display = Self::format_task_state(&task.state);
+            let header = format!("{state_emoji} {} ({state_display})", task.task_id);
             table.add_row(vec![header]);
 
             // Oz webapp link
@@ -860,7 +948,7 @@ impl AmbientAgentRunner {
             // Title (wrapped, single cell)
             if !task.title.is_empty() {
                 let title_cell = crate::ai::agent_sdk::text_layout::render_labeled_wrapped_field(
-                    "Title",
+                    &t!("ai_cli.ambient.run.label.title"),
                     &task.title,
                     MAX_LINE_WIDTH,
                 );
@@ -868,24 +956,36 @@ impl AmbientAgentRunner {
             }
 
             if let Some(executor) = task.executor_display_name() {
-                table.add_row(vec![format!("Executed as: {executor}")]);
+                table.add_row(vec![t!(
+                    "ai_cli.ambient.run.label.executed_as",
+                    executor = executor
+                )
+                .to_string()]);
             }
 
             // Agent config snapshot (if available)
             if let Some(config) = task.agent_config_snapshot.as_ref() {
                 let config_str =
                     serde_json::to_string_pretty(config).unwrap_or_else(|_| format!("{config:?}"));
-                table.add_row(vec![format!("Config:\n{config_str}")]);
+                table.add_row(vec![t!(
+                    "ai_cli.ambient.run.label.config",
+                    config = &config_str
+                )
+                .to_string()]);
             }
 
             // Created time
             let created_formatted = format_approx_duration_from_now_utc(task.created_at);
-            table.add_row(vec![format!("Created: {}", created_formatted)]);
+            table.add_row(vec![t!(
+                "ai_cli.ambient.run.label.created",
+                time = &created_formatted
+            )
+            .to_string()]);
 
             // Status message (if available) - single multi-line cell
             if let Some(status_msg) = &task.status_message {
                 let status_cell = crate::ai::agent_sdk::text_layout::render_labeled_wrapped_field(
-                    "Status",
+                    &t!("ai_cli.ambient.run.label.status"),
                     &status_msg.message,
                     MAX_LINE_WIDTH,
                 );
@@ -900,7 +1000,11 @@ impl AmbientAgentRunner {
 
             // Session link (if available)
             if let Some(session_join_info) = SessionJoinInfo::from_task(task) {
-                table.add_row(vec![format!("Session: {}", session_join_info.session_link)]);
+                table.add_row(vec![t!(
+                    "ai_cli.ambient.run.label.session",
+                    url = &session_join_info.session_link
+                )
+                .to_string()]);
             }
 
             println!("{table}");
@@ -909,7 +1013,7 @@ impl AmbientAgentRunner {
 
     /// Format artifacts for display.
     fn format_artifacts(artifacts: &[Artifact]) -> String {
-        let mut lines = vec!["Artifacts:".to_string()];
+        let mut lines = vec![t!("ai_cli.ambient.run.artifact.heading").to_string()];
 
         for artifact in artifacts {
             match artifact {
@@ -921,26 +1025,34 @@ impl AmbientAgentRunner {
                     ..
                 } => {
                     let pr_display = match (repo, number) {
-                        (Some(repo), Some(num)) => format!("  PR: {} #{}", repo, num),
-                        _ => "  PR:".to_string(),
+                        (Some(repo), Some(num)) => t!(
+                            "ai_cli.ambient.run.artifact.pull_request",
+                            repo = repo,
+                            number = num
+                        )
+                        .to_string(),
+                        _ => t!("ai_cli.ambient.run.artifact.pull_request_empty").to_string(),
                     };
                     lines.push(pr_display);
-                    lines.push(format!("    Branch: {}", branch));
-                    lines.push(format!("    Link: {}", url));
+                    lines.push(
+                        t!("ai_cli.ambient.run.artifact.branch", branch = branch).to_string(),
+                    );
+                    lines.push(t!("ai_cli.ambient.run.artifact.link", url = url).to_string());
                 }
                 Artifact::Plan {
                     notebook_uid,
                     title,
                     ..
                 } => {
-                    let plan_title = title.as_deref().unwrap_or("Untitled Plan");
-                    lines.push(format!("  Plan: {}", plan_title));
+                    let untitled_plan = t!("ai_cli.ambient.run.artifact.untitled_plan");
+                    let plan_title = title.as_deref().unwrap_or(&untitled_plan);
+                    lines.push(
+                        t!("ai_cli.ambient.run.artifact.plan", title = plan_title).to_string(),
+                    );
                     if let Some(id) = notebook_uid {
-                        lines.push(format!(
-                            "    Link: {}/drive/notebook/{}",
-                            ChannelState::server_root_url(),
-                            id
-                        ));
+                        let url =
+                            format!("{}/drive/notebook/{id}", ChannelState::server_root_url());
+                        lines.push(t!("ai_cli.ambient.run.artifact.link", url = &url).to_string());
                     }
                 }
                 Artifact::Screenshot {
@@ -948,8 +1060,16 @@ impl AmbientAgentRunner {
                     description,
                     ..
                 } => {
-                    let desc = description.as_deref().unwrap_or("No description");
-                    lines.push(format!("  Screenshot: {} ({})", artifact_uid, desc));
+                    let no_description = t!("ai_cli.ambient.run.artifact.no_description");
+                    let description = description.as_deref().unwrap_or(&no_description);
+                    lines.push(
+                        t!(
+                            "ai_cli.ambient.run.artifact.screenshot",
+                            uid = artifact_uid,
+                            description = description
+                        )
+                        .to_string(),
+                    );
                 }
                 Artifact::File {
                     filename,
@@ -958,10 +1078,16 @@ impl AmbientAgentRunner {
                     ..
                 } => {
                     let label = super::super::artifacts::file_button_label(filename, filepath);
-                    lines.push(format!("  File: {}", label));
-                    lines.push(format!("    Path: {}", filepath));
+                    lines.push(t!("ai_cli.ambient.run.artifact.file", label = &label).to_string());
+                    lines.push(t!("ai_cli.ambient.run.artifact.path", path = filepath).to_string());
                     if let Some(description) = description {
-                        lines.push(format!("    Description: {}", description));
+                        lines.push(
+                            t!(
+                                "ai_cli.ambient.run.artifact.description",
+                                description = description
+                            )
+                            .to_string(),
+                        );
                     }
                 }
             }
@@ -997,7 +1123,7 @@ fn ensure_stream_output_format(output_format: OutputFormat) -> anyhow::Result<()
     }
 
     Err(anyhow!(
-        "Streaming commands require `--output-format ndjson`"
+        t!("ai_cli.ambient.error.stream_output_format").to_string()
     ))
 }
 
@@ -1011,7 +1137,9 @@ fn stream_retry_backoff(failures: usize) -> Duration {
 fn write_stream_record<T: Serialize>(record: &T) -> anyhow::Result<()> {
     let mut stdout = std::io::stdout();
     super::output::write_json_line(record, &mut stdout)?;
-    stdout.flush().context("unable to flush stdout")?;
+    stdout
+        .flush()
+        .context(t!("ai_cli.ambient.error.flush_stdout").to_string())?;
     Ok(())
 }
 
@@ -1021,12 +1149,16 @@ fn task_id_from_run_id(run_id: &str) -> Option<AmbientAgentTaskId> {
 
 fn task_id_from_oz_run_id_env() -> anyhow::Result<Option<AmbientAgentTaskId>> {
     match std::env::var(warp_cli::OZ_RUN_ID_ENV) {
-        Ok(run_id) => parse_ambient_task_id(&run_id, "Invalid OZ_RUN_ID").map(Some),
+        Ok(run_id) => {
+            let error_prefix = t!("ai_cli.ambient.error.invalid_oz_run_id").to_string();
+            parse_ambient_task_id(&run_id, &error_prefix).map(Some)
+        }
         Err(std::env::VarError::NotPresent) => Ok(None),
-        Err(std::env::VarError::NotUnicode(_)) => Err(anyhow!(
-            "{} is set but is not valid Unicode",
-            warp_cli::OZ_RUN_ID_ENV
-        )),
+        Err(std::env::VarError::NotUnicode(_)) => Err(anyhow!(t!(
+            "ai_cli.ambient.error.environment_not_unicode",
+            name = warp_cli::OZ_RUN_ID_ENV
+        )
+        .to_string())),
     }
 }
 
@@ -1058,10 +1190,13 @@ impl SendAgentMessageLogContext {
     }
 
     fn error_context(&self) -> String {
-        format!(
-            "Failed to send agent message (sender_run_id={:?}, task_id={:?}, target_agent_ids={:?})",
-            self.sender_run_id, self.task_id, self.target_agent_ids
+        t!(
+            "ai_cli.ambient.error.send_message",
+            sender_run_id = format!("{:?}", self.sender_run_id),
+            task_id = format!("{:?}", self.task_id),
+            target_agent_ids = format!("{:?}", self.target_agent_ids)
         )
+        .to_string()
     }
 
     fn log_start(&self) {
@@ -1128,7 +1263,12 @@ async fn watch_messages_forever(
             Ok(stream) => {
                 if !initial_connect {
                     eprintln!(
-                        "Reconnected message watch for run {run_id} at sequence {last_seen_sequence}."
+                        "{}",
+                        t!(
+                            "ai_cli.ambient.message.watch.reconnected",
+                            run_id = &run_id,
+                            sequence = last_seen_sequence
+                        )
                     );
                 }
                 initial_connect = false;
@@ -1137,14 +1277,20 @@ async fn watch_messages_forever(
             }
             Err(err) => {
                 if initial_connect {
-                    return Err(err.context("Failed to open agent event stream"));
+                    return Err(
+                        err.context(t!("ai_cli.ambient.error.open_event_stream").to_string())
+                    );
                 }
 
                 failures += 1;
                 let backoff = stream_retry_backoff(failures);
                 eprintln!(
-                    "Message watch reconnect failed: {err:#}. Retrying in {}s.",
-                    backoff.as_secs()
+                    "{}",
+                    t!(
+                        "ai_cli.ambient.message.watch.reconnect_failed",
+                        error = format!("{err:#}"),
+                        seconds = backoff.as_secs()
+                    )
                 );
                 Timer::after(backoff).await;
                 continue;
@@ -1158,7 +1304,10 @@ async fn watch_messages_forever(
                     let event = match serde_json::from_str::<AgentRunEvent>(&message.data) {
                         Ok(event) => event,
                         Err(err) => {
-                            eprintln!("Skipping malformed agent event payload: {err}");
+                            eprintln!(
+                                "{}",
+                                t!("ai_cli.ambient.message.watch.malformed_event", error = err)
+                            );
                             continue;
                         }
                     };
@@ -1174,8 +1323,11 @@ async fn watch_messages_forever(
 
                     let Some(message_id) = event.ref_id.clone() else {
                         eprintln!(
-                            "Skipping new_message event without ref_id at sequence {}.",
-                            event.sequence
+                            "{}",
+                            t!(
+                                "ai_cli.ambient.message.watch.missing_ref_id",
+                                sequence = event.sequence
+                            )
                         );
                         last_seen_sequence = event.sequence;
                         continue;
@@ -1194,8 +1346,13 @@ async fn watch_messages_forever(
                             failures += 1;
                             let backoff = stream_retry_backoff(failures);
                             eprintln!(
-                                "Failed to hydrate message {message_id}: {err:#}. Retrying in {}s.",
-                                backoff.as_secs()
+                                "{}",
+                                t!(
+                                    "ai_cli.ambient.message.watch.hydrate_failed",
+                                    message_id = &message_id,
+                                    error = format!("{err:#}"),
+                                    seconds = backoff.as_secs()
+                                )
                             );
                             Timer::after(backoff).await;
                             break;
@@ -1217,8 +1374,12 @@ async fn watch_messages_forever(
                     failures += 1;
                     let backoff = stream_retry_backoff(failures);
                     eprintln!(
-                        "Message watch disconnected: {err}. Retrying in {}s.",
-                        backoff.as_secs()
+                        "{}",
+                        t!(
+                            "ai_cli.ambient.message.watch.disconnected",
+                            error = err,
+                            seconds = backoff.as_secs()
+                        )
                     );
                     Timer::after(backoff).await;
                     break;
@@ -1227,8 +1388,11 @@ async fn watch_messages_forever(
                     failures += 1;
                     let backoff = stream_retry_backoff(failures);
                     eprintln!(
-                        "Message watch stream closed. Reconnecting in {}s.",
-                        backoff.as_secs()
+                        "{}",
+                        t!(
+                            "ai_cli.ambient.message.watch.stream_closed",
+                            seconds = backoff.as_secs()
+                        )
                     );
                     Timer::after(backoff).await;
                     break;
@@ -1260,11 +1424,14 @@ where
         OutputFormat::Pretty | OutputFormat::Text => {
             writeln!(
                 &mut output,
-                "Sent {} message(s).",
-                response.message_ids.len()
+                "{}",
+                t!(
+                    "ai_cli.ambient.message.status.sent",
+                    count = response.message_ids.len()
+                )
             )?;
             if !response.message_ids.is_empty() {
-                writeln!(&mut output, "Message IDs:")?;
+                writeln!(&mut output, "{}", t!("ai_cli.ambient.message.status.ids"))?;
                 for message_id in &response.message_ids {
                     writeln!(&mut output, "- {message_id}")?;
                 }
@@ -1294,22 +1461,56 @@ where
         OutputFormat::Json => super::output::write_json(response, &mut output),
         OutputFormat::Ndjson => super::output::write_json_line(response, &mut output),
         OutputFormat::Pretty | OutputFormat::Text => {
-            writeln!(&mut output, "Message ID: {}", response.message_id)?;
-            writeln!(&mut output, "From: {}", response.sender_run_id)?;
-            writeln!(&mut output, "Subject: {}", response.subject)?;
-            writeln!(&mut output, "Sent At: {}", response.sent_at)?;
             writeln!(
                 &mut output,
-                "Delivered At: {}",
-                format_optional_timestamp(response.delivered_at.as_deref())
+                "{}",
+                t!(
+                    "ai_cli.ambient.message.detail.id",
+                    id = &response.message_id
+                )
             )?;
             writeln!(
                 &mut output,
-                "Read At: {}",
-                format_optional_timestamp(response.read_at.as_deref())
+                "{}",
+                t!(
+                    "ai_cli.ambient.message.detail.from",
+                    sender = &response.sender_run_id
+                )
+            )?;
+            writeln!(
+                &mut output,
+                "{}",
+                t!(
+                    "ai_cli.ambient.message.detail.subject",
+                    subject = &response.subject
+                )
+            )?;
+            writeln!(
+                &mut output,
+                "{}",
+                t!(
+                    "ai_cli.ambient.message.detail.sent_at",
+                    time = &response.sent_at
+                )
+            )?;
+            writeln!(
+                &mut output,
+                "{}",
+                t!(
+                    "ai_cli.ambient.message.detail.delivered_at",
+                    time = format_optional_timestamp(response.delivered_at.as_deref())
+                )
+            )?;
+            writeln!(
+                &mut output,
+                "{}",
+                t!(
+                    "ai_cli.ambient.message.detail.read_at",
+                    time = format_optional_timestamp(response.read_at.as_deref())
+                )
             )?;
             writeln!(&mut output)?;
-            writeln!(&mut output, "Body:")?;
+            writeln!(&mut output, "{}", t!("ai_cli.ambient.message.detail.body"))?;
             writeln!(&mut output, "{}", response.body)?;
             Ok(())
         }
@@ -1341,7 +1542,11 @@ where
         OutputFormat::Json => super::output::write_json(&result, &mut output),
         OutputFormat::Ndjson => super::output::write_json_line(&result, &mut output),
         OutputFormat::Pretty | OutputFormat::Text => {
-            writeln!(&mut output, "Marked message delivered: {message_id}")?;
+            writeln!(
+                &mut output,
+                "{}",
+                t!("ai_cli.ambient.message.status.delivered", id = message_id)
+            )?;
             Ok(())
         }
     }
@@ -1350,12 +1555,12 @@ where
 impl super::output::TableFormat for AgentMessageHeader {
     fn header() -> Vec<Cell> {
         vec![
-            Cell::new("MESSAGE ID"),
-            Cell::new("FROM"),
-            Cell::new("SUBJECT"),
-            Cell::new("SENT AT"),
-            Cell::new("DELIVERED AT"),
-            Cell::new("READ AT"),
+            Cell::new(t!("ai_cli.ambient.message.table.id").to_string()),
+            Cell::new(t!("ai_cli.ambient.message.table.from").to_string()),
+            Cell::new(t!("ai_cli.ambient.message.table.subject").to_string()),
+            Cell::new(t!("ai_cli.ambient.message.table.sent_at").to_string()),
+            Cell::new(t!("ai_cli.ambient.message.table.delivered_at").to_string()),
+            Cell::new(t!("ai_cli.ambient.message.table.read_at").to_string()),
         ]
     }
 

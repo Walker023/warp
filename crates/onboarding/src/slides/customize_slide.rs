@@ -410,7 +410,7 @@ impl CustomizeUISlide {
         let back_button = self.back_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label(t!("onboarding.common.back").into()),
+                content: button::Content::Label(t!("onboarding.common.back")),
                 theme: &button::themes::Naked,
                 options: button::Options {
                     on_click: Some(Box::new(|ctx, _app, _pos| {
@@ -425,7 +425,7 @@ impl CustomizeUISlide {
         let next_button = self.next_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label(t!("onboarding.common.next").into()),
+                content: button::Content::Label(t!("onboarding.common.next")),
                 theme: &button::themes::Primary,
                 options: button::Options {
                     keystroke: Some(enter),

@@ -9,6 +9,8 @@ use warpui::{Entity, EntityId, ModelContext, ModelHandle};
 #[cfg(not(target_family = "wasm"))]
 use super::get_server_output_id;
 use super::{ActionExecution, AnyActionExecution, ExecuteActionInput, PreprocessActionInput};
+#[cfg(not(target_family = "wasm"))]
+use crate::i18n::t;
 use crate::terminal::model::session::active_session::ActiveSession;
 #[cfg(not(target_family = "wasm"))]
 use crate::{
@@ -104,7 +106,9 @@ impl CallMCPToolExecutor {
 
             let serde_json::Value::Object(mut arguments) = input.clone() else {
                 return ActionExecution::Sync(AIAgentActionResultType::CallMCPTool(
-                    CallMCPToolResult::Error("MCP server tool input not an object".to_owned()),
+                    CallMCPToolResult::Error(
+                        t!("ai_actions.mcp.tool_input_not_object").to_string(),
+                    ),
                 ));
             };
 
@@ -134,7 +138,9 @@ impl CallMCPToolExecutor {
 
             let Some(reconnecting_peer) = templatable_peer else {
                 return ActionExecution::Sync(AIAgentActionResultType::CallMCPTool(
-                    CallMCPToolResult::Error("MCP server for tool not found".to_owned()),
+                    CallMCPToolResult::Error(
+                        t!("ai_actions.mcp.tool_server_not_found").to_string(),
+                    ),
                 ));
             };
 
@@ -320,7 +326,7 @@ fn handle_call_tool_result(
                             .collect_vec()
                             .join("\n");
                         if content_str.is_empty() {
-                            "MCP tool call returned an error.".to_string()
+                            t!("ai_actions.mcp.tool_call_error").to_string()
                         } else {
                             content_str
                         }

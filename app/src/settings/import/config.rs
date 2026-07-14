@@ -16,6 +16,7 @@ use super::alacritty_parser::AlacrittyConfig;
 #[cfg(target_os = "macos")]
 use super::iterm_parser::ITermProfile;
 use super::model::TerminalType;
+use crate::i18n::t;
 use crate::interval_timer::IntervalTimer;
 use crate::root_view::QuakeModePinPosition;
 use crate::settings::ExtraMetaKeys;
@@ -75,19 +76,37 @@ pub enum SettingType {
 }
 
 impl SettingType {
-    pub fn get_name(&self) -> &'static str {
+    pub fn get_name(&self) -> String {
         match self {
-            SettingType::Theme => "Theme",
-            SettingType::OptionAsMeta => "Option as Meta",
-            SettingType::MouseAndScrollReporting => "Mouse/Scroll Reporting",
-            SettingType::Font => "Font",
-            SettingType::DefaultShell => "Default Shell",
-            SettingType::WorkingDirectory => "Working Directory",
-            SettingType::HotkeyMode => "Global hotkey",
-            SettingType::WindowSize => "Window Dimensions",
-            SettingType::CopyOnSelect => "Copy On Select",
-            SettingType::Opacity => "Window Opacity",
-            SettingType::CursorBlinking => "Cursor Blinking",
+            SettingType::Theme => t!("settings_extra.import.setting_type.theme").to_string(),
+            SettingType::OptionAsMeta => {
+                t!("settings_extra.import.setting_type.option_as_meta").to_string()
+            }
+            SettingType::MouseAndScrollReporting => {
+                t!("settings_extra.import.setting_type.mouse_scroll_reporting").to_string()
+            }
+            SettingType::Font => t!("settings_extra.import.setting_type.font").to_string(),
+            SettingType::DefaultShell => {
+                t!("settings_extra.import.setting_type.default_shell").to_string()
+            }
+            SettingType::WorkingDirectory => {
+                t!("settings_extra.import.setting_type.working_directory").to_string()
+            }
+            SettingType::HotkeyMode => {
+                t!("settings_extra.import.setting_type.global_hotkey").to_string()
+            }
+            SettingType::WindowSize => {
+                t!("settings_extra.import.setting_type.window_dimensions").to_string()
+            }
+            SettingType::CopyOnSelect => {
+                t!("settings_extra.import.setting_type.copy_on_select").to_string()
+            }
+            SettingType::Opacity => {
+                t!("settings_extra.import.setting_type.window_opacity").to_string()
+            }
+            SettingType::CursorBlinking => {
+                t!("settings_extra.import.setting_type.cursor_blinking").to_string()
+            }
         }
     }
 }

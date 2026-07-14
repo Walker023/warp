@@ -22,14 +22,12 @@ use crate::editor::{
     EditorOptions, EditorView, EnterAction, EnterSettings, Event as EditorEvent,
     PropagateAndNoOpNavigationKeys, SingleLineEditorOptions, TextOptions,
 };
+use crate::i18n::t;
 use crate::network::NetworkStatus;
 use crate::server::ids::SyncId;
 use crate::ui_components::buttons::icon_button;
 use crate::ui_components::icons::Icon;
 use crate::view_components::action_button::{ActionButton, DangerSecondaryTheme, PrimaryTheme};
-
-const RULE_NAME_PLACEHOLDER_TEXT: &str = "e.g. Rust rules";
-const RULE_DESCRIPTION_PLACEHOLDER_TEXT: &str = "e.g. Never use unwrap in Rust";
 
 #[derive(Debug, Clone, Copy)]
 enum EditorType {
@@ -99,7 +97,7 @@ impl RuleEditorView {
                 },
                 ctx,
             );
-            editor.set_placeholder_text(RULE_NAME_PLACEHOLDER_TEXT, ctx);
+            editor.set_placeholder_text(t!("ai_ui.rules.editor.name_placeholder"), ctx);
             editor
         });
         ctx.subscribe_to_view(&name_editor, |me, _editor, event, ctx| {
@@ -126,7 +124,7 @@ impl RuleEditorView {
                 },
                 ctx,
             );
-            editor.set_placeholder_text(RULE_DESCRIPTION_PLACEHOLDER_TEXT, ctx);
+            editor.set_placeholder_text(t!("ai_ui.rules.editor.rule_placeholder"), ctx);
             editor
         });
         ctx.subscribe_to_view(&content_editor, |me, _editor, event, ctx| {
@@ -134,7 +132,7 @@ impl RuleEditorView {
         });
 
         let save_button = ctx.add_typed_action_view(|ctx| {
-            let mut button = ActionButton::new("Save", PrimaryTheme)
+            let mut button = ActionButton::new(t!("common.save").to_string(), PrimaryTheme)
                 .with_icon(Icon::Check)
                 .on_click(|ctx| {
                     ctx.dispatch_typed_action(RuleEditorViewAction::Save);
@@ -145,11 +143,14 @@ impl RuleEditorView {
         });
 
         let delete_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Delete rule", DangerSecondaryTheme)
-                .with_icon(Icon::Trash)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(RuleEditorViewAction::Delete);
-                })
+            ActionButton::new(
+                t!("ai_ui.rules.editor.delete_rule").to_string(),
+                DangerSecondaryTheme,
+            )
+            .with_icon(Icon::Trash)
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(RuleEditorViewAction::Delete);
+            })
         });
 
         Self {
@@ -258,9 +259,9 @@ impl RuleEditorView {
 
     fn render_header(&self, appearance: &Appearance) -> Box<dyn Element> {
         let title = if self.ai_fact.is_none() {
-            "Add Rule"
+            t!("ai_ui.rules.editor.add_rule").to_string()
         } else {
-            "Edit Rule"
+            t!("ai_ui.rules.editor.edit_rule").to_string()
         };
         Container::new(
             Flex::row()
@@ -333,15 +334,27 @@ impl RuleEditorView {
     fn render_form(&self, appearance: &Appearance) -> Box<dyn Element> {
         Flex::column()
             .with_child(
-                Container::new(appearance.ui_builder().span("Name").build().finish())
-                    .with_margin_bottom(style::ITEM_BOTTOM_MARGIN)
-                    .finish(),
+                Container::new(
+                    appearance
+                        .ui_builder()
+                        .span(t!("ai_ui.rules.editor.name").to_string())
+                        .build()
+                        .finish(),
+                )
+                .with_margin_bottom(style::ITEM_BOTTOM_MARGIN)
+                .finish(),
             )
             .with_child(self.render_name_editor(appearance))
             .with_child(
-                Container::new(appearance.ui_builder().span("Rule").build().finish())
-                    .with_margin_bottom(style::ITEM_BOTTOM_MARGIN)
-                    .finish(),
+                Container::new(
+                    appearance
+                        .ui_builder()
+                        .span(t!("ai_ui.rules.editor.rule").to_string())
+                        .build()
+                        .finish(),
+                )
+                .with_margin_bottom(style::ITEM_BOTTOM_MARGIN)
+                .finish(),
             )
             .with_child(self.render_content_editor(appearance))
             .finish()

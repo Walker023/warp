@@ -10,11 +10,10 @@ use warpui::{AppContext, Element, SingletonEntity as _};
 
 use crate::ai::execution_profiles::profiles::ClientProfileId;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::{ItemHighlightState, SearchItem};
 use crate::terminal::input::inline_menu::styles as inline_styles;
 use crate::terminal::input::profiles::data_source::SelectProfileMenuItem;
-
-const MANAGE_PROFILES_LABEL: &str = "Manage profiles";
 
 #[derive(Debug, Clone)]
 enum ProfileSearchItemKind {
@@ -108,7 +107,9 @@ impl SearchItem for ProfileSearchItem {
                 is_selected,
                 ..
             } => (profile_name.clone(), *is_selected),
-            ProfileSearchItemKind::ManageProfiles => (MANAGE_PROFILES_LABEL.to_owned(), false),
+            ProfileSearchItemKind::ManageProfiles => {
+                (t!("terminal.manage_profiles").to_string(), false)
+            }
         };
 
         let mut label = Text::new_inline(label_text, appearance.ui_font_family(), font_size)
@@ -132,7 +133,7 @@ impl SearchItem for ProfileSearchItem {
             .with_child(label.finish());
 
         if is_selected {
-            let selected_label = "(selected)";
+            let selected_label = t!("terminal_ui.input.a11y.selected_parenthetical");
             let selected_text = Text::new_inline(
                 selected_label.to_string(),
                 appearance.ui_font_family(),
@@ -181,9 +182,9 @@ impl SearchItem for ProfileSearchItem {
     fn accessibility_label(&self) -> String {
         match &self.kind {
             ProfileSearchItemKind::Profile { profile_name, .. } => {
-                format!("Profile: {profile_name}")
+                t!("terminal_ui.input.a11y.profile", name = profile_name).to_string()
             }
-            ProfileSearchItemKind::ManageProfiles => MANAGE_PROFILES_LABEL.to_string(),
+            ProfileSearchItemKind::ManageProfiles => t!("terminal.manage_profiles").to_string(),
         }
     }
 }

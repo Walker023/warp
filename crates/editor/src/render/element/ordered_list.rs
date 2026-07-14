@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use rust_i18n::t;
 use warpui_core::elements::ListIndentLevel;
 use warpui_core::geometry::vector::vec2f;
 use warpui_core::text_layout::TextFrame;
@@ -62,11 +63,12 @@ impl RenderableBlock for RenderableOrderedListItem {
             style_runs,
         ));
 
+        let placeholder_text = t!("editor.placeholder.list");
         self.placeholder
             .layout(&self.viewport_item, model, ctx, app, |_| {
                 placeholder::Options {
                     block_style,
-                    text: "List",
+                    text: placeholder_text.as_ref(),
                 }
             });
     }

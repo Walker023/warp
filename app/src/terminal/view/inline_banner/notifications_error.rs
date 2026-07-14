@@ -8,6 +8,7 @@ use super::{
     InlineBannerContent, InlineBannerStyle, InlineBannerTextButton, InlineBannerTextButtonVariant,
 };
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::terminal::view::{InlineBannerId, TerminalAction};
 
 #[derive(Clone, Copy, Debug, Serialize)]
@@ -30,6 +31,19 @@ pub struct NotificationsErrorBannerState {
     pub mouse_states: NotificationsErrorBannerMouseStates,
 }
 
+pub fn notification_error_banner_title(error: Option<&NotificationSendError>) -> String {
+    match error {
+        Some(
+            NotificationSendError::PermissionsDenied
+            | NotificationSendError::PermissionsNotYetGranted,
+        ) => t!("terminal_ui.inline_banner.notifications.send_permission_error").to_string(),
+        Some(NotificationSendError::Other { .. }) => {
+            t!("terminal_ui.inline_banner.notifications.send_error").to_string()
+        }
+        None => t!("terminal_ui.inline_banner.notifications.send_error_title").to_string(),
+    }
+}
+
 pub fn render_inline_notifications_error_banner(
     title: &str,
     state: &NotificationsErrorBannerState,
@@ -43,7 +57,7 @@ pub fn render_inline_notifications_error_banner(
     // If permissions haven't been granted or denied, add a button to set the permissions.
     if matches!(error, Some(NotificationSendError::PermissionsNotYetGranted)) {
         buttons.push(InlineBannerTextButton {
-            text: "Set permissions".to_string(),
+            text: t!("terminal_ui.inline_banner.notifications.set_permissions").to_string(),
             text_color: active_ui_text_color,
             button_state: InlineBannerButtonState {
                 on_click_event: TerminalAction::NotificationsErrorBanner(
@@ -58,7 +72,7 @@ pub fn render_inline_notifications_error_banner(
     }
 
     buttons.push(InlineBannerTextButton {
-        text: "Troubleshoot".to_string(),
+        text: t!("terminal_ui.inline_banner.notifications.troubleshoot").to_string(),
         text_color: active_ui_text_color,
         button_state: InlineBannerButtonState {
             on_click_event: TerminalAction::NotificationsErrorBanner(

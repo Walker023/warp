@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use itertools::Itertools;
 use strum::IntoEnumIterator;
-use strum_macros::{EnumIter, IntoStaticStr};
+use strum_macros::EnumIter;
 use warp_core::ui::appearance::Appearance;
 use warp_core::ui::theme::Fill;
 use warp_editor::editor::NavigationKey;
@@ -29,12 +29,12 @@ use crate::editor::{
     EditorOptions, EditorView, EnterAction, EnterSettings, Event as EditorEvent, InteractionState,
     PropagateAndNoOpNavigationKeys, TextOptions,
 };
+use crate::i18n::t;
 use crate::server::ids::SyncId;
 use crate::ui_components::buttons::{highlight, icon_button};
 use crate::ui_components::icons::{self, Icon};
 use crate::workflows::workflow::ArgumentType;
 
-const ARGUMENT_DEFAULT_VALUE_PLACEHOLDER_TEXT: &str = "Default value (optional)";
 const ARGUMENT_EDITOR_FONT_SIZE: f32 = 14.;
 const DROPDOWN_PADDING: f32 = 8.;
 const DROPDOWN_BORDER_RADIUS: f32 = 6.;
@@ -128,7 +128,7 @@ struct ArgTypeHandles {
     arg_type_mouse_states: Vec<MouseStateHandle>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, IntoStaticStr, EnumIter, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, EnumIter, Default)]
 pub enum ArgumentSelectType {
     #[default]
     Text,
@@ -494,7 +494,7 @@ impl WorkflowArgSelector {
         let should_show_placeholder = self.text_editor.as_ref(app).is_empty(app);
 
         let text_label = match should_show_placeholder {
-            true => ARGUMENT_DEFAULT_VALUE_PLACEHOLDER_TEXT.to_string(),
+            true => t!("drive_extra.workflow.default_value_optional").to_string(),
             false => self.text_editor.as_ref(app).buffer_text(app),
         };
 
@@ -652,7 +652,16 @@ impl WorkflowArgSelector {
                         self.arg_type_options
                             .iter()
                             .map(|arg_type| {
-                                let label: &'static str = arg_type.into();
+                                let label = match arg_type {
+                                    ArgumentSelectType::Text => {
+                                        t!("drive_extra.workflow.argument_selector.text")
+                                            .to_string()
+                                    }
+                                    ArgumentSelectType::Enum => {
+                                        t!("drive_extra.workflow.argument_selector.enum")
+                                            .to_string()
+                                    }
+                                };
                                 ToggleMenuItem::new(label)
                             })
                             .collect(),
@@ -796,7 +805,7 @@ impl WorkflowArgSelector {
 
         let mut menu = Hoverable::new(self.enum_menu_mouse_state.clone(), |state| {
             let button = Text::new_inline(
-                "New".to_string(),
+                t!("drive_extra.workflow.argument_selector.new").to_string(),
                 appearance.ui_font_family(),
                 ARGUMENT_EDITOR_FONT_SIZE,
             )

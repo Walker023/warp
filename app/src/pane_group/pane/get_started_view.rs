@@ -18,6 +18,7 @@ use warpui::{
 use crate::coding_entrypoints::clone_repo_view::{CloneRepoEvent, CloneRepoView};
 use crate::coding_entrypoints::create_project_view::{CreateProjectEvent, CreateProjectView};
 use crate::coding_entrypoints::project_buttons::{ProjectButtons, ProjectButtonsEvent};
+use crate::i18n::t;
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::view;
 use crate::pane_group::{BackingView, PaneConfiguration, PaneEvent};
@@ -60,7 +61,9 @@ pub struct GetStartedView {
 
 impl GetStartedView {
     pub fn new(ctx: &mut ViewContext<Self>) -> Self {
-        let pane_configuration = ctx.add_model(|_ctx| PaneConfiguration::new("Get started"));
+        let pane_configuration = ctx.add_model(|_ctx| {
+            PaneConfiguration::new(t!("pane_group_ui.get_started.title").to_string())
+        });
         let project_buttons = ctx.add_typed_action_view(ProjectButtons::new);
         ctx.subscribe_to_view(&project_buttons, Self::handle_project_buttons_event);
 
@@ -208,6 +211,12 @@ impl GetStartedView {
             }
         }
 
+        let home_directory = dirs::home_dir()
+            .map(|dir| dir.display().to_string())
+            .unwrap_or_else(|| "~".to_string());
+        let new_session_binding =
+            keybinding_name_to_display_string("workspace:new_tab", app).unwrap_or_default();
+
         Flex::column()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
             .with_children([
@@ -223,7 +232,7 @@ impl GetStartedView {
                 .finish(),
                 appearance
                     .ui_builder()
-                    .paragraph("Welcome to Warp")
+                    .paragraph(t!("pane_group_ui.get_started.welcome"))
                     .with_style(UiComponentStyles {
                         font_size: Some(20.),
                         ..Default::default()
@@ -233,7 +242,7 @@ impl GetStartedView {
                 Container::new(
                     appearance
                         .ui_builder()
-                        .paragraph("The Agentic Development Environment")
+                        .paragraph(t!("pane_group_ui.get_started.tagline"))
                         .with_style(UiComponentStyles {
                             font_size: Some(14.),
                             font_family_id: Some(appearance.monospace_font_family()),
@@ -272,14 +281,12 @@ impl GetStartedView {
                     })
                     .with_text_and_icon_label(TextAndIcon::new(
                         TextAndIconAlignment::IconFirst,
-                        format!(
-                            " New session in {}  {}",
-                            dirs::home_dir()
-                                .map(|dir| dir.display().to_string())
-                                .unwrap_or("~".to_string()),
-                            keybinding_name_to_display_string("workspace:new_tab", app)
-                                .unwrap_or_default()
-                        ),
+                        t!(
+                            "pane_group_ui.get_started.new_session",
+                            directory = home_directory,
+                            keybinding = new_session_binding
+                        )
+                        .to_string(),
                         ui::Icon::Terminal.to_warpui_icon(theme.foreground()),
                         MainAxisSize::Min,
                         MainAxisAlignment::Center,
@@ -361,7 +368,7 @@ impl BackingView for GetStartedView {
         _ctx: &view::HeaderRenderContext<'_>,
         _app: &AppContext,
     ) -> view::HeaderContent {
-        view::HeaderContent::simple("Get started")
+        view::HeaderContent::simple(t!("pane_group_ui.get_started.title").to_string())
     }
 
     fn set_focus_handle(&mut self, focus_handle: PaneFocusHandle, _ctx: &mut ViewContext<Self>) {

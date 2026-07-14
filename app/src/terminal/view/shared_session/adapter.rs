@@ -15,6 +15,7 @@ use super::sharer::Sharer;
 use super::viewer::Viewer;
 use crate::auth::UserUid;
 use crate::banner::{Banner, BannerTextContent};
+use crate::i18n::t;
 use crate::terminal::shared_session::participant_avatar_view::ParticipantAvatarView;
 use crate::terminal::shared_session::presence_manager::PresenceManager;
 use crate::terminal::shared_session::render_util::{
@@ -107,7 +108,9 @@ impl Adapter {
     ) -> Self {
         let reconnecting_banner = ctx.add_typed_action_view(|_| {
             Banner::new_without_close(BannerTextContent::formatted_text(vec![
-                FormattedTextFragment::plain_text("Offline, trying to reconnect..."),
+                FormattedTextFragment::plain_text(
+                    t!("terminal_ui.shared_session.offline_reconnecting").to_string(),
+                ),
             ]))
             .with_icon(Icon::CloudOffline)
         });

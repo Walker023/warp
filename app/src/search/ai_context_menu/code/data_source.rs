@@ -28,6 +28,8 @@ use super::search_item::CodeSearchItem;
 #[cfg(not(target_family = "wasm"))]
 use crate::ai::outline::{OutlineStatus, RepoOutlines, RepoOutlinesEvent};
 #[cfg(not(target_family = "wasm"))]
+use crate::i18n::t;
+#[cfg(not(target_family = "wasm"))]
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 #[cfg(not(target_family = "wasm"))]
 use crate::search::data_source::{Query, QueryResult};
@@ -235,7 +237,7 @@ struct CodeSearchError;
 #[cfg(not(target_family = "wasm"))]
 impl DataSourceRunError for CodeSearchError {
     fn user_facing_error(&self) -> String {
-        "Code search failed".to_string()
+        t!("workspace_search_ui.search.code_search_failed").to_string()
     }
 
     fn telemetry_payload(&self) -> serde_json::Value {

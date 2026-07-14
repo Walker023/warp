@@ -19,6 +19,7 @@ use crate::appearance::Appearance;
 use crate::changelog_model::{
     ChangelogHeader, ChangelogModel, ChangelogState, Event as ChangelogEvent,
 };
+use crate::i18n::t;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::TelemetryEvent;
 use crate::themes::theme::Fill;
@@ -29,9 +30,6 @@ struct ChangelogMouseStateHandles {
     top_bar_mouse_state: MouseStateHandle,
     view_changelogs_mouse_state: MouseStateHandle,
 }
-
-const CHANGELOG_FETCH_ERROR_MSG: &str = "Unable to fetch the latest changelog.";
-const CHANGELOG_LOADING_MSG: &str = "Loading...";
 
 pub struct ChangelogSectionView {
     changelog_model_handle: ModelHandle<ChangelogModel>,
@@ -97,9 +95,11 @@ impl ChangelogSectionView {
             improvements_highlighted_link: Default::default(),
             bug_fixes_highlighted_link: Default::default(),
             changelog_fetch_error: create_formatted_text_from_string(
-                CHANGELOG_FETCH_ERROR_MSG.to_string(),
+                t!("workspace_search_ui.resource_center.changelog_fetch_error").to_string(),
             ),
-            changelog_loading: create_formatted_text_from_string(CHANGELOG_LOADING_MSG.to_string()),
+            changelog_loading: create_formatted_text_from_string(
+                t!("workspace_search_ui.resource_center.changelog_loading").to_string(),
+            ),
         }
     }
 
@@ -366,7 +366,7 @@ impl SectionView for ChangelogSectionView {
             appearance
                 .ui_builder()
                 .link(
-                    "Read all changelogs".into(),
+                    t!("workspace_search_ui.resource_center.read_all_changelogs").to_string(),
                     Some("https://docs.warp.dev/changelog".into()),
                     None,
                     self.changelog_button_mouse_states

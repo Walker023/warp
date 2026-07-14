@@ -6,6 +6,7 @@ use warpui::ui_components::components::{UiComponent, UiComponentStyles};
 use warpui::Element;
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::terminal::model::block::Block;
 use crate::terminal::view::WARP_PROMPT_HEIGHT_LINES;
 
@@ -60,8 +61,12 @@ pub(super) fn render_floating_block_snapshot(
 
     // Emitted lines formatted
     let omitted_line_count = match content.omitted_line_count {
-        Some(count) if count > 1 => Some(format!("({count} lines omitted)...")),
-        Some(count) if count == 1 => Some(format!("({count} line omitted)...")),
+        Some(count) if count > 1 => {
+            Some(t!("terminal_ui.bookmarks.lines_omitted", count = count).to_string())
+        }
+        Some(count) if count == 1 => {
+            Some(t!("terminal_ui.bookmarks.line_omitted", count = count).to_string())
+        }
         _ => None,
     };
 

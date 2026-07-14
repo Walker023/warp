@@ -10,6 +10,7 @@ use warpui::fonts::{Properties, Weight};
 use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::notebooks::CloudNotebookModel;
 use crate::search::command_search::searcher::CommandSearchItemAction;
 use crate::search::item::SearchItem;
@@ -137,6 +138,10 @@ impl SearchItem for NotebookSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Notebook: {}", self.model.title)
+        t!(
+            "workspace_search_ui.search.a11y.notebook",
+            name = self.model.title
+        )
+        .to_string()
     }
 }

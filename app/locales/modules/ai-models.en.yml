@@ -1,0 +1,10 @@
+ai_models:
+  display_name:
+    auto: "auto"
+    auto_cost_efficient: "auto (cost-efficient)"
+    auto_responsive: "auto (responsive)"
+  auto_variant:
+    cost_efficient: "Cost-efficient"
+    responsive: "Responsive"
+  errors:
+    unknown_target_models: "unknown target model(s): %{models}"

@@ -10,6 +10,7 @@ use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
 use crate::env_vars::CloudEnvVarCollection;
+use crate::i18n::t;
 use crate::search::command_search::searcher::CommandSearchItemAction;
 use crate::search::env_var_collections::fuzzy_match::FuzzyMatchEnvVarCollectionResult;
 use crate::search::item::SearchItem;
@@ -34,7 +35,7 @@ impl EnvVarCollectionSearchItem {
                 env_var_collection
                     .title
                     .clone()
-                    .unwrap_or("Untitled".to_owned()),
+                    .unwrap_or_else(|| t!("workspace_search_ui.search.untitled").to_string()),
                 true,
             )
             .with_style(UiComponentStyles {
@@ -92,7 +93,7 @@ impl SearchItem for EnvVarCollectionSearchItem {
             env_var_collection
                 .title
                 .clone()
-                .unwrap_or("Untitled".to_owned()),
+                .unwrap_or_else(|| t!("workspace_search_ui.search.untitled").to_string()),
             appearance.ui_font_family(),
             appearance.monospace_font_size(),
         )
@@ -215,13 +216,14 @@ impl SearchItem for EnvVarCollectionSearchItem {
     fn accessibility_label(&self) -> String {
         let env_var_collection = self.env_var_collection.model().string_model.clone();
 
-        format!(
-            "Environment Variables: {}",
-            env_var_collection
+        t!(
+            "workspace_search_ui.search.a11y.environment_variables",
+            name = env_var_collection
                 .title
                 .clone()
-                .unwrap_or("Untitled".to_owned())
+                .unwrap_or_else(|| t!("workspace_search_ui.search.untitled").to_string())
         )
+        .to_string()
     }
 }
 

@@ -11,6 +11,7 @@ use warpui::{Entity, EntityId, ModelContext, ModelHandle, SingletonEntity};
 use self::listener::CLIAgentSessionListener;
 use super::CLIAgent;
 use crate::ai::blocklist::InputConfig;
+use crate::i18n::t;
 
 /// Status of a tracked CLI agent session.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -214,13 +215,13 @@ impl CLIAgentSession {
                     message: event.payload.summary.clone(),
                 }
             }
-            CLIAgentEventType::QuestionAsked => CLIAgentSessionStatus::Blocked {
-                message: event
-                    .payload
-                    .summary
-                    .clone()
-                    .or_else(|| Some("Waiting for your answer".to_owned())),
-            },
+            CLIAgentEventType::QuestionAsked => {
+                CLIAgentSessionStatus::Blocked {
+                    message: event.payload.summary.clone().or_else(|| {
+                        Some(t!("terminal_ui.cli_agent.waiting_for_answer").to_string())
+                    }),
+                }
+            }
             CLIAgentEventType::PermissionReplied => {
                 if !matches!(self.status, CLIAgentSessionStatus::Blocked { .. }) {
                     return None;

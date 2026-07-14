@@ -16,6 +16,7 @@ use crate::ai::agent::{
 use crate::ai::blocklist::orchestration_event_streamer::OrchestrationEventStreamer;
 use crate::ai::blocklist::{BlocklistAIHistoryEvent, BlocklistAIHistoryModel};
 use crate::ai::local_harness_setup::local_harness_product_disabled_message;
+use crate::i18n::t;
 
 /// Per-request outcome of a StartAgent dispatch.
 #[derive(Debug, Clone)]
@@ -30,9 +31,13 @@ pub enum StartAgentOutcome {
 fn invalid_local_child_harness_error(harness_type: &str) -> String {
     let harness_name = harness_type.trim();
     if harness_name.is_empty() {
-        "Local child harness type is missing.".to_string()
+        t!("ai_actions.start_agent.local_harness_missing").to_string()
     } else {
-        format!("Unsupported local child harness '{harness_name}'.")
+        t!(
+            "ai_actions.start_agent.unsupported_local_harness",
+            harness = harness_name
+        )
+        .to_string()
     }
 }
 
@@ -190,7 +195,7 @@ impl StartAgentExecutor {
                     extra: { "child_conversation_id" => ?child_conversation_id }
                 );
                 let _ = pending.sender.try_send(StartAgentOutcome::Error(
-                    "Server did not assign an agent identifier".to_string(),
+                    t!("ai_actions.start_agent.agent_identifier_missing").to_string(),
                 ));
             }
         }
@@ -365,9 +370,8 @@ impl StartAgentExecutor {
                 let Some(parent_run_id) = parent_run_id else {
                     return ActionExecution::Sync(AIAgentActionResultType::StartAgent(
                         StartAgentResult::Error {
-                            error:
-                                "Local Oz child agents require the parent run_id to be available."
-                                    .to_string(),
+                            error: t!("ai_actions.start_agent.local_oz_parent_run_id_missing")
+                                .to_string(),
                             version,
                         },
                     ));
@@ -407,9 +411,8 @@ impl StartAgentExecutor {
                 let Some(parent_run_id) = parent_run_id else {
                     return ActionExecution::Sync(AIAgentActionResultType::StartAgent(
                         StartAgentResult::Error {
-                            error:
-                                "Local harness child agents require the parent run_id to be available."
-                                    .to_string(),
+                            error: t!("ai_actions.start_agent.local_parent_run_id_missing")
+                                .to_string(),
                             version,
                         },
                     ));
@@ -439,7 +442,7 @@ impl StartAgentExecutor {
                 if Harness::parse_orchestration_harness(&harness_type) == Some(Harness::OpenCode) {
                     return ActionExecution::Sync(AIAgentActionResultType::StartAgent(
                         StartAgentResult::Error {
-                            error: "Remote child agents do not support the opencode harness yet."
+                            error: t!("ai_actions.start_agent.remote_opencode_unsupported")
                                 .to_string(),
                             version,
                         },
@@ -462,7 +465,7 @@ impl StartAgentExecutor {
                 let Some(parent_run_id) = parent_run_id else {
                     return ActionExecution::Sync(AIAgentActionResultType::StartAgent(
                         StartAgentResult::Error {
-                            error: "Remote child agents require the parent run_id to be available."
+                            error: t!("ai_actions.start_agent.remote_parent_run_id_missing")
                                 .to_string(),
                             version,
                         },
@@ -598,16 +601,16 @@ fn start_agent_error_message_for_status(
         ConversationStatus::Error => Some(
             error_message
                 .filter(|message| !message.trim().is_empty())
-                .unwrap_or("Child agent failed to initialize")
-                .to_string(),
+                .map(str::to_string)
+                .unwrap_or_else(|| t!("ai_actions.start_agent.initialization_failed").to_string()),
         ),
         ConversationStatus::Cancelled => {
-            Some("Child agent was cancelled before initialization".to_string())
+            Some(t!("ai_actions.start_agent.cancelled_before_initialization").to_string())
         }
         ConversationStatus::Blocked { blocked_action } => {
             let blocked_action = blocked_action.trim();
             Some(if blocked_action.is_empty() {
-                "Child agent startup was blocked before initialization".to_string()
+                t!("ai_actions.start_agent.blocked_before_initialization").to_string()
             } else {
                 blocked_action.to_string()
             })

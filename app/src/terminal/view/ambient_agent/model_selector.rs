@@ -57,12 +57,6 @@ const SEARCH_VERTICAL_PADDING: f32 = 4.;
 // of total breathing room above the divider line.
 const SEARCH_FOOTER_TOP_MARGIN: f32 = 4.;
 
-const SEARCH_PLACEHOLDER_TEXT: &str = "Search models";
-
-const BUTTON_TOOLTIP: &str = "Choose agent model";
-
-const NO_RESULTS_LABEL: &str = "No results";
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ModelSelectorAction {
     ToggleMenu,
@@ -119,7 +113,7 @@ impl ModelSelector {
         let button = ctx.add_typed_action_view(|_ctx| {
             ActionButton::new("", AgentInputButtonTheme)
                 .with_size(ButtonSize::AgentInputButton)
-                .with_tooltip(BUTTON_TOOLTIP)
+                .with_tooltip(t!("terminal_ui.ambient_agent.model_selector.tooltip").to_string())
                 .on_click(|ctx| {
                     ctx.dispatch_typed_action(ModelSelectorAction::ToggleMenu);
                 })
@@ -139,7 +133,7 @@ impl ModelSelector {
                 },
                 ctx,
             );
-            editor.set_placeholder_text(SEARCH_PLACEHOLDER_TEXT, ctx);
+            editor.set_placeholder_text(t!("terminal_ui.input.search.models").to_string(), ctx);
             editor
         });
         ctx.subscribe_to_view(&search_editor, |me, _, event, ctx| {
@@ -421,11 +415,10 @@ impl ModelSelector {
                                 .map(|info| info.display_name.clone())
                         })
                 })
-                .unwrap_or_else(|| "default".to_string()),
+                .unwrap_or_else(|| t!("terminal.default").to_string()),
             _ => LLMPreferences::as_ref(ctx)
                 .get_active_base_model(ctx, Some(self.terminal_view_id))
-                .display_name
-                .clone(),
+                .localized_display_name(),
         };
         self.button.update(ctx, |button, ctx| {
             button.set_label(active_label, ctx);
@@ -455,7 +448,7 @@ impl ModelSelector {
         if items.is_empty() {
             let no_results_text_color = internal_colors::text_sub(theme, theme.surface_2());
             items.push(MenuItem::Item(
-                MenuItemFields::new(NO_RESULTS_LABEL)
+                MenuItemFields::new(t!("terminal_ui.input.inline_menu.no_results").to_string())
                     .with_font_size_override(ITEM_FONT_SIZE)
                     .with_padding_override(ITEM_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
                     .with_override_text_color(no_results_text_color)
@@ -498,7 +491,10 @@ impl ModelSelector {
             }
 
             let display_name = llm.menu_display_name();
-            if !query.is_empty() && !display_name.to_lowercase().contains(query) {
+            if !query.is_empty()
+                && !display_name.to_lowercase().contains(query)
+                && !llm.display_name.to_lowercase().contains(query)
+            {
                 continue;
             }
             if is_auto(llm) {
@@ -566,9 +562,10 @@ impl ModelSelector {
             reasoning_level: None,
         };
         let mut items: Vec<MenuItem<ModelSelectorAction>> = Vec::new();
-        if query.is_empty() || "default".contains(query) {
+        let default_label = t!("terminal.default").to_string();
+        if query.is_empty() || default_label.to_lowercase().contains(query) {
             items.push(MenuItem::Item(
-                MenuItemFields::new(t!("terminal.default").to_string())
+                MenuItemFields::new(default_label)
                     .with_icon(icon)
                     .with_icon_size_override(ITEM_ICON_SIZE)
                     .with_font_size_override(ITEM_FONT_SIZE)

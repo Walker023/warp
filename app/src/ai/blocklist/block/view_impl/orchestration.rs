@@ -39,11 +39,11 @@ use crate::ai::blocklist::inline_action::requested_action::{
 };
 use crate::ai::blocklist::BlocklistAIHistoryModel;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::terminal::view::TerminalAction;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
 
-const GENERATING_TITLE_PLACEHOLDER: &str = "Generating title...";
 const ORCHESTRATION_COLLAPSED_MAX_HEIGHT: f32 = 200.;
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct OrchestrationParticipant {
@@ -57,16 +57,17 @@ struct OrchestrationParticipant {
 impl OrchestrationParticipant {
     fn orchestrator() -> Self {
         Self {
-            display_name: "Orchestrator".to_string(),
+            display_name: t!("ai_ui.block.orchestration.orchestrator").to_string(),
             avatar: OrchestrationAvatar::Orchestrator,
             conversation_id: None,
         }
     }
 
     fn unknown_child() -> Self {
+        let display_name = t!("ai_ui.block.orchestration.unknown_agent").to_string();
         Self {
-            display_name: "Unknown agent".to_string(),
-            avatar: OrchestrationAvatar::agent("Unknown agent".to_string()),
+            display_name: display_name.clone(),
+            avatar: OrchestrationAvatar::agent(display_name),
             conversation_id: None,
         }
     }
@@ -123,7 +124,10 @@ fn participant_for_conversation(
         return OrchestrationParticipant::orchestrator();
     }
 
-    let display_name = conversation.agent_name().unwrap_or("Agent").to_string();
+    let display_name = conversation
+        .agent_name()
+        .map(str::to_string)
+        .unwrap_or_else(|| t!("ai_ui.block.orchestration.agent").to_string());
     OrchestrationParticipant {
         display_name: display_name.clone(),
         avatar: OrchestrationAvatar::agent(display_name),
@@ -171,8 +175,21 @@ fn transcript_metadata(recipients: &[OrchestrationParticipant], subject: &str) -
     match (recipients.is_empty(), subject.is_empty()) {
         (true, true) => None,
         (true, false) => Some(subject.to_string()),
-        (false, true) => Some(format!("to {recipients}")),
-        (false, false) => Some(format!("to {recipients} • {subject}")),
+        (false, true) => Some(
+            t!(
+                "ai_ui.block.orchestration.to_recipients",
+                recipients = &recipients
+            )
+            .to_string(),
+        ),
+        (false, false) => Some(
+            t!(
+                "ai_ui.block.orchestration.to_recipients_subject",
+                recipients = &recipients,
+                subject = subject
+            )
+            .to_string(),
+        ),
     }
 }
 
@@ -459,7 +476,12 @@ pub(super) fn render_send_message(
                 );
             }
             SendMessageToAgentResult::Error(error) => {
-                let label = format!("Failed to send message to {recipients}: {error}");
+                let label = t!(
+                    "ai_ui.block.orchestration.send_failed",
+                    recipients = &recipients,
+                    error = error
+                )
+                .to_string();
                 let status_icon = inline_action_icons::red_x_icon(appearance).finish();
                 return render_requested_action_row_for_text(
                     label.into(),
@@ -476,7 +498,11 @@ pub(super) fn render_send_message(
                 .finish();
             }
             SendMessageToAgentResult::Cancelled => {
-                let label = format!("Send message to {recipients} cancelled.");
+                let label = t!(
+                    "ai_ui.block.orchestration.send_cancelled",
+                    recipients = &recipients
+                )
+                .to_string();
                 let status_icon = inline_action_icons::cancelled_icon(appearance).finish();
                 return render_requested_action_row_for_text(
                     label.into(),
@@ -502,9 +528,15 @@ pub(super) fn render_send_message(
         || status.as_ref().is_some_and(|s| s.is_queued());
 
     let label_fragments = vec![
-        FormattedTextFragment::plain_text("Sending message to "),
+        FormattedTextFragment::plain_text(t!("ai_ui.block.orchestration.sending_to").to_string()),
         FormattedTextFragment::bold(&recipients),
-        FormattedTextFragment::plain_text(format!(": {subject}")),
+        FormattedTextFragment::plain_text(
+            t!(
+                "ai_ui.block.orchestration.subject_suffix",
+                subject = subject
+            )
+            .to_string(),
+        ),
     ];
     let mut header_text = render_formatted_text_element(label_fragments, app);
     if should_dim_text {
@@ -579,7 +611,9 @@ pub(super) fn render_start_agent(
         let (label_fragments, status_icon) = match result {
             StartAgentResult::Success { .. } => (
                 vec![
-                    FormattedTextFragment::plain_text("Started agent "),
+                    FormattedTextFragment::plain_text(
+                        t!("ai_ui.block.orchestration.started_agent").to_string(),
+                    ),
                     FormattedTextFragment::bold(name),
                     FormattedTextFragment::plain_text(start_agent_success_suffix(execution_mode)),
                 ],
@@ -589,7 +623,9 @@ pub(super) fn render_start_agent(
                 vec![
                     FormattedTextFragment::plain_text(start_agent_error_prefix(execution_mode)),
                     FormattedTextFragment::bold(name),
-                    FormattedTextFragment::plain_text(format!(": {error}")),
+                    FormattedTextFragment::plain_text(
+                        t!("ai_ui.block.orchestration.error_suffix", error = error).to_string(),
+                    ),
                 ],
                 inline_action_icons::red_x_icon(appearance).finish(),
             ),
@@ -597,7 +633,9 @@ pub(super) fn render_start_agent(
                 vec![
                     FormattedTextFragment::plain_text(start_agent_cancelled_prefix(execution_mode)),
                     FormattedTextFragment::bold(name),
-                    FormattedTextFragment::plain_text(" cancelled."),
+                    FormattedTextFragment::plain_text(
+                        t!("ai_ui.block.orchestration.cancelled_suffix").to_string(),
+                    ),
                 ],
                 inline_action_icons::cancelled_icon(appearance).finish(),
             ),
@@ -726,31 +764,47 @@ pub(super) fn render_start_agent(
         .finish()
 }
 
-fn start_agent_success_suffix(execution_mode: &StartAgentExecutionMode) -> &'static str {
+fn start_agent_success_suffix(execution_mode: &StartAgentExecutionMode) -> String {
     match execution_mode {
-        StartAgentExecutionMode::Local { .. } => " locally.",
-        StartAgentExecutionMode::Remote { .. } => " remotely.",
+        StartAgentExecutionMode::Local { .. } => {
+            t!("ai_ui.block.orchestration.started_locally_suffix").to_string()
+        }
+        StartAgentExecutionMode::Remote { .. } => {
+            t!("ai_ui.block.orchestration.started_remotely_suffix").to_string()
+        }
     }
 }
 
-fn start_agent_error_prefix(execution_mode: &StartAgentExecutionMode) -> &'static str {
+fn start_agent_error_prefix(execution_mode: &StartAgentExecutionMode) -> String {
     match execution_mode {
-        StartAgentExecutionMode::Local { .. } => "Failed to start agent ",
-        StartAgentExecutionMode::Remote { .. } => "Failed to start remote agent ",
+        StartAgentExecutionMode::Local { .. } => {
+            t!("ai_ui.block.orchestration.start_failed_prefix").to_string()
+        }
+        StartAgentExecutionMode::Remote { .. } => {
+            t!("ai_ui.block.orchestration.remote_start_failed_prefix").to_string()
+        }
     }
 }
 
-fn start_agent_cancelled_prefix(execution_mode: &StartAgentExecutionMode) -> &'static str {
+fn start_agent_cancelled_prefix(execution_mode: &StartAgentExecutionMode) -> String {
     match execution_mode {
-        StartAgentExecutionMode::Local { .. } => "Start agent ",
-        StartAgentExecutionMode::Remote { .. } => "Start remote agent ",
+        StartAgentExecutionMode::Local { .. } => {
+            t!("ai_ui.block.orchestration.start_agent_prefix").to_string()
+        }
+        StartAgentExecutionMode::Remote { .. } => {
+            t!("ai_ui.block.orchestration.start_remote_agent_prefix").to_string()
+        }
     }
 }
 
-fn start_agent_in_progress_prefix(execution_mode: &StartAgentExecutionMode) -> &'static str {
+fn start_agent_in_progress_prefix(execution_mode: &StartAgentExecutionMode) -> String {
     match execution_mode {
-        StartAgentExecutionMode::Local { .. } => "Starting agent ",
-        StartAgentExecutionMode::Remote { .. } => "Starting remote agent ",
+        StartAgentExecutionMode::Local { .. } => {
+            t!("ai_ui.block.orchestration.starting_agent_prefix").to_string()
+        }
+        StartAgentExecutionMode::Remote { .. } => {
+            t!("ai_ui.block.orchestration.starting_remote_agent_prefix").to_string()
+        }
     }
 }
 
@@ -803,7 +857,10 @@ fn child_conversation_card_data_for_result(
             let conversation_id = conversation_id_for_agent_id(agent_id, app)?;
             let conversation =
                 BlocklistAIHistoryModel::as_ref(app).conversation(&conversation_id)?;
-            let agent_name = conversation.agent_name().unwrap_or("Agent").to_string();
+            let agent_name = conversation
+                .agent_name()
+                .map(str::to_string)
+                .unwrap_or_else(|| t!("ai_ui.block.orchestration.agent").to_string());
             let status = conversation.status().clone();
             let title = available_conversation_title_for_id(conversation_id, app)?;
             Some(ChildConversationCardData {
@@ -827,7 +884,7 @@ fn available_conversation_title_for_id(
         Some(title) if conversation.initial_query().as_deref() != Some(title.as_str()) => {
             Some(title)
         }
-        _ => Some(GENERATING_TITLE_PLACEHOLDER.to_string()),
+        _ => Some(t!("ai_ui.block.orchestration.generating_title").to_string()),
     }
 }
 

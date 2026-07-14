@@ -26,11 +26,9 @@ use super::model::NotebooksEditorModel;
 use super::view::{EditorViewEvent, RichTextEditorView};
 use crate::appearance::Appearance;
 use crate::editor::{EditorView, Event as EditorEvent, SingleLineEditorOptions, TextOptions};
+use crate::i18n::t;
 use crate::ui_components::icons::Icon;
-use crate::view_components::find::{
-    CASE_SENSITIVE_LABEL, CASE_SENSITIVE_TOOLTIP, FIND_BAR_WIDTH, REGEX_TOGGLE_LABEL,
-    REGEX_TOGGLE_TOOLTIP,
-};
+use crate::view_components::find::{CASE_SENSITIVE_LABEL, FIND_BAR_WIDTH, REGEX_TOGGLE_LABEL};
 
 /// View for the find bar within a notebook.
 pub struct FindBar {
@@ -187,7 +185,7 @@ impl FindBar {
         if searcher.has_query() {
             let match_count = searcher.match_count();
             let text = if match_count == 0 {
-                "No matches".to_string()
+                t!("notebooks.find.no_matches").to_string()
             } else {
                 let mut text = String::new();
                 match searcher.selected_match() {
@@ -387,6 +385,17 @@ impl View for FindBar {
         .with_vertical_padding(16.)
         .finish();
 
+        let regex_tooltip = if searcher.is_regex() {
+            t!("notebooks.find.disable_regex").to_string()
+        } else {
+            t!("notebooks.find.enable_regex").to_string()
+        };
+        let case_sensitive_tooltip = if searcher.is_case_sensitive() {
+            t!("notebooks.find.disable_case_sensitive").to_string()
+        } else {
+            t!("notebooks.find.enable_case_sensitive").to_string()
+        };
+
         let find_box = Flex::row()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
             .with_children([
@@ -411,7 +420,7 @@ impl View for FindBar {
                 ),
                 self.render_toggle_button(
                     REGEX_TOGGLE_LABEL,
-                    REGEX_TOGGLE_TOOLTIP,
+                    &regex_tooltip,
                     FindBarAction::ToggleRegex,
                     searcher.is_regex(),
                     self.button_handles.regex_toggle.clone(),
@@ -420,7 +429,7 @@ impl View for FindBar {
                 ),
                 self.render_toggle_button(
                     CASE_SENSITIVE_LABEL,
-                    CASE_SENSITIVE_TOOLTIP,
+                    &case_sensitive_tooltip,
                     FindBarAction::ToggleCaseSensitive,
                     searcher.is_case_sensitive(),
                     self.button_handles.case_sensitive_toggle.clone(),
@@ -535,21 +544,21 @@ impl TypedActionView for FindBar {
         let text = match action {
             FindBarAction::ToggleRegex => {
                 if self.searcher.as_ref(ctx).is_regex() {
-                    "Enable regex search"
+                    t!("notebooks.find.enable_regex")
                 } else {
-                    "Disable regex search"
+                    t!("notebooks.find.disable_regex")
                 }
             }
             FindBarAction::ToggleCaseSensitive => {
                 if self.searcher.as_ref(ctx).is_case_sensitive() {
-                    "Enable case-sensitive search"
+                    t!("notebooks.find.enable_case_sensitive")
                 } else {
-                    "Disable case-sensitive search"
+                    t!("notebooks.find.disable_case_sensitive")
                 }
             }
-            FindBarAction::FocusNextMatch => "Focus next match",
-            FindBarAction::FocusPreviousMatch => "Focus previous match",
-            FindBarAction::Close => "Close find bar",
+            FindBarAction::FocusNextMatch => t!("notebooks.find.focus_next"),
+            FindBarAction::FocusPreviousMatch => t!("notebooks.find.focus_previous"),
+            FindBarAction::Close => t!("notebooks.find.close"),
         };
         Some(AccessibilityContent::new_without_help(
             text,

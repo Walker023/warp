@@ -1,0 +1,32 @@
+ai_actions:
+  local_harness:
+    install_claude_code: "Install Claude Code to use this local harness."
+    install_codex: "Install Codex to use this local harness."
+    local_codex_disabled: "Local Codex child agents are temporarily disabled."
+  start_agent:
+    local_harness_missing: "Local child harness type is missing."
+    unsupported_local_harness: "Unsupported local child harness '%{harness}'."
+    agent_identifier_missing: "Server did not assign an agent identifier"
+    local_oz_parent_run_id_missing: "Local Oz child agents require the parent run_id to be available."
+    local_parent_run_id_missing: "Local harness child agents require the parent run_id to be available."
+    remote_parent_run_id_missing: "Remote child agents require the parent run_id to be available."
+    remote_opencode_unsupported: "Remote child agents do not support the opencode harness yet."
+    initialization_failed: "Child agent failed to initialize"
+    cancelled_before_initialization: "Child agent was cancelled before initialization"
+    blocked_before_initialization: "Child agent startup was blocked before initialization"
+  run_agents:
+    cancelled_before_launch: "Cancelled before launch"
+    spawn_timeout: "Agent failed to start within %{seconds} seconds. The harness binary may not be installed."
+    config_disapproved: "Orchestration config was disapproved"
+    disabled_by_execution_profile: "Running child agents is disabled by the active execution profile."
+    api_key_required: "Cloud child agents using this harness require an API key before they can run."
+    duplicate_agents: "Requested agent(s) have already been launched: %{agents}. Do not start duplicate child agents; send any follow-up with send_message_to_agent using the existing agent id(s): %{agent_ids}."
+    empty_agent_run_configs: "orchestrate: empty agent_run_configs"
+  mcp:
+    tool_input_not_object: "MCP server tool input not an object"
+    tool_server_not_found: "MCP server for tool not found"
+    tool_call_error: "MCP tool call returned an error."
+    resource_not_found: "MCP server resource not found"
+    resource_server_not_found: "MCP server for resource not found"
+  code_diff:
+    review_surface_missing: "The review surface holding these edits no longer exists"

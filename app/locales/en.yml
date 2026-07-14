@@ -6,6 +6,9 @@ app:
 common:
   search: "Search"
   new: "New"
+  parent_directory: "Parent Directory"
+  verbose: "Verbose"
+  concise: "Concise"
   suggested: "Suggested"
   sign_up: "Sign up"
   none: "None"
@@ -25,6 +28,7 @@ common:
   update: "Update"
   save: "Save"
   create: "Create"
+  copy: "Copy"
   learn_more: "Learn more"
   reset_to_default: "Reset to default"
   dont_show_again: "Don't show me again"
@@ -579,6 +583,7 @@ code_review:
   copy_file_path: "Copy file path"
   loading_open_changes: "Loading open changes..."
   error_loading_diffs: "Error loading diffs"
+  empty_diff_data: "The server returned empty diff data"
   retry: "Retry"
   binary_file_no_diff: "Binary file - no diff available"
   file_renamed_without_changes: "File renamed without changes"
@@ -1742,7 +1747,7 @@ settings:
 
   environments:
     title: "Environments"
-    description: "Environments define where your ambient agents run. Set one up in minutes via GitHub (recommended), Warp-assisted setup, or manual configuration."
+    description_intro: "Environments define where your ambient agents run. Set one up in minutes via GitHub (recommended), Warp-assisted setup, or manual configuration."
     delete_environment: "Delete environment"
     last_edited: "Last edited: %{time}"
     last_used: "Last used: %{time}"
@@ -1858,8 +1863,8 @@ settings:
 
 dialogs:
   # Common dialog buttons
-  yes: "Yes"
-  no: "No"
+  "yes": "Yes"
+  "no": "No"
   continue: "Continue"
   close: "Close"
 

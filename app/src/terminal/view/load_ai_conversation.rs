@@ -22,7 +22,7 @@ use crate::ai::agent::{
     AIAgentOutput, AIAgentOutputMessage, AIAgentOutputMessageType, CreateDocumentsRequest,
     CreateDocumentsResult, EditDocumentsResult,
 };
-use crate::ai::ai_document_view::DEFAULT_PLANNING_DOCUMENT_TITLE;
+use crate::ai::ai_document_view::default_planning_document_title;
 use crate::ai::blocklist::agent_view::{
     AgentViewEntryBlockParams, AgentViewEntryOrigin, DismissalStrategy, EphemeralMessage,
 };
@@ -37,6 +37,7 @@ use crate::ai::blocklist::{
 };
 use crate::ai::document::ai_document_model::AIDocumentModel;
 use crate::ai::get_relevant_files::controller::GetRelevantFilesController;
+use crate::i18n::t;
 use crate::persistence::model::AgentConversationData;
 use crate::server::server_api::ServerApiProvider;
 use crate::terminal::find::TerminalFindModel;
@@ -384,7 +385,7 @@ impl TerminalView {
                                                     .get(index)
                                                     .cloned()
                                                     .unwrap_or_else(|| {
-                                                        DEFAULT_PLANNING_DOCUMENT_TITLE.to_string()
+                                                        default_planning_document_title()
                                                     });
 
                                                 doc_model.restore_document(
@@ -868,18 +869,22 @@ impl TerminalView {
 
         match &restore_context_state {
             RestorationDirState::MissingOriginalDir => {
-                items.push(MessageItem::text(
-                    "couldn't find original conversation directory ",
-                ));
+                items.push(MessageItem::text(t!(
+                    "terminal_ui.restore_context.missing_directory"
+                )));
                 items.push(open_repo_hint.clone());
-                items.push(MessageItem::text(" change repos"));
+                items.push(MessageItem::text(t!(
+                    "terminal_ui.restore_context.change_repos"
+                )));
             }
             RestorationDirState::NeedsCd { .. } => {
-                items.push(MessageItem::text(
-                    "changed directory to continue conversation ",
-                ));
+                items.push(MessageItem::text(t!(
+                    "terminal_ui.restore_context.changed_directory"
+                )));
                 items.push(open_repo_hint.clone());
-                items.push(MessageItem::text(" change repos"));
+                items.push(MessageItem::text(t!(
+                    "terminal_ui.restore_context.change_repos"
+                )));
             }
             RestorationDirState::Unchanged | RestorationDirState::SkippedNonLocalConversation => {}
         }

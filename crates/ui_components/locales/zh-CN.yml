@@ -1,0 +1,4 @@
+ui_components:
+  lightbox:
+    no_images: "暂无图片"
+    loading: "正在加载…"

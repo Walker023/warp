@@ -46,8 +46,8 @@ impl WarpifyBannerState {
         }
     }
 
-    pub fn title(&self) -> &str {
-        "Warpify subshell"
+    pub fn title(&self) -> String {
+        t!("terminal_ui.warpify.banner_title").to_string()
     }
 
     pub fn action(&self) -> TerminalAction {
@@ -141,7 +141,7 @@ fn render_yes_button(
     let yes_button = match initialize_warpification_keybinding {
         Some(keystroke) => appearance
             .ui_builder()
-            .keyboard_shortcut_button(state.title().to_owned(), keystroke, mouse_state.clone())
+            .keyboard_shortcut_button(state.title(), keystroke, mouse_state.clone())
             .with_style(UiComponentStyles {
                 height: Some(36.),
                 padding: Some(Coords {
@@ -155,7 +155,7 @@ fn render_yes_button(
         None => appearance
             .ui_builder()
             .button(ButtonVariant::Basic, mouse_state.clone())
-            .with_text_label(state.title().to_owned())
+            .with_text_label(state.title())
             .with_style(UiComponentStyles {
                 background: Some(Fill::Solid(ColorU::transparent_black()).into()),
                 height: Some(36.),

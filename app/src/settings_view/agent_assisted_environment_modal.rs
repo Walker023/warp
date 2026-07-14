@@ -332,7 +332,7 @@ impl AgentAssistedEnvironmentModal {
             .with_spacing(8.);
 
         col.add_child(self.render_section_title(
-            &t!("settings.environments.selected_repos").to_string(),
+            t!("settings.environments.selected_repos").as_ref(),
             appearance,
         ));
 
@@ -360,8 +360,8 @@ impl AgentAssistedEnvironmentModal {
             let name = repo_path
                 .file_name()
                 .and_then(|s| s.to_str())
-                .unwrap_or("(unknown)")
-                .to_string();
+                .map(str::to_owned)
+                .unwrap_or_else(|| t!("settings_extra.environments.unknown").to_string());
 
             let path_text = home_relative_path(repo_path);
 
@@ -416,7 +416,7 @@ impl AgentAssistedEnvironmentModal {
                 Expanded::new(
                     1.,
                     self.render_section_title(
-                        &t!("settings.environments.available_indexed_repos").to_string(),
+                        t!("settings.environments.available_indexed_repos").as_ref(),
                         appearance,
                     ),
                 )

@@ -9,6 +9,7 @@ use warpui::ui_components::components::{BorderStyle, Coords, UiComponent, UiComp
 use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::buttons;
 use crate::ui_components::dialog::{dialog_styles, Dialog};
 
@@ -87,7 +88,9 @@ impl View for SummarizationCancelDialog {
             appearance
                 .ui_builder()
                 .button(ButtonVariant::Secondary, self.cancel_mouse.clone())
-                .with_centered_text_label("Cancel summarization".into())
+                .with_centered_text_label(
+                    t!("ai_ui.summarization_cancel.cancel_action").to_string(),
+                )
                 .with_style(UiComponentStyles {
                     width: Some(CANCEL_BUTTON_WIDTH),
                     ..button_style
@@ -105,7 +108,7 @@ impl View for SummarizationCancelDialog {
         let continue_button = appearance
             .ui_builder()
             .button(ButtonVariant::Accent, self.continue_mouse.clone())
-            .with_centered_text_label("Continue summarization".into())
+            .with_centered_text_label(t!("ai_ui.summarization_cancel.continue_action").to_string())
             .with_style(UiComponentStyles {
                 width: Some(CONTINUE_BUTTON_WIDTH),
                 ..button_style
@@ -163,8 +166,8 @@ impl View for SummarizationCancelDialog {
 
         // Build dialog content
         let dialog_core = Dialog::new(
-            "Cancel summarization?".to_string(),
-            Some("Summarization is already running. If you cancel now, the request may still incur cost, any progress so far will be lost, and restarting will take longer.\n\nAre you sure you want to cancel?".to_string()),
+            t!("ai_ui.summarization_cancel.title").to_string(),
+            Some(t!("ai_ui.summarization_cancel.description").to_string()),
             UiComponentStyles {
                 padding: Some(Coords::uniform(24.)),
                 ..dialog_styles

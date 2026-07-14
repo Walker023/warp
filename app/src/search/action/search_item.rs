@@ -15,6 +15,7 @@ use crate::appearance::Appearance;
 use crate::drive::cloud_object_styling::warp_drive_icon_color;
 use crate::drive::DriveObjectType;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::search::command_palette::mixer::CommandPaletteItemAction;
 use crate::search::command_palette::render_util::{
     colors, render_search_item_icon, render_search_item_icon_placeholder,
@@ -147,26 +148,31 @@ impl SearchItem for MatchedBinding {
     fn accessibility_label(&self) -> String {
         let trigger = self.binding.trigger.as_ref();
 
-        format!(
-            "Selected {}, {}.",
-            &self
+        t!(
+            "workspace_search_ui.search.a11y.selected_with_binding",
+            name = &self
                 .binding
                 .description
                 .in_context(DescriptionContext::Default),
-            trigger.map(Keystroke::normalized).unwrap_or_default()
+            binding = trigger.map(Keystroke::normalized).unwrap_or_default()
         )
+        .to_string()
     }
 
     fn accessibility_help_message(&self) -> Option<String> {
         self.binding
             .trigger
             .as_ref()
-            .map_or("Press enter to confirm.".into(), |trigger| {
-                format!(
-                    "Press enter to confirm. Use {} binding to run this action in the future.",
-                    trigger.normalized()
-                )
-            })
+            .map_or_else(
+                || t!("workspace_search_ui.search.a11y.action_confirm").to_string(),
+                |trigger| {
+                    t!(
+                        "workspace_search_ui.search.a11y.action_confirm_with_binding",
+                        binding = trigger.normalized()
+                    )
+                    .to_string()
+                },
+            )
             .into()
     }
 }

@@ -9,6 +9,7 @@ use warpui::prelude::{Container, MouseStateHandle};
 use warpui::text_layout::ClipConfig;
 use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
+use crate::i18n::t;
 use crate::terminal::view::PADDING_LEFT;
 use crate::terminal::CLIAgent;
 use crate::ui_components::icons::Icon;
@@ -32,7 +33,7 @@ impl HarnessSessionHeader {
     pub fn new(block_id: BlockId, cli_agent: Option<CLIAgent>) -> Self {
         let cli_name = cli_agent
             .map(|agent| agent.display_name().to_owned())
-            .unwrap_or_else(|| "Agent".to_owned());
+            .unwrap_or_else(|| t!("terminal_ui.ambient_agent.agent").to_string());
 
         Self {
             block_id,
@@ -63,7 +64,11 @@ impl View for HarnessSessionHeader {
             Icon::ChevronRight
         };
 
-        let label = format!("Running {}...", self.cli_name);
+        let label = t!(
+            "terminal_ui.ambient_agent.running_named",
+            name = self.cli_name.as_str()
+        )
+        .to_string();
 
         let row = Flex::row()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)

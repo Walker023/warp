@@ -33,6 +33,7 @@ use crate::editor::{
     EditorView, InteractionState, SingleLineEditorOptions, TextColors, TextOptions,
 };
 use crate::experiments::{AuthFlowInstructions, Experiment};
+use crate::i18n::t;
 use crate::modal::MODAL_CORNER_RADIUS;
 use crate::network::NetworkStatus;
 use crate::server::telemetry::{AnonymousUserSignupEntrypoint, LoginEventSource, TelemetryEvent};
@@ -45,9 +46,6 @@ const TOS_URL: &str = "https://www.warp.dev/terms-of-service";
 
 const COMMON_BODY_UI_FONT_SIZE: f32 = 12.;
 const AUTH_MODAL_GAP: f32 = 16.;
-
-const AUTH_TOKEN_INPUT_PLACEHOLDER_TEXT: &str = "Auth Token";
-const AUTH_TOKEN_INPUT_PLACEHOLDER_TEXT_EXPERIMENTAL: &str = "Browser auth token";
 
 const AUTH_TOKEN_INPUT_BORDER_RADIUS: Radius = Radius::Pixels(4.);
 
@@ -164,9 +162,9 @@ impl AuthViewBody {
 
             let placeholder_text =
                 if matches!(experiment_group, Some(AuthFlowInstructions::Experiment)) {
-                    AUTH_TOKEN_INPUT_PLACEHOLDER_TEXT_EXPERIMENTAL
+                    t!("auth_extra.auth_view.browser_auth_token").to_string()
                 } else {
-                    AUTH_TOKEN_INPUT_PLACEHOLDER_TEXT
+                    t!("auth_extra.auth_view.auth_token").to_string()
                 };
 
             editor.set_placeholder_text(placeholder_text, ctx);
@@ -256,7 +254,7 @@ impl AuthViewBody {
             .with_child(
                 ui_builder
                     .link(
-                        "Click here to paste your token from the browser".into(),
+                        t!("auth_extra.auth_view.paste_browser_token").to_string(),
                         None,
                         Some(Box::new(|ctx| {
                             ctx.dispatch_typed_action(AuthViewBodyAction::EnterToken);
@@ -329,7 +327,7 @@ impl AuthViewBody {
             Flex::row()
                 .with_child(
                     ui_builder
-                        .span("By continuing, you agree to Warp's ")
+                        .span(t!("auth_extra.auth_view.terms_prefix").to_string())
                         .with_style(disclaimer_styles)
                         .build()
                         .finish(),
@@ -337,7 +335,7 @@ impl AuthViewBody {
                 .with_child(
                     ui_builder
                         .link(
-                            "Terms of Service".into(),
+                            t!("auth_extra.auth_view.terms_of_service").to_string(),
                             Some(TOS_URL.into()),
                             None,
                             self.mouse_state_handles.tos_mouse_state_handle.clone(),
@@ -357,7 +355,7 @@ impl AuthViewBody {
             Align::new(
                 ui_builder
                     .link(
-                        "Privacy Settings".into(),
+                        t!("auth_extra.auth_view.privacy_settings").to_string(),
                         None,
                         Some(Box::new(|ctx| {
                             ctx.dispatch_typed_action(AuthViewBodyAction::ShowOverlay(
@@ -378,7 +376,7 @@ impl AuthViewBody {
             Flex::column()
                 .with_child(
                     ui_builder
-                        .paragraph("If you'd like to opt out of analytics and AI features,")
+                        .paragraph(t!("auth_extra.auth_view.opt_out_analytics_ai").to_string())
                         .with_style(disclaimer_styles)
                         .build()
                         .finish(),
@@ -387,7 +385,7 @@ impl AuthViewBody {
                     Flex::row()
                         .with_child(
                             ui_builder
-                                .paragraph("you can adjust your ")
+                                .paragraph(t!("auth_extra.auth_view.adjust_settings").to_string())
                                 .with_style(disclaimer_styles)
                                 .build()
                                 .finish(),
@@ -395,7 +393,7 @@ impl AuthViewBody {
                         .with_child(
                             ui_builder
                                 .link(
-                                    "Privacy Settings".into(),
+                                    t!("auth_extra.auth_view.privacy_settings").to_string(),
                                     None,
                                     Some(Box::new(|ctx| {
                                         ctx.dispatch_typed_action(AuthViewBodyAction::ShowOverlay(
@@ -475,7 +473,7 @@ impl AuthViewBody {
                 Some(click_button_style),
                 None,
             )
-            .with_centered_text_label("Sign up".into())
+            .with_centered_text_label(t!("auth_extra.auth_view.sign_up").to_string())
             .build()
             .on_click(move |ctx, _, _| {
                 ctx.dispatch_typed_action(on_click_action);
@@ -487,14 +485,14 @@ impl AuthViewBody {
         Flex::row()
             .with_child(
                 ui_builder
-                    .span("Already have an account? ")
+                    .span(t!("auth_extra.auth_view.account_prompt").to_string())
                     .build()
                     .finish(),
             )
             .with_child(
                 ui_builder
                     .link(
-                        "Sign in".into(),
+                        t!("auth_extra.auth_view.sign_in").to_string(),
                         None,
                         Some(Box::new(|ctx| {
                             ctx.dispatch_typed_action(AuthViewBodyAction::Login);
@@ -515,14 +513,14 @@ impl AuthViewBody {
             Flex::row()
                 .with_child(
                     ui_builder
-                        .span("Don't want to sign in right now? ")
+                        .span(t!("auth_extra.auth_view.skip_prompt").to_string())
                         .build()
                         .finish(),
                 )
                 .with_child(
                     ui_builder
                         .link(
-                            "Skip for now".into(),
+                            t!("auth_extra.auth_view.skip_for_now").to_string(),
                             None,
                             Some(Box::new(|ctx| {
                                 ctx.dispatch_typed_action(AuthViewBodyAction::InitiateLoginLater);
@@ -546,13 +544,13 @@ impl AuthViewBody {
             Flex::column()
                 .with_child(
                     ui_builder
-                        .paragraph("Are you sure you want to skip login?")
+                        .paragraph(t!("auth_extra.auth_view.skip_confirmation").to_string())
                         .build()
                         .finish(),
                 )
                 .with_child(
                     ui_builder
-                        .paragraph("You can sign up later, but some features, such as AI,")
+                        .paragraph(t!("auth_extra.auth_view.login_later_prefix").to_string())
                         .build()
                         .finish(),
                 )
@@ -560,14 +558,14 @@ impl AuthViewBody {
                     Flex::row()
                         .with_child(
                             ui_builder
-                                .span("are only available to logged-in users. ")
+                                .span(t!("auth_extra.auth_view.login_later_suffix").to_string())
                                 .build()
                                 .finish(),
                         )
                         .with_child(
                             ui_builder
                                 .link(
-                                    "Yes, skip login".into(),
+                                    t!("auth_extra.auth_view.confirm_skip").to_string(),
                                     None,
                                     Some(Box::new(|ctx| {
                                         ctx.dispatch_typed_action(AuthViewBodyAction::LoginLater);
@@ -604,16 +602,16 @@ impl AuthViewBody {
         };
 
         let text = match self.variant {
-            AuthViewVariant::RequireLoginCloseable  => {
-                "In order to use Warp’s AI features or collaborate with others, please create an account."
+            AuthViewVariant::RequireLoginCloseable => {
+                t!("auth_extra.auth_view.require_account_ai").to_string()
             }
             AuthViewVariant::HitDriveObjectLimitCloseable => {
-                "In order to create more objects in Warp Drive, please create an account."
+                t!("auth_extra.auth_view.require_account_drive").to_string()
             }
             AuthViewVariant::ShareRequirementCloseable => {
-                "In order to share, please create an account."
+                t!("auth_extra.auth_view.require_account_share").to_string()
             }
-            _ => "",
+            _ => String::new(),
         };
 
         Container::new(
@@ -637,10 +635,12 @@ impl AuthViewBody {
         };
 
         let text = match self.variant {
-            AuthViewVariant::Initial => "Welcome to Warp!",
+            AuthViewVariant::Initial => t!("auth_extra.auth_view.welcome").to_string(),
             AuthViewVariant::RequireLoginCloseable
             | AuthViewVariant::HitDriveObjectLimitCloseable
-            | AuthViewVariant::ShareRequirementCloseable => "Sign up for Warp",
+            | AuthViewVariant::ShareRequirementCloseable => {
+                t!("auth_extra.auth_view.sign_up_for_warp").to_string()
+            }
         };
 
         ui_builder
@@ -756,7 +756,7 @@ impl AuthViewBody {
 
         let header = Container::new(
             ui_builder
-                .paragraph("Sign in on your browser \nto continue")
+                .paragraph(t!("auth_extra.auth_view.browser_continue").to_string())
                 .with_style(header_styles)
                 .build()
                 .finish(),
@@ -770,14 +770,14 @@ impl AuthViewBody {
                     Flex::row()
                         .with_child(
                             ui_builder
-                                .span("If your browser hasn't launched, ")
+                                .span(t!("auth_extra.auth_view.browser_hint_prefix").to_string())
                                 .build()
                                 .finish(),
                         )
                         .with_child(
                             ui_builder
                                 .link(
-                                    "copy the URL".into(),
+                                    t!("auth_extra.auth_view.copy_url").to_string(),
                                     None,
                                     Some(Box::new(|event_ctx| {
                                         event_ctx.dispatch_typed_action(
@@ -796,7 +796,7 @@ impl AuthViewBody {
                 )
                 .with_child(
                     ui_builder
-                        .span("and open the page manually.")
+                        .span(t!("auth_extra.auth_view.browser_hint_suffix").to_string())
                         .build()
                         .finish(),
                 )
@@ -995,8 +995,8 @@ impl View for AuthViewBody {
 
     fn accessibility_contents(&self, _: &AppContext) -> Option<AccessibilityContent> {
         Some(AccessibilityContent::new(
-            "Welcome to Warp!",
-            "Press enter to open your browser to Sign Up or Sign In.",
+            t!("auth_extra.auth_view.welcome").to_string(),
+            t!("auth_extra.auth_view.accessibility_description").to_string(),
             WarpA11yRole::HelpRole,
         ))
     }

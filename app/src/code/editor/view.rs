@@ -76,6 +76,7 @@ use crate::code::{
 use crate::code_review::comments::{CommentId, CommentOrigin};
 use crate::editor::InteractionState;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::notebooks::editor::rich_text_styles;
 use crate::settings::{AppEditorSettings, CodeEditorLineNumberMode, FontSettings};
 use crate::view_components::find::FindDirection;
@@ -660,7 +661,10 @@ impl CodeEditorView {
                 let trimmed = input.trim().to_string();
                 if trimmed.is_empty() {
                     self.goto_line_dialog.update(ctx, |dialog, ctx| {
-                        dialog.set_error("Please enter a line number".to_string(), ctx);
+                        dialog.set_error(
+                            t!("code_editor_extra.code_editor.goto_line.empty_line").to_string(),
+                            ctx,
+                        );
                     });
                     return;
                 }
@@ -672,7 +676,11 @@ impl CodeEditorView {
                     Ok(n) if n >= 1 => n,
                     _ => {
                         self.goto_line_dialog.update(ctx, |dialog, ctx| {
-                            dialog.set_error("Please enter a valid line number".to_string(), ctx);
+                            dialog.set_error(
+                                t!("code_editor_extra.code_editor.goto_line.invalid_line")
+                                    .to_string(),
+                                ctx,
+                            );
                         });
                         return;
                     }
@@ -683,7 +691,8 @@ impl CodeEditorView {
                         Err(_) => {
                             self.goto_line_dialog.update(ctx, |dialog, ctx| {
                                 dialog.set_error(
-                                    "Please enter a valid column number".to_string(),
+                                    t!("code_editor_extra.code_editor.goto_line.invalid_column")
+                                        .to_string(),
                                     ctx,
                                 );
                             });

@@ -25,6 +25,7 @@ use std::rc::Rc;
 use ai::agent::action_result::{AIAgentActionResultType, RequestFileEditsResult};
 use ai::diff_validation::{DiffDelta, DiffType};
 use itertools::Itertools;
+use rust_i18n::t;
 use warp::editor::{CodeEditorModel, CodeEditorModelEvent};
 use warp::tui_export::{
     AIAgentActionId, BlocklistAIActionEvent, BlocklistAIActionModel, DiffSessionType, FileDiff,
@@ -72,7 +73,7 @@ struct FileSection {
     /// in the render state's char-cell temporary blocks via `expand_diffs`.
     editor: ModelHandle<CodeEditorModel>,
     /// Header verb: `Updated`, `Created`, or `Deleted`.
-    verb: &'static str,
+    verb: String,
     /// Display name: the file name, or `old → new` for renames.
     name: String,
     /// Whether the diff has been computed and expanded (ghost rows pushed);
@@ -278,14 +279,31 @@ impl TuiFileEditsView {
                     .chain(deleted_files.iter().map(String::as_str))
                     .unique()
                     .count();
-                let files_label = if files == 1 { "file" } else { "files" };
-                format!("Edited {files} {files_label} (+{lines_added} −{lines_removed})")
+                if files == 1 {
+                    t!(
+                        "warp_tui.file_edits.summary_one_file",
+                        count = files,
+                        added = lines_added,
+                        removed = lines_removed
+                    )
+                    .to_string()
+                } else {
+                    t!(
+                        "warp_tui.file_edits.summary_files",
+                        count = files,
+                        added = lines_added,
+                        removed = lines_removed
+                    )
+                    .to_string()
+                }
             }
-            Some(RequestFileEditsResult::Cancelled) => "File edits cancelled".to_string(),
+            Some(RequestFileEditsResult::Cancelled) => {
+                t!("warp_tui.file_edits.cancelled").to_string()
+            }
             Some(RequestFileEditsResult::DiffApplicationFailed { .. }) => {
-                "File edits failed".to_string()
+                t!("warp_tui.file_edits.failed").to_string()
             }
-            None => "Preparing edits…".to_string(),
+            None => t!("warp_tui.file_edits.preparing").to_string(),
         }
     }
 
@@ -479,7 +497,7 @@ fn deltas_for(diff_type: &DiffType) -> Vec<DiffDelta> {
 
 /// The header verb and display name for a diff: file names only (no
 /// directories), with renames shown as `old → new`.
-fn verb_and_name(diff: &FileDiff) -> (&'static str, String) {
+fn verb_and_name(diff: &FileDiff) -> (String, String) {
     let file_name = |path: &str| {
         Path::new(path)
             .file_name()
@@ -488,19 +506,24 @@ fn verb_and_name(diff: &FileDiff) -> (&'static str, String) {
     };
     let name = file_name(&diff.base.file_path);
     match &diff.diff_type {
-        DiffType::Create { .. } => ("Created", name),
-        DiffType::Delete { .. } => ("Deleted", name),
+        DiffType::Create { .. } => (t!("warp_tui.file_edits.created").to_string(), name),
+        DiffType::Delete { .. } => (t!("warp_tui.file_edits.deleted").to_string(), name),
         DiffType::Update {
             rename: Some(to), ..
         } => {
             let to_name = file_name(&to.to_string_lossy());
             if to_name == name {
-                ("Updated", name)
+                (t!("warp_tui.file_edits.updated").to_string(), name)
             } else {
-                ("Updated", format!("{name} → {to_name}"))
+                (
+                    t!("warp_tui.file_edits.updated").to_string(),
+                    format!("{name} → {to_name}"),
+                )
             }
         }
-        DiffType::Update { rename: None, .. } => ("Updated", name),
+        DiffType::Update { rename: None, .. } => {
+            (t!("warp_tui.file_edits.updated").to_string(), name)
+        }
     }
 }
 
@@ -532,7 +555,10 @@ impl TuiView for TuiFileEditsView {
 
         self.render_section(
             SectionKey::Summary,
-            &format!("Edited {} files", self.sections.len()),
+            &t!(
+                "warp_tui.file_edits.edited_files_title",
+                count = self.sections.len()
+            ),
             self.aggregate_stats(app),
             &builder,
             app,

@@ -357,9 +357,12 @@ impl CodeReviewState {
                 .available_repos
                 .iter()
                 .map(|repo_path| {
-                    let display_name = self
-                        .get_repo_display_name(repo_path, ctx)
-                        .unwrap_or_else(|| "Unknown".to_string());
+                    let display_name =
+                        self.get_repo_display_name(repo_path, ctx)
+                            .unwrap_or_else(|| {
+                                t!("workspace_search_ui.workspace.right_panel.unknown_repo")
+                                    .to_string()
+                            });
                     DropdownItem::new(
                         display_name,
                         RightPanelAction::SelectRepo {
@@ -1139,9 +1142,9 @@ impl RightPanelView {
 
     pub fn set_maximized(&mut self, is_maximized: bool, ctx: &mut ViewContext<Self>) {
         let (icon, tooltip) = if is_maximized {
-            (Icon::Minimize, "Minimize")
+            (Icon::Minimize, t!("menu.minimize").to_string())
         } else {
-            (Icon::Maximize, "Maximize")
+            (Icon::Maximize, t!("code_review.maximize").to_string())
         };
 
         self.maximize_button.update(ctx, |button, ctx| {

@@ -1,3 +1,5 @@
+rust_i18n::i18n!("locales", fallback = "en");
+
 pub mod button;
 pub mod dialog;
 pub mod keyboard_shortcut;

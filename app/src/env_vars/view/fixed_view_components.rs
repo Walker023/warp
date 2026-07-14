@@ -13,6 +13,7 @@ use warpui::{Element, ViewContext};
 use crate::drive::sharing::{ContentEditability, SharingAccessLevel};
 use crate::env_vars::active_env_var_collection_data::TrashStatus;
 use crate::env_vars::view::env_var_collection::{EnvVarCollectionAction, EnvVarCollectionView};
+use crate::i18n::t;
 use crate::ui_components::breadcrumb::BreadcrumbState;
 use crate::ui_components::buttons::icon_button;
 use crate::ui_components::icons::Icon;
@@ -21,9 +22,6 @@ use crate::{AppContext, Appearance, SingletonEntity};
 const VARIABLE_DIVIDER_HEIGHT: f32 = 2.;
 const SECTION_FONT_SIZE: f32 = 16.;
 const BUTTON_HEIGHT: f32 = 32.;
-
-const SAVE_BUTTON_TEXT: &str = "Save";
-const VARIABLES_LABEL_TEXT: &str = "Variables";
 
 /// This file contains components that fixed in the view,
 /// i.e. the trash banner, breadcrumbs, and variables section header
@@ -57,9 +55,9 @@ impl EnvVarCollectionView {
         let mut stack = Stack::new();
 
         let text = if deleted {
-            "You no longer have access to these environment variables"
+            t!("env_vars_ui.trash.no_access")
         } else {
-            "Environment variables were moved to trash"
+            t!("env_vars_ui.trash.moved")
         };
         stack.add_child(
             Align::new(
@@ -112,13 +110,11 @@ impl EnvVarCollectionView {
                             )
                             .with_tooltip(move || {
                                 ui_builder
-                                    .tool_tip(
-                                        "Restore environment variables from trash".to_string(),
-                                    )
+                                    .tool_tip(t!("env_vars_ui.trash.restore_tooltip").to_string())
                                     .build()
                                     .finish()
                             })
-                            .with_text_label("Restore".to_string())
+                            .with_text_label(t!("drive_extra.common.restore").to_string())
                             .build()
                             .on_click(|ctx, _, _| {
                                 ctx.dispatch_typed_action(EnvVarCollectionAction::Untrash)
@@ -161,7 +157,7 @@ impl EnvVarCollectionView {
                 2.,
                 appearance
                     .ui_builder()
-                    .span(VARIABLES_LABEL_TEXT.to_string())
+                    .span(t!("env_vars_ui.collection.variables"))
                     .with_style(UiComponentStyles {
                         font_size: Some(SECTION_FONT_SIZE),
                         ..Default::default()
@@ -240,7 +236,7 @@ impl EnvVarCollectionView {
             .with_text_and_icon_label(
                 TextAndIcon::new(
                     TextAndIconAlignment::TextFirst,
-                    "Load",
+                    t!("env_vars_ui.collection.load").to_string(),
                     Icon::TerminalInput.to_warpui_icon(appearance.theme().active_ui_text_color()),
                     MainAxisSize::Min,
                     MainAxisAlignment::SpaceBetween,
@@ -293,7 +289,7 @@ impl EnvVarCollectionView {
                 font_size: Some(14.),
                 ..Default::default()
             })
-            .with_centered_text_label(SAVE_BUTTON_TEXT.to_owned());
+            .with_centered_text_label(t!("common.save").to_string());
 
         if is_save_disabled {
             button = button.disabled();

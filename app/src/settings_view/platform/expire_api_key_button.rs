@@ -3,6 +3,7 @@ use warpui::elements::MouseStateHandle;
 use warpui::ui_components::components::UiComponent;
 use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
+use crate::i18n::t;
 use crate::server::ids::ApiKeyUid;
 use crate::ui_components::buttons::icon_button;
 use crate::ui_components::icons::Icon;
@@ -74,7 +75,7 @@ impl ExpireApiKeyButton {
                 | Err(_) => {
                     me.request_state = RequestState::Idle;
                     ctx.emit(ExpireApiKeyButtonEvent::ExpireApiKeyFailed {
-                        message: "Failed to delete API key. Please try again.".to_string(),
+                        message: t!("settings_extra.platform.delete_api_key_failed").to_string(),
                     });
                     ctx.notify();
                 }

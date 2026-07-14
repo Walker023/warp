@@ -8,6 +8,7 @@ use warpui::ui_components::text::Span;
 use warpui::Element;
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::search::result_renderer::ItemHighlightState;
 use crate::themes::theme::Fill;
@@ -113,16 +114,28 @@ impl LaunchConfig {
     fn render_config_description(&self, appearance: &Appearance) -> Box<dyn Element> {
         let num_windows = self.windows.len();
         let num_tabs: usize = self.windows.iter().map(|window| window.tabs.len()).sum();
-        let mut windows_str = num_windows.to_string();
-        match num_windows {
-            1 => windows_str.push_str(" window "),
-            _ => windows_str.push_str(" windows"),
+        let windows_str = match num_windows {
+            1 => t!(
+                "workspace_search_ui.search.launch_config.one_window",
+                count = num_windows
+            ),
+            _ => t!(
+                "workspace_search_ui.search.launch_config.windows",
+                count = num_windows
+            ),
         }
-        let mut tabs_str = num_tabs.to_string();
-        match num_tabs {
-            1 => tabs_str.push_str(" tab "),
-            _ => tabs_str.push_str(" tabs"),
+        .to_string();
+        let tabs_str = match num_tabs {
+            1 => t!(
+                "workspace_search_ui.search.launch_config.one_tab",
+                count = num_tabs
+            ),
+            _ => t!(
+                "workspace_search_ui.search.launch_config.tabs",
+                count = num_tabs
+            ),
         }
+        .to_string();
         Flex::row()
             .with_children(vec![
                 Self::render_string_with_pill_styling(windows_str, appearance),

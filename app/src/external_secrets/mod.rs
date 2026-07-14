@@ -12,6 +12,7 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::i18n::t;
 #[cfg(all(not(target_family = "wasm"), feature = "local_tty"))]
 use crate::terminal::local_shell::execute_command;
 use crate::terminal::shell::ShellType;
@@ -184,14 +185,25 @@ impl SecretManager {
     ) -> ErrorMessageAndCommand {
         match error_type {
             SecretErrorType::NotInstalled => {
-                let message = format!("{} CLI is not installed", &self);
+                let manager = self.to_string();
+                let message = t!(
+                    "common_extra.external_secrets.cli_not_installed",
+                    manager = manager
+                )
+                .to_string();
 
                 let (link, link_message) = (
                     match self {
                         SecretManager::OnePassword => Some(ONEPASSWORD_DOCS_LINK.to_owned()),
                         SecretManager::LastPass => Some(LASTPASS_DOCS_LINK.to_owned()),
                     },
-                    Some(format!("View {} CLI installation documentation", &self)),
+                    Some(
+                        t!(
+                            "common_extra.external_secrets.view_install_docs",
+                            manager = manager
+                        )
+                        .to_string(),
+                    ),
                 );
 
                 ErrorMessageAndCommand {
@@ -204,21 +216,24 @@ impl SecretManager {
                 let (link, link_message) = match self {
                     SecretManager::OnePassword => (
                         Some(ONEPASSWORD_DOCS_LINK.to_owned()),
-                        Some("Integrate 1Password app with CLI".to_owned()),
+                        Some(
+                            t!("common_extra.external_secrets.integrate_one_password").to_string(),
+                        ),
                     ),
                     SecretManager::LastPass => (None, None),
                 };
                 ErrorMessageAndCommand {
-                    message: format!(
-                        "{} didn't return secrets (likely not configured or authenticated)",
-                        &self
-                    ),
+                    message: t!(
+                        "common_extra.external_secrets.fetch_failed",
+                        manager = self.to_string()
+                    )
+                    .to_string(),
                     link,
                     link_message,
                 }
             }
             SecretErrorType::InvalidPlatform => ErrorMessageAndCommand {
-                message: "Platform not supported".to_owned(),
+                message: t!("common_extra.external_secrets.platform_unsupported").to_string(),
                 link: None,
                 link_message: None,
             },

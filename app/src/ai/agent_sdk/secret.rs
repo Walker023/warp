@@ -24,6 +24,7 @@ use warpui::{AppContext, SingletonEntity as _};
 use super::output::{self, TableFormat};
 use crate::auth::UserUid;
 use crate::cloud_object::Owner;
+use crate::i18n::t;
 use crate::server::ids::ServerId;
 use crate::util::time_format::format_approx_duration_from_now_utc;
 
@@ -42,11 +43,11 @@ struct SecretInfo {
 impl TableFormat for SecretInfo {
     fn header() -> Vec<Cell> {
         vec![
-            Cell::new("Name"),
-            Cell::new("Scope"),
-            Cell::new("Type"),
-            Cell::new("Created"),
-            Cell::new("Updated"),
+            Cell::new(t!("ai_cli.secret.table.name").to_string()),
+            Cell::new(t!("ai_cli.secret.table.scope").to_string()),
+            Cell::new(t!("ai_cli.secret.table.type").to_string()),
+            Cell::new(t!("ai_cli.secret.table.created").to_string()),
+            Cell::new(t!("ai_cli.secret.table.updated").to_string()),
         ]
     }
 
@@ -68,7 +69,10 @@ pub fn run(
     command: SecretCommand,
 ) -> Result<()> {
     if !FeatureFlag::WarpManagedSecrets.is_enabled() {
-        return Err(anyhow::anyhow!("This feature is not enabled"));
+        return Err(anyhow::anyhow!(t!(
+            "ai_cli.secret.error.feature_not_enabled"
+        )
+        .to_string()));
     }
 
     match command {
@@ -193,7 +197,7 @@ fn create_secret(ctx: &mut AppContext, args: CreateSecretArgs) -> Result<()> {
         },
         None => {
             let name = args.name.ok_or_else(|| {
-                anyhow::anyhow!("Secret name is required. Usage: oz secret create <NAME>")
+                anyhow::anyhow!(t!("ai_cli.secret.error.name_required").to_string())
             })?;
             (
                 name,
@@ -266,7 +270,10 @@ fn create_secret_with_input(
             );
             ctx.spawn(create_future, move |_, result, ctx| match result {
                 Ok(secret) => {
-                    println!("Secret '{}' created", secret.name);
+                    println!(
+                        "{}",
+                        t!("ai_cli.secret.status.created", name = &secret.name)
+                    );
                     ctx.terminate_app(TerminationMode::ForceTerminate, None);
                 }
                 Err(err) => {
@@ -314,7 +321,7 @@ fn delete_secret(ctx: &mut AppContext, args: DeleteSecretArgs) -> Result<()> {
                 if !io::stdin().is_terminal() {
                     super::report_fatal_error(
                         anyhow::anyhow!(
-                            "Refusing to delete secret without confirmation in non-interactive mode (use --force to bypass)"
+                            t!("ai_cli.secret.error.delete_non_interactive").to_string()
                         ),
                         ctx,
                     );
@@ -322,19 +329,21 @@ fn delete_secret(ctx: &mut AppContext, args: DeleteSecretArgs) -> Result<()> {
                 }
 
                 let scope = match owner {
-                    Owner::User { .. } => "personal",
-                    Owner::Team { .. } => "team",
+                    Owner::User { .. } => t!("ai_cli.secret.scope.personal").to_string(),
+                    Owner::Team { .. } => t!("ai_cli.secret.scope.team").to_string(),
                 };
+                let prompt =
+                    t!("ai_cli.secret.prompt.delete", scope = &scope, name = &name).to_string();
+                let help = t!("ai_cli.secret.prompt.delete_help").to_string();
 
-                let should_delete = match Confirm::new(&format!("Delete {scope} secret '{name}'?"))
+                let should_delete = match Confirm::new(&prompt)
                     .with_default(false)
-                    .with_help_message("This action cannot be undone")
+                    .with_help_message(&help)
                     .prompt()
                 {
                     Ok(should_delete) => should_delete,
                     Err(InquireError::OperationCanceled | InquireError::OperationInterrupted) => {
-                        ctx
-                            .terminate_app(TerminationMode::ForceTerminate, None);
+                        ctx.terminate_app(TerminationMode::ForceTerminate, None);
                         return;
                     }
                     Err(err) => {
@@ -344,9 +353,8 @@ fn delete_secret(ctx: &mut AppContext, args: DeleteSecretArgs) -> Result<()> {
                 };
 
                 if !should_delete {
-                    println!("Deletion cancelled");
-                    ctx
-                        .terminate_app(TerminationMode::ForceTerminate, None);
+                    println!("{}", t!("ai_cli.secret.status.deletion_cancelled"));
+                    ctx.terminate_app(TerminationMode::ForceTerminate, None);
                     return;
                 }
             }
@@ -354,9 +362,8 @@ fn delete_secret(ctx: &mut AppContext, args: DeleteSecretArgs) -> Result<()> {
             let delete_future = manager.delete_secret(secret_owner, name.clone());
             ctx.spawn(delete_future, move |_, result, ctx| match result {
                 Ok(()) => {
-                    println!("Secret '{name}' deleted");
-                    ctx
-                        .terminate_app(TerminationMode::ForceTerminate, None);
+                    println!("{}", t!("ai_cli.secret.status.deleted", name = &name));
+                    ctx.terminate_app(TerminationMode::ForceTerminate, None);
                 }
                 Err(err) => {
                     super::report_fatal_error(err, ctx);
@@ -430,7 +437,11 @@ fn update_secret(ctx: &mut AppContext, args: UpdateSecretArgs) -> Result<()> {
                         Some(t) => t,
                         None => {
                             super::report_fatal_error(
-                                anyhow::anyhow!("Secret '{}' not found", args.name),
+                                anyhow::anyhow!(t!(
+                                    "ai_cli.secret.error.not_found",
+                                    name = &args.name
+                                )
+                                .to_string()),
                                 ctx,
                             );
                             return;
@@ -453,7 +464,10 @@ fn update_secret(ctx: &mut AppContext, args: UpdateSecretArgs) -> Result<()> {
                     );
                     ctx.spawn(update_future, move |_, result, ctx| match result {
                         Ok(secret) => {
-                            println!("Secret '{}' updated", secret.name);
+                            println!(
+                                "{}",
+                                t!("ai_cli.secret.status.updated", name = &secret.name)
+                            );
                             ctx.terminate_app(TerminationMode::ForceTerminate, None);
                         }
                         Err(err) => {
@@ -471,7 +485,10 @@ fn update_secret(ctx: &mut AppContext, args: UpdateSecretArgs) -> Result<()> {
                 );
                 ctx.spawn(update_future, move |_, result, ctx| match result {
                     Ok(secret) => {
-                        println!("Secret '{}' updated", secret.name);
+                        println!(
+                            "{}",
+                            t!("ai_cli.secret.status.updated", name = &secret.name)
+                        );
                         ctx.terminate_app(TerminationMode::ForceTerminate, None);
                     }
                     Err(err) => {
@@ -506,7 +523,7 @@ fn list_secrets(
 
                     SecretInfo {
                         name: secret.name,
-                        scope: super::common::format_owner(&owner).to_string(),
+                        scope: format_owner_scope(&owner),
                         secret_type: secret.type_,
                         created_at: secret.created_at.utc(),
                         updated_at: secret.updated_at.utc(),
@@ -528,7 +545,11 @@ fn list_secrets(
 fn read_simple_secret_value(args: &ValueArgs) -> Result<Option<String>> {
     if let Some(value_file) = args.value_file.as_ref() {
         let value = fs::read_to_string(value_file).with_context(|| {
-            format!("Failed to read secret value from: {}", value_file.display())
+            t!(
+                "ai_cli.secret.error.read_value_file",
+                path = value_file.display()
+            )
+            .to_string()
         })?;
         if value.is_empty() {
             Ok(None)
@@ -536,7 +557,8 @@ fn read_simple_secret_value(args: &ValueArgs) -> Result<Option<String>> {
             Ok(Some(value))
         }
     } else if io::stdin().is_terminal() {
-        let result = Password::new("Secret value:")
+        let prompt = t!("ai_cli.secret.prompt.value").to_string();
+        let result = Password::new(&prompt)
             .with_display_toggle_enabled()
             .without_confirmation()
             .prompt();
@@ -592,16 +614,18 @@ fn make_secret_value_from_gql_type(
         ManagedSecretType::AnthropicApiKey => Ok(ManagedSecretValue::anthropic_api_key(raw)),
         ManagedSecretType::AnthropicBedrockAccessKey => {
             // Bedrock access key secrets cannot be updated through the generic raw-string path.
-            Err(anyhow::anyhow!(
-                "Bedrock access key secrets cannot be updated via `--value`; re-create the secret instead"
-            ))
+            Err(anyhow::anyhow!(t!(
+                "ai_cli.secret.error.bedrock_access_key_update"
+            )
+            .to_string()))
         }
         ManagedSecretType::AnthropicBedrockApiKey => {
             // Bedrock secrets cannot be updated through the generic raw-string path.
             // The caller should use the dedicated Bedrock creation flow instead.
-            Err(anyhow::anyhow!(
-                "Bedrock API key secrets cannot be updated via `--value`; re-create the secret instead"
-            ))
+            Err(anyhow::anyhow!(t!(
+                "ai_cli.secret.error.bedrock_api_key_update"
+            )
+            .to_string()))
         }
         ManagedSecretType::OpenaiApiKey => Ok(ManagedSecretValue::openai_api_key(raw, None)),
     }
@@ -642,8 +666,10 @@ fn read_openai_api_key_secret_value(
                 // Non-interactive: leave the base URL unset rather than prompting or failing.
                 None
             } else {
-                match inquire::Text::new("OpenAI base URL (optional, press Enter to skip):")
-                    .with_help_message("e.g. https://us.api.openai.com/v1 for a regional endpoint")
+                let prompt = t!("ai_cli.secret.prompt.openai_base_url").to_string();
+                let help = t!("ai_cli.secret.prompt.openai_base_url_help").to_string();
+                match inquire::Text::new(&prompt)
+                    .with_help_message(&help)
                     .prompt()
                 {
                     Ok(value) => {
@@ -675,11 +701,13 @@ fn read_bedrock_secret_value(
         Some(k) if !k.is_empty() => k,
         _ => {
             if !io::stdin().is_terminal() {
-                return Err(anyhow::anyhow!(
-                    "Bedrock secrets require --bedrock-api-key and --region in non-interactive mode"
-                ));
+                return Err(anyhow::anyhow!(t!(
+                    "ai_cli.secret.error.bedrock_non_interactive"
+                )
+                .to_string()));
             }
-            let result = Password::new("Bedrock API key:")
+            let prompt = t!("ai_cli.secret.prompt.bedrock_api_key").to_string();
+            let result = Password::new(&prompt)
                 .with_display_toggle_enabled()
                 .without_confirmation()
                 .prompt();
@@ -698,11 +726,13 @@ fn read_bedrock_secret_value(
         Some(r) if !r.is_empty() => r,
         _ => {
             if !io::stdin().is_terminal() {
-                return Err(anyhow::anyhow!(
-                    "Bedrock secrets require --bedrock-api-key and --region in non-interactive mode"
-                ));
+                return Err(anyhow::anyhow!(t!(
+                    "ai_cli.secret.error.bedrock_non_interactive"
+                )
+                .to_string()));
             }
-            let result = inquire::Text::new("AWS Region:").prompt();
+            let prompt = t!("ai_cli.secret.prompt.aws_region").to_string();
+            let result = inquire::Text::new(&prompt).prompt();
             match result {
                 Ok(value) if !value.is_empty() => value,
                 Ok(_) => return Ok(None),
@@ -730,17 +760,17 @@ fn read_bedrock_access_key_secret_value(
     session_token: Option<String>,
     region: Option<String>,
 ) -> Result<Option<ManagedSecretValue>> {
-    // Error message used for all three required fields when running non-interactively.
-    // --session-token is intentionally omitted because it is optional.
-    const NON_INTERACTIVE_REQUIRED_MSG: &str = "Bedrock access key secrets require --access-key-id, --secret-access-key, and --region in non-interactive mode";
-
     let access_key_id = match access_key_id {
         Some(v) if !v.is_empty() => v,
         _ => {
             if !io::stdin().is_terminal() {
-                return Err(anyhow::anyhow!(NON_INTERACTIVE_REQUIRED_MSG));
+                return Err(anyhow::anyhow!(t!(
+                    "ai_cli.secret.error.bedrock_access_key_non_interactive"
+                )
+                .to_string()));
             }
-            match inquire::Text::new("AWS Access Key ID:").prompt() {
+            let prompt = t!("ai_cli.secret.prompt.aws_access_key_id").to_string();
+            match inquire::Text::new(&prompt).prompt() {
                 Ok(value) if !value.is_empty() => value,
                 Ok(_) => return Ok(None),
                 Err(InquireError::OperationCanceled | InquireError::OperationInterrupted) => {
@@ -755,9 +785,13 @@ fn read_bedrock_access_key_secret_value(
         Some(v) if !v.is_empty() => v,
         _ => {
             if !io::stdin().is_terminal() {
-                return Err(anyhow::anyhow!(NON_INTERACTIVE_REQUIRED_MSG));
+                return Err(anyhow::anyhow!(t!(
+                    "ai_cli.secret.error.bedrock_access_key_non_interactive"
+                )
+                .to_string()));
             }
-            match Password::new("AWS Secret Access Key:")
+            let prompt = t!("ai_cli.secret.prompt.aws_secret_access_key").to_string();
+            match Password::new(&prompt)
                 .with_display_toggle_enabled()
                 .without_confirmation()
                 .prompt()
@@ -783,7 +817,8 @@ fn read_bedrock_access_key_secret_value(
                 // persistent IAM credentials do not need a session token.
                 None
             } else {
-                match Password::new("AWS Session Token (optional, press Enter to skip):")
+                let prompt = t!("ai_cli.secret.prompt.aws_session_token").to_string();
+                match Password::new(&prompt)
                     .with_display_toggle_enabled()
                     .without_confirmation()
                     .prompt()
@@ -804,9 +839,13 @@ fn read_bedrock_access_key_secret_value(
         Some(r) if !r.is_empty() => r,
         _ => {
             if !io::stdin().is_terminal() {
-                return Err(anyhow::anyhow!(NON_INTERACTIVE_REQUIRED_MSG));
+                return Err(anyhow::anyhow!(t!(
+                    "ai_cli.secret.error.bedrock_access_key_non_interactive"
+                )
+                .to_string()));
             }
-            match inquire::Text::new("AWS Region:").prompt() {
+            let prompt = t!("ai_cli.secret.prompt.aws_region").to_string();
+            match inquire::Text::new(&prompt).prompt() {
                 Ok(value) if !value.is_empty() => value,
                 Ok(_) => return Ok(None),
                 Err(InquireError::OperationCanceled | InquireError::OperationInterrupted) => {
@@ -847,11 +886,24 @@ fn find_secret_type(
 
 fn format_secret_type(type_: &ManagedSecretType) -> String {
     match type_ {
-        ManagedSecretType::RawValue => "Raw Value".to_string(),
-        ManagedSecretType::Dotenvx => "dotenvx".to_string(),
-        ManagedSecretType::AnthropicApiKey => "Anthropic API Key".to_string(),
-        ManagedSecretType::AnthropicBedrockAccessKey => "Anthropic Bedrock Access Key".to_string(),
-        ManagedSecretType::AnthropicBedrockApiKey => "Anthropic Bedrock API Key".to_string(),
-        ManagedSecretType::OpenaiApiKey => "OpenAI API Key".to_string(),
+        ManagedSecretType::RawValue => t!("ai_cli.secret.type.raw_value").to_string(),
+        ManagedSecretType::Dotenvx => t!("ai_cli.secret.type.dotenvx").to_string(),
+        ManagedSecretType::AnthropicApiKey => {
+            t!("ai_cli.secret.type.anthropic_api_key").to_string()
+        }
+        ManagedSecretType::AnthropicBedrockAccessKey => {
+            t!("ai_cli.secret.type.anthropic_bedrock_access_key").to_string()
+        }
+        ManagedSecretType::AnthropicBedrockApiKey => {
+            t!("ai_cli.secret.type.anthropic_bedrock_api_key").to_string()
+        }
+        ManagedSecretType::OpenaiApiKey => t!("ai_cli.secret.type.openai_api_key").to_string(),
+    }
+}
+
+fn format_owner_scope(owner: &Owner) -> String {
+    match owner {
+        Owner::User { .. } => t!("ai_cli.scope.personal").to_string(),
+        Owner::Team { .. } => t!("ai_cli.scope.team").to_string(),
     }
 }

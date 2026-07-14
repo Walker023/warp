@@ -14,6 +14,7 @@ use warpui::{AppContext, Entity, ModelContext, ModelHandle, SingletonEntity, Win
 
 use super::file::is_markdown_file;
 use crate::drive::OpenWarpDriveObjectArgs;
+use crate::i18n::t;
 use crate::terminal::model::session::Session;
 use crate::uri::parse_url_paths::{get_item_data_from_warp_link, WarpWebLink};
 #[cfg(feature = "local_fs")]
@@ -49,16 +50,16 @@ impl LinkTarget {
     pub fn secondary_action(&self) -> Option<SecondaryAction> {
         match self {
             LinkTarget::LocalDirectory { .. } => Some(SecondaryAction {
-                label: "New session".into(),
-                tooltip: Some("Open a new terminal session in this directory".into()),
-                accessibility_content: "Open in terminal session".into(),
+                label: t!("notebooks.link.new_session"),
+                tooltip: Some(t!("notebooks.link.open_terminal_session")),
+                accessibility_content: t!("notebooks.link.open_terminal_session_a11y"),
             }),
             LinkTarget::LocalFile {
                 is_markdown: true, ..
             } => Some(SecondaryAction {
-                label: "Open in editor".into(),
+                label: t!("notebooks.file.open_in_editor"),
                 tooltip: None,
-                accessibility_content: "Edit Markdown file".into(),
+                accessibility_content: t!("notebooks.link.edit_markdown_a11y"),
             }),
             LinkTarget::Url(_) | LinkTarget::LocalFile { .. } => None,
         }
@@ -428,9 +429,11 @@ impl From<std::io::Error> for ResolveError {
 impl fmt::Display for ResolveError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ResolveError::FileNotFound => f.write_str("File not found"),
-            ResolveError::MissingContext => f.write_str("No base directory"),
-            ResolveError::Unknown => f.write_str("Broken file link"),
+            ResolveError::FileNotFound => f.write_str(t!("notebooks.link.file_not_found").as_ref()),
+            ResolveError::MissingContext => {
+                f.write_str(t!("notebooks.link.no_base_directory").as_ref())
+            }
+            ResolveError::Unknown => f.write_str(t!("notebooks.link.broken_file_link").as_ref()),
         }
     }
 }

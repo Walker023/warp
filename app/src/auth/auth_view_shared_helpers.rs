@@ -16,6 +16,7 @@ use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use warpui::ui_components::switch::SwitchStateHandle;
 use warpui::{Action, AppContext, Element, SingletonEntity as _};
 
+use crate::i18n::t;
 use crate::settings::PrivacySettings;
 use crate::themes::theme::ThemeKind;
 
@@ -54,7 +55,7 @@ where
         ..Default::default()
     };
 
-    let text = "You are currently offline. An internet connection is required to use Warp for the first time.";
+    let text = t!("auth_extra.offline.summary").to_string();
 
     let (button_color, button_variant) = action_button_color_and_variant(appearance);
     let button_styles = UiComponentStyles {
@@ -94,7 +95,7 @@ where
             Some(click_button_style),
             None,
         )
-        .with_centered_text_label("Learn more".into())
+        .with_centered_text_label(t!("auth_extra.offline.learn_more").to_string())
         .build()
         .on_click(move |ctx, _, _| {
             ctx.dispatch_typed_action(action.clone());
@@ -168,9 +169,9 @@ where
         ..Default::default()
     };
 
-    let paragraph_1 = "All of Warp’s non-cloud features work offline.";
-    let paragraph_2 = "However, we require users to be online when using Warp for the first time in order to enable Warp's AI and cloud features.";
-    let paragraph_3 = "We offer cloud features to all users, and so we need an internet connection to meter AI usage, prevent abuse, and associate cloud objects with users. If you opt to use Warp logged-out, a unique ID will be attached to an anonymous user account in order to support these features.";
+    let paragraph_1 = t!("auth_extra.offline.non_cloud_features").to_string();
+    let paragraph_2 = t!("auth_extra.offline.first_use").to_string();
+    let paragraph_3 = t!("auth_extra.offline.cloud_features").to_string();
 
     Container::new(
         Flex::column()
@@ -184,7 +185,7 @@ where
                 Container::new(
                     appearance
                         .ui_builder()
-                        .span("Using Warp Offline")
+                        .span(t!("auth_extra.offline.title").to_string())
                         .with_style(header_styles)
                         .build()
                         .finish(),
@@ -231,7 +232,7 @@ where
             .with_child(render_close_overlay_button(
                 appearance,
                 appearance.ui_builder(),
-                "Dismiss".into(),
+                t!("auth_extra.offline.dismiss").to_string(),
                 mouse_state_handle,
                 action,
             ))
@@ -362,7 +363,7 @@ pub fn render_privacy_settings_overlay_body<A: Action + Clone + 'static>(
             .with_child(
                 Container::new(
                     ui_builder
-                        .span("Privacy Settings")
+                        .span(t!("auth_extra.privacy.title").to_string())
                         .with_style(header_styles)
                         .build()
                         .finish(),
@@ -380,7 +381,7 @@ pub fn render_privacy_settings_overlay_body<A: Action + Clone + 'static>(
             .with_child(render_close_overlay_button(
                 appearance,
                 ui_builder,
-                "Done".into(),
+                t!("auth_extra.privacy.done").to_string(),
                 handles.close_button_mouse.clone(),
                 actions.hide_overlay.clone(),
             ))
@@ -449,7 +450,11 @@ pub fn render_privacy_settings_toggles<A: Action + Clone + 'static>(
         .with_child(
             Shrinkable::new(
                 1.,
-                render_privacy_settings_section_header("Help improve Warp", appearance).finish(),
+                render_privacy_settings_section_header(
+                    t!("auth_extra.privacy.improve_warp").to_string(),
+                    appearance,
+                )
+                .finish(),
             )
             .finish(),
         )
@@ -468,7 +473,7 @@ pub fn render_privacy_settings_toggles<A: Action + Clone + 'static>(
 
     let telemetry_description = render_description(
         appearance,
-        "High-level feature usage data helps Warp's product team prioritize the roadmap.".into(),
+        t!("auth_extra.privacy.usage_description").to_string(),
     );
 
     let telemetry_link = Flex::row()
@@ -476,7 +481,7 @@ pub fn render_privacy_settings_toggles<A: Action + Clone + 'static>(
             appearance
                 .ui_builder()
                 .link(
-                    "Learn more".into(),
+                    t!("auth_extra.privacy.learn_more").to_string(),
                     Some(PRIVACY_URL.into()),
                     None,
                     handles.telemetry_docs_mouse.clone(),
@@ -494,7 +499,11 @@ pub fn render_privacy_settings_toggles<A: Action + Clone + 'static>(
         .with_child(
             Shrinkable::new(
                 1.,
-                render_privacy_settings_section_header("Send crash reports", appearance).finish(),
+                render_privacy_settings_section_header(
+                    t!("auth_extra.privacy.crash_reports").to_string(),
+                    appearance,
+                )
+                .finish(),
             )
             .finish(),
         )
@@ -513,7 +522,7 @@ pub fn render_privacy_settings_toggles<A: Action + Clone + 'static>(
 
     let crash_reporting_description = render_description(
         appearance,
-        "Crash reporting helps Warp's engineering team understand stability and improve performance.".into(),
+        t!("auth_extra.privacy.crash_description").to_string(),
     );
 
     let toggle_cloud = actions.toggle_cloud_conversation_storage.clone();
@@ -524,7 +533,7 @@ pub fn render_privacy_settings_toggles<A: Action + Clone + 'static>(
             Shrinkable::new(
                 1.,
                 render_privacy_settings_section_header(
-                    "Store AI conversations in the cloud",
+                    t!("auth_extra.privacy.cloud_conversations").to_string(),
                     appearance,
                 )
                 .finish(),
@@ -547,11 +556,10 @@ pub fn render_privacy_settings_toggles<A: Action + Clone + 'static>(
     let cloud_conversation_storage_description = render_description(
         appearance,
         if PrivacySettings::as_ref(app).is_cloud_conversation_storage_enabled {
-            "Agent conversations can be shared with others and are retained when you log in on different devices. This data is only stored for product functionality, and Warp will not use it for analytics."
+            t!("auth_extra.privacy.cloud_enabled_description").to_string()
         } else {
-            "Agent conversations are only stored locally on your machine, are lost upon logout, and cannot be shared. Note: conversation data for ambient agents are still stored in the cloud."
-        }
-        .into(),
+            t!("auth_extra.privacy.cloud_disabled_description").to_string()
+        },
     );
 
     let mut col = Flex::column().with_cross_axis_alignment(CrossAxisAlignment::Stretch);

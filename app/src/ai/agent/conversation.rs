@@ -63,6 +63,7 @@ use crate::ai::blocklist::{
 use crate::ai::llms::LLMPreferences;
 use crate::ai::skills::SkillDescriptor;
 use crate::code_review::CodeReviewTelemetryEvent;
+use crate::i18n::t;
 use crate::notebooks::NotebookId;
 use crate::persistence::model::{
     AgentConversationData, ContextWindowSegment, ConversationUsageMetadata, ModelTokenUsage,
@@ -4626,15 +4627,20 @@ pub enum ConversationStatus {
 
 impl std::fmt::Display for ConversationStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ConversationStatus::InProgress => write!(f, "In progress"),
-            ConversationStatus::Success => write!(f, "Done"),
-            ConversationStatus::Error => write!(f, "Error"),
-            ConversationStatus::TransientError => write!(f, "Reconnecting"),
-            ConversationStatus::Cancelled => write!(f, "Cancelled"),
-            ConversationStatus::Blocked { .. } => write!(f, "Blocked"),
-            ConversationStatus::WaitingForEvents => write!(f, "Waiting"),
-        }
+        f.write_str(
+            match self {
+                ConversationStatus::InProgress => t!("ai_ui.conversation_status.in_progress"),
+                ConversationStatus::Success => t!("ai_ui.conversation_status.done"),
+                ConversationStatus::Error => t!("ai_ui.conversation_status.error"),
+                ConversationStatus::TransientError => {
+                    t!("ai_ui.conversation_status.reconnecting")
+                }
+                ConversationStatus::Cancelled => t!("ai_ui.conversation_status.cancelled"),
+                ConversationStatus::Blocked { .. } => t!("ai_ui.conversation_status.blocked"),
+                ConversationStatus::WaitingForEvents => t!("ai_ui.conversation_status.waiting"),
+            }
+            .as_ref(),
+        )
     }
 }
 

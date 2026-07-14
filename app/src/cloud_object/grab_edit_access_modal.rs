@@ -6,14 +6,9 @@ use warpui::ui_components::components::UiComponent;
 use warpui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::buttons::close_button;
 use crate::ui_components::dialog::{dialog_styles, Dialog};
-
-const EDIT_ANYWAY_CTA_LABEL: &str = "Edit anyway";
-const CANCEL_CTA_LABEL: &str = "Cancel";
-const EDIT_ANYWAY_TEXT: &str =
-    "If you take edit controls, the current editor will be forced into view mode";
-const CURRENTLY_EDITED_LABEL: &str = "This notebook is currently being edited";
 
 #[derive(Default)]
 struct MouseStateHandles {
@@ -52,13 +47,17 @@ impl GrabEditAccessModal {
         let theme = appearance.theme();
         let ui_builder = appearance.ui_builder();
 
-        let description = Text::new(EDIT_ANYWAY_TEXT, appearance.ui_font_family(), 13.)
-            .with_style(Properties {
-                style: Style::Normal,
-                weight: Weight::Bold,
-            })
-            .with_color(theme.active_ui_text_color().into())
-            .finish();
+        let description = Text::new(
+            t!("drive_extra.cloud_object.grab_edit_access.description").to_string(),
+            appearance.ui_font_family(),
+            13.,
+        )
+        .with_style(Properties {
+            style: Style::Normal,
+            weight: Weight::Bold,
+        })
+        .with_color(theme.active_ui_text_color().into())
+        .finish();
 
         let close_button = close_button(appearance, self.mouse_state_handles.close_button.clone())
             .build()
@@ -67,7 +66,7 @@ impl GrabEditAccessModal {
             .finish();
 
         Dialog::new(
-            CURRENTLY_EDITED_LABEL.to_string(),
+            t!("drive_extra.cloud_object.grab_edit_access.title").to_string(),
             None,
             dialog_styles(appearance),
         )
@@ -80,7 +79,7 @@ impl GrabEditAccessModal {
                         ButtonVariant::Basic,
                         self.mouse_state_handles.cancel_button.clone(),
                     )
-                    .with_text_label(CANCEL_CTA_LABEL.to_string())
+                    .with_text_label(t!("drive_extra.common.cancel").to_string())
                     .build()
                     .on_click(|ctx, _, _| {
                         ctx.dispatch_typed_action(GrabEditAccessModalAction::Close)
@@ -97,7 +96,9 @@ impl GrabEditAccessModal {
                     ButtonVariant::Warn,
                     self.mouse_state_handles.edit_anyway_button.clone(),
                 )
-                .with_text_label(EDIT_ANYWAY_CTA_LABEL.to_string())
+                .with_text_label(
+                    t!("drive_extra.cloud_object.grab_edit_access.edit_anyway").to_string(),
+                )
                 .build()
                 .on_click(|ctx, _, _| {
                     ctx.dispatch_typed_action(GrabEditAccessModalAction::GrabEditAccess)

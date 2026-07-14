@@ -10,6 +10,7 @@ use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View
 
 use super::{BODY_PADDING, HEADER_FONT_SIZE, MODAL_PADDING, TEXT_FONT_SIZE};
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::blended_colors;
 
 pub const BUTTON_HEIGHT: f32 = 40.;
@@ -39,10 +40,10 @@ impl ViewerRequestBody {
         }
     }
 
-    fn role_label(&self) -> &str {
+    fn role_label(&self) -> String {
         match self.role {
-            Role::Executor => "edit",
-            _ => "view",
+            Role::Executor => t!("terminal_ui.shared_session.roles.edit").to_string(),
+            _ => t!("terminal_ui.shared_session.roles.view").to_string(),
         }
     }
 
@@ -64,13 +65,23 @@ impl View for ViewerRequestBody {
 
     fn render(&self, app: &AppContext) -> Box<dyn Element> {
         let appearance = Appearance::as_ref(app);
-        let header = format!("You have requested {} mode", self.role_label());
-        let text = format!("Waiting for {}...", self.display_name);
+        let header = t!(
+            "terminal_ui.shared_session.roles.requested_mode",
+            name = self.role_label()
+        )
+        .to_string();
+        let text = t!(
+            "terminal_ui.shared_session.roles.waiting_for",
+            name = self.display_name
+        )
+        .to_string();
 
         let cancel_button = appearance
             .ui_builder()
             .button(ButtonVariant::Outlined, self.mouse_state_handle.clone())
-            .with_centered_text_label(String::from("Cancel request"))
+            .with_centered_text_label(
+                t!("terminal_ui.shared_session.roles.cancel_request").to_string(),
+            )
             .with_style(UiComponentStyles {
                 font_size: Some(TEXT_FONT_SIZE),
                 font_weight: Some(Weight::Bold),

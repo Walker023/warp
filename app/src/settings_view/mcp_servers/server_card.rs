@@ -498,12 +498,18 @@ impl ServerCardView {
         let toggle_mouse_state = self.mouse_handles.tools_expandable_hover.clone();
         let chevron_dimensions = 16.;
 
+        let tools_available = if tools.len() == 1 {
+            t!("settings_extra.mcp.one_tool_available").to_string()
+        } else {
+            t!("settings_extra.mcp.tools_available", name = tools.len()).to_string()
+        };
+
         Hoverable::new(toggle_mouse_state, move |_is_hovered| {
             Flex::row()
                 .with_cross_axis_alignment(CrossAxisAlignment::Center)
                 .with_child(
                     Text::new(
-                        format!("{} tools available", tools.len()),
+                        tools_available.clone(),
                         appearance.ui_font_family(),
                         appearance.ui_font_size(),
                     )

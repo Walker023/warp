@@ -1,3 +1,4 @@
+use rust_i18n::t;
 use warpui_core::elements::{Border, CornerRadius, ListIndentLevel, Radius, Rect};
 use warpui_core::geometry::vector::vec2f;
 use warpui_core::{Element, SizeConstraint};
@@ -69,6 +70,7 @@ impl RenderableBlock for RenderableBulletList {
             ctx,
             app,
         );
+        let placeholder_text = t!("editor.placeholder.list");
         self.placeholder
             .layout(&self.viewport_item, model, ctx, app, |block| {
                 let indent_level = match block {
@@ -76,7 +78,7 @@ impl RenderableBlock for RenderableBulletList {
                     _ => ListIndentLevel::One,
                 };
                 placeholder::Options {
-                    text: "List",
+                    text: placeholder_text.as_ref(),
                     block_style: BufferBlockStyle::UnorderedList { indent_level },
                 }
             })

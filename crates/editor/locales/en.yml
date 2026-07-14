@@ -1,0 +1,18 @@
+editor:
+  broken_embedding:
+    not_found: "Embed not found"
+  hidden_section:
+    unmodified_line: "%{count} unmodified line"
+    unmodified_lines: "%{count} unmodified lines"
+    expand_all_lines: "Expand all lines"
+  image:
+    too_large: "Image too large to display"
+  mermaid:
+    rendering: "Rendering Mermaid diagram…"
+    render_error: "Error rendering Mermaid diagram. Please check syntax."
+    render_failure: "Failed to render Mermaid diagram"
+  placeholder:
+    paragraph_with_slash: "Type text or Markdown, or '/' to insert content"
+    paragraph_without_slash: "Type text or Markdown"
+    task_list: "To-do list"
+    list: "List"

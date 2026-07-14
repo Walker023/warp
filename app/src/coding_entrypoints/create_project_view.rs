@@ -14,6 +14,7 @@ use warpui::{
 use crate::ai::blocklist::telemetry_banner::should_collect_ai_ugc_telemetry;
 use crate::appearance::Appearance;
 use crate::coding_entrypoints::glowing_editor::{GlowingEditor, GlowingEditorEvent};
+use crate::i18n::t;
 use crate::settings::PrivacySettings;
 use crate::TelemetryEvent;
 
@@ -28,14 +29,18 @@ pub struct CreateProjectView {
 }
 
 struct BuildSuggestion {
-    prompt: &'static str,
+    prompt: String,
     mouse_state: MouseStateHandle,
 }
 
 impl CreateProjectView {
     pub fn new(is_ftux: bool, ctx: &mut ViewContext<Self>) -> Self {
-        let editor =
-            ctx.add_typed_action_view(|ctx| GlowingEditor::new("What do you want to build?", ctx));
+        let editor = ctx.add_typed_action_view(|ctx| {
+            GlowingEditor::new(
+                t!("coding_entrypoints_ui.create_project.placeholder").to_string(),
+                ctx,
+            )
+        });
 
         ctx.subscribe_to_view(&editor, move |me, _, event, ctx| {
             me.handle_editor_event(event, ctx);
@@ -43,23 +48,28 @@ impl CreateProjectView {
 
         let suggestions = vec![
             BuildSuggestion {
-                prompt: "Build a Minesweeper clone in React",
+                prompt: t!("coding_entrypoints_ui.create_project.suggestions.minesweeper")
+                    .to_string(),
                 mouse_state: Default::default(),
             },
             BuildSuggestion {
-                prompt: "Code a Node.js server that returns random quotes from a JSON file",
+                prompt: t!("coding_entrypoints_ui.create_project.suggestions.quotes_server")
+                    .to_string(),
                 mouse_state: Default::default(),
             },
             BuildSuggestion {
-                prompt: "Write a CSV to JSON converter CLI",
+                prompt: t!("coding_entrypoints_ui.create_project.suggestions.csv_converter")
+                    .to_string(),
                 mouse_state: Default::default(),
             },
             BuildSuggestion {
-                prompt: "Create a starter template for a résumé web page",
+                prompt: t!("coding_entrypoints_ui.create_project.suggestions.resume_page")
+                    .to_string(),
                 mouse_state: Default::default(),
             },
             BuildSuggestion {
-                prompt: "Make a Conway's Game of Life simulation",
+                prompt: t!("coding_entrypoints_ui.create_project.suggestions.game_of_life")
+                    .to_string(),
                 mouse_state: Default::default(),
             },
         ];
@@ -122,7 +132,7 @@ impl CreateProjectView {
         let font_color = theme.sub_text_color(theme.background()).into_solid();
 
         let mouse_state = suggestion.mouse_state.clone();
-        let prompt = suggestion.prompt;
+        let prompt = suggestion.prompt.clone();
 
         let row = Flex::row()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
@@ -140,7 +150,7 @@ impl CreateProjectView {
                 .finish(),
                 Expanded::new(
                     1.,
-                    Text::new(prompt, font_family, font_size)
+                    Text::new(prompt.clone(), font_family, font_size)
                         .with_color(font_color)
                         .with_style(Properties::default().weight(Weight::Medium))
                         .soft_wrap(false)
@@ -163,7 +173,7 @@ impl CreateProjectView {
         .with_cursor(Cursor::PointingHand)
         .on_click(move |ctx, _, _| {
             ctx.dispatch_typed_action(CreateProjectAction::SuggestionSelected {
-                prompt: prompt.to_string(),
+                prompt: prompt.clone(),
             });
         })
         .finish()

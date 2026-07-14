@@ -28,6 +28,7 @@ use crate::ai::blocklist::usage::rollup::{
 use crate::ai::blocklist::view_util::format_credits;
 use crate::ai::blocklist::{BlocklistAIHistoryEvent, BlocklistAIHistoryModel};
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::persistence::model::{
     token_usage_category_display_name, ContextWindowSegment, ContextWindowSegmentType,
     ModelTokenUsage, FULL_TERMINAL_USE_CATEGORY, PRIMARY_AGENT_CATEGORY,
@@ -318,7 +319,7 @@ impl ConversationUsageView {
 
         // Usage summary
         labels.push(render_section_header(
-            "USAGE SUMMARY".to_string(),
+            t!("ai_ui.usage.usage_summary").to_string(),
             appearance,
         ));
         values.push(render_section_header("".to_string(), appearance));
@@ -336,7 +337,7 @@ impl ConversationUsageView {
         {
             let last_block_credits = self.usage_info.credits_spent_for_last_block.unwrap();
             labels.push(render_label_text(
-                "Credits spent (last response)",
+                t!("ai_ui.usage.credits_last_response").as_ref(),
                 appearance,
             ));
             values.push(render_value_text(
@@ -344,14 +345,20 @@ impl ConversationUsageView {
                 appearance,
             ));
 
-            labels.push(render_label_text("Credits spent (total)", appearance));
+            labels.push(render_label_text(
+                t!("ai_ui.usage.credits_total").as_ref(),
+                appearance,
+            ));
             values.push(self.render_total_credits_value_row(
                 total_credits_value,
                 rollup.as_ref(),
                 appearance,
             ));
         } else {
-            labels.push(render_label_text("Credits spent", appearance));
+            labels.push(render_label_text(
+                t!("ai_ui.usage.credits_spent").as_ref(),
+                appearance,
+            ));
             values.push(self.render_total_credits_value_row(
                 total_credits_value,
                 rollup.as_ref(),
@@ -367,9 +374,16 @@ impl ConversationUsageView {
         // existing flex spacing handles indentation.
         self.append_per_agent_rows(&mut labels, &mut values, rollup.as_ref(), appearance);
 
-        labels.push(render_label_text("Tool calls", appearance));
+        labels.push(render_label_text(
+            t!("ai_ui.usage.tool_calls").as_ref(),
+            appearance,
+        ));
         values.push(render_value_text(
-            format_value_text(self.usage_info.tool_calls, "call"),
+            format_value_text(
+                self.usage_info.tool_calls,
+                t!("ai_ui.usage.units.call").to_string(),
+                t!("ai_ui.usage.units.calls").to_string(),
+            ),
             appearance,
         ));
 
@@ -389,9 +403,13 @@ impl ConversationUsageView {
 
             let label_text = if category == PRIMARY_AGENT_CATEGORY && entries_by_category.len() == 1
             {
-                "Models".to_string()
+                t!("ai_ui.usage.models").to_string()
             } else {
-                format!("Models ({})", token_usage_category_display_name(&category))
+                t!(
+                    "ai_ui.usage.models_category",
+                    category = localized_model_category_display_name(&category)
+                )
+                .to_string()
             };
 
             // For FULL_TERMINAL_USE_CATEGORY, add an info icon with tooltip
@@ -402,7 +420,7 @@ impl ConversationUsageView {
                     .ui_builder()
                     .info_button_with_tooltip(
                         font_size * 0.85,
-                        "You can change which model is used for full terminal use in the AI settings page",
+                        t!("ai_ui.usage.full_terminal_model_tooltip").to_string(),
                         self.full_terminal_use_tooltip_mouse_state.clone(),
                     )
                     .finish();
@@ -465,7 +483,10 @@ impl ConversationUsageView {
             );
         }
 
-        labels.push(render_label_text("Context window used", appearance));
+        labels.push(render_label_text(
+            t!("ai_ui.usage.context_window_used").as_ref(),
+            appearance,
+        ));
         let context_usage_pct = self.usage_info.context_window_usage * 100.;
         let context_usage_str = if context_window_breakdown_enabled && self.context_window_expanded
         {
@@ -499,8 +520,8 @@ impl ConversationUsageView {
                     .with_child(render_toggle_link(
                         self.context_window_toggle_mouse_state.clone(),
                         self.context_window_expanded,
-                        "Hide breakdown",
-                        "View breakdown",
+                        t!("ai_ui.usage.hide_breakdown").to_string(),
+                        t!("ai_ui.usage.view_breakdown").to_string(),
                         ConversationUsageViewAction::ToggleContextWindowExpanded,
                         appearance,
                     ));
@@ -528,18 +549,28 @@ impl ConversationUsageView {
 
         // Tool call summary
         labels.push(render_section_header(
-            "TOOL CALL SUMMARY".to_string(),
+            t!("ai_ui.usage.tool_call_summary").to_string(),
             appearance,
         ));
         values.push(render_section_header("".to_string(), appearance));
 
-        labels.push(render_label_text("Files changed", appearance));
+        labels.push(render_label_text(
+            t!("ai_ui.usage.files_changed").as_ref(),
+            appearance,
+        ));
         values.push(render_value_text(
-            format_value_text(self.usage_info.files_changed, "file"),
+            format_value_text(
+                self.usage_info.files_changed,
+                t!("ai_ui.usage.units.file").to_string(),
+                t!("ai_ui.usage.units.files").to_string(),
+            ),
             appearance,
         ));
 
-        labels.push(render_label_text("Diffs applied", appearance));
+        labels.push(render_label_text(
+            t!("ai_ui.usage.diffs_applied").as_ref(),
+            appearance,
+        ));
         let diffs_element = Flex::row()
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
             .with_child(
@@ -576,9 +607,16 @@ impl ConversationUsageView {
             .finish();
         values.push(diffs_element);
 
-        labels.push(render_label_text("Commands executed", appearance));
+        labels.push(render_label_text(
+            t!("ai_ui.usage.commands_executed").as_ref(),
+            appearance,
+        ));
         values.push(render_value_text(
-            format_value_text(self.usage_info.commands_executed, "command"),
+            format_value_text(
+                self.usage_info.commands_executed,
+                t!("ai_ui.usage.units.command").to_string(),
+                t!("ai_ui.usage.units.commands").to_string(),
+            ),
             appearance,
         ));
 
@@ -603,37 +641,52 @@ impl ConversationUsageView {
 
                     // Section header
                     labels.push(render_section_header(
-                        "LAST RESPONSE TIME".to_string(),
+                        t!("ai_ui.usage.last_response_time").to_string(),
                         appearance,
                     ));
                     values.push(render_section_header("".to_string(), appearance));
 
-                    labels.push(render_label_text("Time to first token", appearance));
+                    labels.push(render_label_text(
+                        t!("ai_ui.usage.time_to_first_token").as_ref(),
+                        appearance,
+                    ));
                     values.push(render_value_text(
-                        format!(
-                            "{:.1} seconds",
-                            timing.time_to_first_token_ms as f64 / 1000.0
-                        ),
+                        t!(
+                            "ai_ui.usage.seconds",
+                            value = format!("{:.1}", timing.time_to_first_token_ms as f64 / 1000.0)
+                        )
+                        .to_string(),
                         appearance,
                     ));
 
-                    labels.push(render_label_text("Total agent response time", appearance));
+                    labels.push(render_label_text(
+                        t!("ai_ui.usage.total_agent_response_time").as_ref(),
+                        appearance,
+                    ));
                     values.push(render_value_text(
-                        format!(
-                            "{:.1} seconds",
-                            timing.total_agent_response_time_ms as f64 / 1000.0
-                        ),
+                        t!(
+                            "ai_ui.usage.seconds",
+                            value = format!(
+                                "{:.1}",
+                                timing.total_agent_response_time_ms as f64 / 1000.0
+                            )
+                        )
+                        .to_string(),
                         appearance,
                     ));
 
                     if let Some(wall_ms) = timing.wall_to_wall_response_time_ms {
                         if wall_ms != 0 {
                             labels.push(render_label_text(
-                                "Total time (including tool calls)",
+                                t!("ai_ui.usage.total_time_including_tool_calls").as_ref(),
                                 appearance,
                             ));
                             values.push(render_value_text(
-                                format!("{:.1} seconds", wall_ms as f64 / 1000.0),
+                                t!(
+                                    "ai_ui.usage.seconds",
+                                    value = format!("{:.1}", wall_ms as f64 / 1000.0)
+                                )
+                                .to_string(),
                                 appearance,
                             ));
                         }
@@ -713,8 +766,8 @@ impl ConversationUsageView {
         let toggle = render_toggle_link(
             self.details_toggle_mouse_state.clone(),
             self.details_expanded,
-            "Hide details",
-            "View details",
+            t!("ai_ui.usage.hide_details").to_string(),
+            t!("ai_ui.usage.view_details").to_string(),
             ConversationUsageViewAction::ToggleDetailsExpanded,
             appearance,
         );
@@ -751,7 +804,7 @@ impl ConversationUsageView {
         );
         for (segment_type, pct) in rows {
             let label = Text::new(
-                token_usage_category_display_name(segment_type.as_str()),
+                localized_context_window_segment_display_name(segment_type),
                 appearance.ui_font_family(),
                 font_size,
             )
@@ -863,7 +916,7 @@ impl ConversationUsageView {
         let theme = appearance.theme();
         let font_size = appearance.ui_font_size() + 2.;
         let link_color = theme.ansi_fg_blue();
-        let label = format!("Show {hidden_count} more");
+        let label = t!("ai_ui.usage.show_more", count = hidden_count).to_string();
         Hoverable::new(self.show_more_mouse_state.clone(), move |_hover_state| {
             Text::new(label.clone(), appearance.ui_font_family(), font_size)
                 .with_color(link_color)
@@ -981,8 +1034,9 @@ fn render_section_header(header_label: String, appearance: &Appearance) -> Box<d
 
 /// Format a value and a label into one usage string,
 /// making the label plural if the value is not 1.
-fn format_value_text(value: i32, label: &str) -> String {
-    format!("{} {}{}", value, label, if value == 1 { "" } else { "s" })
+fn format_value_text(value: i32, singular: String, plural: String) -> String {
+    let unit = if value == 1 { singular } else { plural };
+    t!("ai_ui.usage.count", count = value, unit = unit).to_string()
 }
 
 /// Helper to build a text element with consistent styling for labels.
@@ -1010,8 +1064,8 @@ fn render_value_text(text: String, appearance: &Appearance) -> Box<dyn Element> 
 fn render_toggle_link(
     mouse_state: MouseStateHandle,
     expanded: bool,
-    expanded_label: &'static str,
-    collapsed_label: &'static str,
+    expanded_label: String,
+    collapsed_label: String,
     action: ConversationUsageViewAction,
     appearance: &Appearance,
 ) -> Box<dyn Element> {
@@ -1025,7 +1079,7 @@ fn render_toggle_link(
         (collapsed_label, Icon::ChevronDown)
     };
     Hoverable::new(mouse_state, move |_hover_state| {
-        let text_element = Text::new(label.to_string(), appearance.ui_font_family(), font_size)
+        let text_element = Text::new(label.clone(), appearance.ui_font_family(), font_size)
             .with_color(link_color)
             .with_selectable(false)
             .finish();
@@ -1127,7 +1181,7 @@ fn render_context_window_other_tooltip(appearance: &Appearance) -> Box<dyn Eleme
     let background = theme.tooltip_background();
     let text = ConstrainedBox::new(
         Text::new(
-            "Includes other request context and temporary instructions added to help the agent better respond.".to_string(),
+            t!("ai_ui.usage.other_context_tooltip").to_string(),
             appearance.ui_font_family(),
             appearance.ui_font_size() - 2.,
         )
@@ -1183,6 +1237,34 @@ const CONTEXT_WINDOW_SEGMENT_PERCENT_DECIMAL_PLACES: usize = 2;
 
 /// Maximum width of the context-window "Other" tooltip before wrapping.
 const CONTEXT_WINDOW_OTHER_TOOLTIP_MAX_WIDTH: f32 = 280.;
+
+fn localized_model_category_display_name(category: &str) -> String {
+    match category {
+        PRIMARY_AGENT_CATEGORY => t!("ai_ui.usage.category.primary_agent").to_string(),
+        FULL_TERMINAL_USE_CATEGORY => t!("ai_ui.usage.category.full_terminal_use").to_string(),
+        _ => token_usage_category_display_name(category),
+    }
+}
+
+fn localized_context_window_segment_display_name(segment_type: ContextWindowSegmentType) -> String {
+    match segment_type {
+        ContextWindowSegmentType::Unknown => t!("ai_ui.usage.segments.unknown").to_string(),
+        ContextWindowSegmentType::SystemPrompt => {
+            t!("ai_ui.usage.segments.system_prompt").to_string()
+        }
+        ContextWindowSegmentType::ToolDefinitions => {
+            t!("ai_ui.usage.segments.tool_definitions").to_string()
+        }
+        ContextWindowSegmentType::ConversationHistory => {
+            t!("ai_ui.usage.segments.conversation_history").to_string()
+        }
+        ContextWindowSegmentType::LatestInput => {
+            t!("ai_ui.usage.segments.latest_input").to_string()
+        }
+        ContextWindowSegmentType::Images => t!("ai_ui.usage.segments.images").to_string(),
+        ContextWindowSegmentType::Other => t!("ai_ui.usage.segments.other").to_string(),
+    }
+}
 
 #[cfg(test)]
 #[path = "conversation_usage_view_tests.rs"]

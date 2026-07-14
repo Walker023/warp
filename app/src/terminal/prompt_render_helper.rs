@@ -25,6 +25,7 @@ use crate::appearance::Appearance;
 use crate::context_chips::display::PromptDisplay;
 use crate::context_chips::spacing;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::settings::{FontSettings, InputSettings};
 use crate::terminal::blockgrid_element::BlockGridElement;
 use crate::terminal::grid_size_util::grid_compute_baseline_position_fn;
@@ -248,31 +249,43 @@ impl PromptRenderHelper {
         if let Some(pending_session_id) = model.pending_session_id() {
             if let Some(state) = sessions.remote_server_setup_state(pending_session_id) {
                 return match state {
-                    RemoteServerSetupState::Checking => "Starting shell...".to_string(),
+                    RemoteServerSetupState::Checking => {
+                        t!("terminal_ui.prompt.starting_shell").to_string()
+                    }
                     RemoteServerSetupState::Installing {
                         progress_percent: Some(p),
-                    } => format!("Installing Warp SSH Extension... ({p}%)"),
+                    } => t!("terminal_ui.prompt.installing_ssh_progress", percent = p).to_string(),
                     RemoteServerSetupState::Installing {
                         progress_percent: None,
-                    } => "Installing Warp SSH Extension...".to_string(),
+                    } => t!("terminal_ui.prompt.installing_ssh").to_string(),
                     RemoteServerSetupState::Updating => {
-                        "Updating Warp SSH Extension...".to_string()
+                        t!("terminal_ui.prompt.updating_ssh").to_string()
                     }
-                    RemoteServerSetupState::Initializing => "Initializing...".to_string(),
-                    RemoteServerSetupState::Ready => "Starting shell...".to_string(),
+                    RemoteServerSetupState::Initializing => {
+                        t!("terminal_ui.prompt.initializing").to_string()
+                    }
+                    RemoteServerSetupState::Ready => {
+                        t!("terminal_ui.prompt.starting_shell").to_string()
+                    }
                     // Failed and Unsupported both fall back to the wrapper-only SSH
                     // flow, so we render the same generic prompt as a normal
                     // SSH session that doesn't have the remote-server extension.
                     RemoteServerSetupState::Failed { .. }
-                    | RemoteServerSetupState::Unsupported { .. } => "Starting shell...".to_string(),
+                    | RemoteServerSetupState::Unsupported { .. } => {
+                        t!("terminal_ui.prompt.starting_shell").to_string()
+                    }
                 };
             }
         }
 
         if !sessions.is_empty() {
-            "Starting shell...".to_string()
+            t!("terminal_ui.prompt.starting_shell").to_string()
         } else {
-            format!("Starting {}...", model.shell_launch_state().display_name())
+            t!(
+                "terminal_ui.prompt.starting_named",
+                name = model.shell_launch_state().display_name()
+            )
+            .to_string()
         }
     }
 
@@ -431,7 +444,7 @@ impl PromptRenderHelper {
             let prompt = PromptAndPadding {
                 element: PromptAndPaddingElement::Text(Box::new(
                     Text::new_inline(
-                        "Loading prompt...",
+                        t!("terminal_ui.prompt.loading").to_string(),
                         appearance.monospace_font_family(),
                         appearance.monospace_font_size(),
                     )

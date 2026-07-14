@@ -46,7 +46,12 @@ pub fn ai_features() -> Vec<String> {
 /// intention is selected with Warp Drive turned on. Shared by the login slide's
 /// skip-login confirmation dialog so the list stays in sync with any future
 /// surfaces that need it.
-pub const WARP_DRIVE_FEATURES: &[&str] = &["Warp Drive", "Session Sharing"];
+pub fn warp_drive_features() -> Vec<String> {
+    vec![
+        "Warp Drive".to_owned(),
+        t!("onboarding.features.warp_drive.session_sharing").to_string(),
+    ]
+}
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "bin")] {

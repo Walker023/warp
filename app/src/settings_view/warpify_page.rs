@@ -52,7 +52,7 @@ pub fn init_actions_from_parent_view<T: Action + Clone>(
         .is_supported_on_current_platform()
     {
         toggle_binding_pairs.push(ToggleSettingActionPair::new(
-            t!("settings.warpify.ssh_warpification").to_string(),
+            t!("settings.warpify.ssh_warpification"),
             builder(SettingsAction::WarpifyPageToggle(
                 WarpifyPageAction::ToggleSshWarpification,
             )),

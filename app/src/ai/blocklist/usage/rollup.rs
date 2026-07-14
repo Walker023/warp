@@ -10,6 +10,7 @@
 use crate::ai::agent::conversation::{AIConversation, AIConversationId};
 use crate::ai::blocklist::orchestration_topology::descendant_conversation_ids_in_spawn_order;
 use crate::ai::blocklist::BlocklistAIHistoryModel;
+use crate::i18n::t;
 
 /// Avatar identity for a row in the per-agent breakdown.
 ///
@@ -137,7 +138,7 @@ fn orchestrator_display_name(orchestrator: &AIConversation) -> String {
         .agent_name()
         .filter(|n| !n.is_empty())
         .map(|n| n.to_string())
-        .unwrap_or_else(|| "Orchestrator".to_string())
+        .unwrap_or_else(|| t!("ai_ui.usage.orchestrator").to_string())
 }
 
 /// Display name for a child row. Mirrors the orchestration pill bar's
@@ -148,7 +149,7 @@ fn child_display_name(child: &AIConversation) -> String {
         .agent_name()
         .filter(|n| !n.is_empty())
         .map(|n| n.to_string())
-        .unwrap_or_else(|| "Agent".to_string())
+        .unwrap_or_else(|| t!("ai_ui.usage.agent").to_string())
 }
 
 #[cfg(test)]

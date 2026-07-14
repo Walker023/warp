@@ -7,6 +7,7 @@ use warpui::elements::{
 use warpui::fonts::{Properties, Weight};
 use warpui::Element;
 
+use crate::i18n::t;
 use crate::ui_components::blended_colors;
 
 const CONTENT_SPACING: f32 = 4.;
@@ -81,8 +82,8 @@ pub fn render_loading_footer(appearance: &Appearance) -> Box<dyn Element> {
     let border_color = blended_colors::neutral_4(theme);
 
     build_centered_footer(
-        "Cloud agent starting up…".to_string(),
-        "You'll be able to interact with Oz soon".to_string(),
+        t!("terminal_ui.ambient_agent.footer.starting").to_string(),
+        t!("terminal_ui.ambient_agent.footer.interact_soon").to_string(),
         header_color,
         body_color,
         background,
@@ -104,7 +105,7 @@ pub fn render_error_footer(error_message: &str, appearance: &Appearance) -> Box<
     let border_color = theme.ui_error_color();
 
     build_centered_footer(
-        "Agent failed".to_string(),
+        t!("ambient_agent.status.agent_failed").to_string(),
         error_message.to_string(),
         header_color,
         body_color,

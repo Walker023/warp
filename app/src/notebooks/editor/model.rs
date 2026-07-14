@@ -48,6 +48,7 @@ use super::notebook_command::NotebookCommand;
 use super::NotebookWorkflow;
 use crate::cloud_object::model::persistence::{CloudModel, CloudModelEvent};
 use crate::editor::InteractionState;
+use crate::i18n::t;
 use crate::notebooks::editor::interaction_state_model::InteractionStateModelEvent;
 use crate::notebooks::file::MarkdownDisplayMode;
 use crate::notebooks::telemetry::BlockInfo;
@@ -137,8 +138,9 @@ enum InlineStyleAction {
 
 fn mermaid_image_html(svg: &[u8]) -> String {
     format!(
-        "<img src=\"data:image/svg+xml;base64,{}\" alt=\"Mermaid diagram\" />",
-        BASE64_STANDARD.encode(svg)
+        "<img src=\"data:image/svg+xml;base64,{}\" alt=\"{}\" />",
+        BASE64_STANDARD.encode(svg),
+        t!("notebooks.editor.mermaid_diagram")
     )
 }
 
@@ -1410,7 +1412,7 @@ impl NotebooksEditorModel {
 
         if let Some(command) = child_model.executable_command(ctx) {
             ctx.emit_a11y_content(AccessibilityContent::new_without_help(
-                format!("Selected workflow: {command}"),
+                t!("notebooks.workflow.selected", command = command).to_string(),
                 WarpA11yRole::TextareaRole,
             ));
         }
@@ -1767,12 +1769,19 @@ impl NotebooksEditorModel {
 
     /// Accessibility content for toggling an inline style.
     pub fn style_toggle_a11y(&self, style: BufferTextStyle) -> ActionAccessibilityContent {
-        let action = if self.is_style_active(style) {
-            "off"
-        } else {
-            "on"
+        let style_name = match style {
+            BufferTextStyle::Weight(_) => t!("notebooks.editor.style_bold"),
+            BufferTextStyle::Italic => t!("notebooks.editor.style_italic"),
+            BufferTextStyle::Underline => t!("notebooks.editor.style_underline"),
+            BufferTextStyle::InlineCode => t!("notebooks.editor.style_inline_code"),
+            BufferTextStyle::StrikeThrough => t!("notebooks.editor.style_strikethrough"),
         };
-        let text = format!("{style:?} {action}");
+        let key = if self.is_style_active(style) {
+            "notebooks.editor.style_disabled"
+        } else {
+            "notebooks.editor.style_enabled"
+        };
+        let text = t!(key, style = style_name).to_string();
         ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
             text,
             WarpA11yRole::UserAction,

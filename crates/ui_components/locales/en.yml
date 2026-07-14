@@ -1,0 +1,4 @@
+ui_components:
+  lightbox:
+    no_images: "No images"
+    loading: "Loading..."

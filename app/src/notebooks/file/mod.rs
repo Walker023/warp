@@ -41,6 +41,7 @@ use crate::appearance::Appearance;
 #[cfg(feature = "local_fs")]
 use crate::code::editor_management::CodeSource;
 use crate::editor::InteractionState;
+use crate::i18n::t;
 use crate::menu::{MenuItem, MenuItemFields};
 use crate::notebooks::editor::model::NotebooksEditorModel;
 use crate::notebooks::editor::rich_text_styles;
@@ -321,7 +322,7 @@ impl FileNotebookView {
             .as_ref()
             .map(|location| location.name.clone())
             .or_else(|| self.file_state.display_name())
-            .unwrap_or_else(|| "Untitled".to_string())
+            .unwrap_or_else(|| t!("notebooks.common.untitled").to_string())
     }
 
     pub fn focus(&self, ctx: &mut ViewContext<Self>) {
@@ -759,9 +760,9 @@ impl FileNotebookView {
             EditorViewEvent::Focused => ctx.emit(FileNotebookEvent::Pane(PaneEvent::FocusSelf)),
             EditorViewEvent::RunWorkflow(workflow) => {
                 let workflow_type = workflow.named_workflow(|| {
-                    self.location
-                        .as_ref()
-                        .map(|location| format!("Command from {}", location.name))
+                    self.location.as_ref().map(|location| {
+                        t!("notebooks.common.command_from", name = location.name).to_string()
+                    })
                 });
                 let source = workflow.source.unwrap_or(WorkflowSource::Notebook {
                     notebook_id: None,
@@ -885,7 +886,13 @@ impl FileNotebookView {
             .with_child(
                 appearance
                     .ui_builder()
-                    .paragraph(format!("Could not read {}", source.display_name()))
+                    .paragraph(
+                        t!(
+                            "notebooks.file.could_not_read",
+                            name = source.display_name()
+                        )
+                        .to_string(),
+                    )
                     .with_style(self.state_style(appearance))
                     .build()
                     .finish(),
@@ -898,7 +905,7 @@ impl FileNotebookView {
                         .with_text_and_icon_label(
                             TextAndIcon::new(
                                 TextAndIconAlignment::TextFirst,
-                                "Try again".to_string(),
+                                t!("notebooks.file.try_again").to_string(),
                                 Icon::Refresh.to_warpui_icon(error_text_color),
                                 MainAxisSize::Min,
                                 MainAxisAlignment::Center,
@@ -924,7 +931,7 @@ impl FileNotebookView {
         Align::new(
             appearance
                 .ui_builder()
-                .paragraph(format!("Loading {}...", source.display_name()))
+                .paragraph(t!("notebooks.file.loading", name = source.display_name()).to_string())
                 .with_style(self.state_style(appearance))
                 .build()
                 .finish(),
@@ -937,7 +944,7 @@ impl FileNotebookView {
         Align::new(
             appearance
                 .ui_builder()
-                .paragraph("Missing source file".to_string())
+                .paragraph(t!("notebooks.file.missing_source").to_string())
                 .with_style(self.state_style(appearance))
                 .build()
                 .finish(),
@@ -990,7 +997,7 @@ impl View for FileNotebookView {
 
     fn accessibility_contents(&self, _ctx: &AppContext) -> Option<AccessibilityContent> {
         Some(AccessibilityContent::new_without_help(
-            format!("{} notebook", self.title()),
+            t!("notebooks.common.notebook_a11y", title = self.title()).to_string(),
             WarpA11yRole::TextRole,
         ))
     }
@@ -1148,7 +1155,7 @@ impl BackingView for FileNotebookView {
         if let Some(SourceFile::FileBased { .. }) = self.file_state.source() {
             actions.push(MenuItem::Separator);
             actions.push(
-                MenuItemFields::new("Refresh file")
+                MenuItemFields::new(t!("notebooks.file.refresh"))
                     .with_on_select_action(FileNotebookAction::ReloadFile)
                     .into_item(),
             );
@@ -1158,13 +1165,13 @@ impl BackingView for FileNotebookView {
                 // The markdown rendered/raw toggle is always visible in the pane header, so we don't
                 // duplicate it in the overflow menu. Keep "Open in editor" available for local files.
                 actions.push(
-                    MenuItemFields::new("Open in editor")
+                    MenuItemFields::new(t!("notebooks.file.open_in_editor"))
                         .with_on_select_action(FileNotebookAction::OpenInEditor)
                         .into_item(),
                 );
                 actions.extend([
                     MenuItem::Separator,
-                    MenuItemFields::new("Copy file path")
+                    MenuItemFields::new(t!("notebooks.context_menu.copy_file_path"))
                         .with_on_select_action(FileNotebookAction::CopyFilePath)
                         .into_item(),
                 ]);
@@ -1320,7 +1327,7 @@ impl FileLocation {
         let name = path
             .file_name()
             .map(|name| name.to_string_lossy().into_owned())
-            .unwrap_or_else(|| "Unnamed".to_string());
+            .unwrap_or_else(|| t!("notebooks.common.unnamed").to_string());
 
         Self { breadcrumbs, name }
     }

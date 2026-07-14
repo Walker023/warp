@@ -321,7 +321,8 @@ impl MainSettingsPageView {
 
         widgets.push(Box::new(LogoutWidget::default()));
 
-        let page = PageType::new_uncategorized(widgets, Some("Account"));
+        let title = t!("settings.sections.account").to_string();
+        let page = PageType::new_uncategorized(widgets, Some(&title));
 
         MainSettingsPageView {
             page,
@@ -422,7 +423,10 @@ impl AccountWidget {
             .with_cross_axis_alignment(CrossAxisAlignment::End);
         let current_user_id = auth_state.user_id().unwrap_or_default();
 
-        plan_info.add_child(render_customer_type_badge(appearance, "Free".into()));
+        plan_info.add_child(render_customer_type_badge(
+            appearance,
+            t!("settings.account.free_plan").to_string(),
+        ));
         plan_info.add_child(
             Container::new(
                 appearance
@@ -948,11 +952,11 @@ impl VersionInfoWidget {
             .with_opacity(60)
             .into();
         struct StatusContent {
-            text: &'static str,
+            text: String,
             color: ColorU,
         }
         struct CallToActionContent {
-            text: &'static str,
+            text: String,
             action: MainPageAction,
         }
 
@@ -962,73 +966,73 @@ impl VersionInfoWidget {
                 match autoupdate::get_update_state(app) {
                     AutoupdateStage::NoUpdateAvailable => (
                         Some(StatusContent {
-                            text: "Up to date",
+                            text: t!("settings_extra.updates.up_to_date").to_string(),
                             color: faded_text_color,
                         }),
                         Some(CallToActionContent {
-                            text: "Check for updates",
+                            text: t!("settings_extra.updates.check_for_updates").to_string(),
                             action: MainPageAction::CheckForUpdate,
                         }),
                     ),
                     AutoupdateStage::CheckingForUpdate => (
                         Some(StatusContent {
-                            text: "checking for update...",
+                            text: t!("settings_extra.updates.checking").to_string(),
                             color: faded_text_color,
                         }),
                         None,
                     ),
                     AutoupdateStage::DownloadingUpdate => (
                         Some(StatusContent {
-                            text: "downloading update...",
+                            text: t!("settings_extra.updates.downloading").to_string(),
                             color: faded_text_color,
                         }),
                         None,
                     ),
                     AutoupdateStage::UpdateReady { .. } => (
                         Some(StatusContent {
-                            text: "Update available",
+                            text: t!("settings_extra.updates.available").to_string(),
                             color: ansi_red,
                         }),
                         Some(CallToActionContent {
-                            text: "Relaunch Warp",
+                            text: t!("settings_extra.updates.relaunch").to_string(),
                             action: MainPageAction::Relaunch,
                         }),
                     ),
                     AutoupdateStage::Updating { .. } => (
                         Some(StatusContent {
-                            text: "Updating...",
+                            text: t!("settings_extra.updates.updating").to_string(),
                             color: faded_text_color,
                         }),
                         None,
                     ),
                     AutoupdateStage::UpdatedPendingRestart { .. } => (
                         Some(StatusContent {
-                            text: "Installed update",
+                            text: t!("settings_extra.updates.installed").to_string(),
                             color: faded_text_color,
                         }),
                         Some(CallToActionContent {
-                            text: "Relaunch Warp",
+                            text: t!("settings_extra.updates.relaunch").to_string(),
                             action: MainPageAction::Relaunch,
                         }),
                     ),
                     AutoupdateStage::UnableToUpdateToNewVersion { .. } => (
                         Some(StatusContent {
-                            text: "A new version of Warp is available but can't be installed",
+                            text: t!("settings_extra.updates.install_failed").to_string(),
                             color: ansi_red,
                         }),
                         Some(CallToActionContent {
-                            text: "Update Warp manually",
+                            text: t!("workspace.user_menu.update_manually").to_string(),
                             // note: the handler for this action is a no-op
                             action: MainPageAction::DownloadUpdate,
                         }),
                     ),
                     AutoupdateStage::UnableToLaunchNewVersion { .. } => (
                         Some(StatusContent {
-                            text: "A new version of Warp is installed but can't be launched.",
+                            text: t!("settings_extra.updates.launch_failed").to_string(),
                             color: ansi_red,
                         }),
                         Some(CallToActionContent {
-                            text: "Update Warp manually",
+                            text: t!("workspace.user_menu.update_manually").to_string(),
                             // note: the handler for this action is a no-op
                             action: MainPageAction::DownloadUpdate,
                         }),
@@ -1062,7 +1066,7 @@ impl VersionInfoWidget {
                 appearance
                     .ui_builder()
                     .link(
-                        call_to_action_content.text.into(),
+                        call_to_action_content.text,
                         None,
                         Some(Box::new(move |ctx| {
                             ctx.dispatch_typed_action(call_to_action_content.action.clone());
@@ -1119,7 +1123,7 @@ impl VersionInfoWidget {
         if let Some(status_content) = status_content {
             second_row.add_child(
                 Text::new_inline(
-                    status_content.text.to_string(),
+                    status_content.text,
                     appearance.ui_font_family(),
                     REGULAR_TEXT_FONT_SIZE,
                 )
@@ -1218,18 +1222,28 @@ impl SettingsWidget for IapCredentialsWidget {
         let disabled: ColorU = appearance.theme().disabled_ui_text_color().into();
         let active: ColorU = appearance.theme().active_ui_text_color().into();
         let (status_text, status_color): (String, ColorU) = match &state {
-            IapCredentialsState::Missing => ("Not yet loaded".to_string(), disabled),
-            IapCredentialsState::Refreshing { .. } => ("Refreshing…".to_string(), active),
+            IapCredentialsState::Missing => {
+                (t!("settings_extra.iap.not_loaded").to_string(), disabled)
+            }
+            IapCredentialsState::Refreshing { .. } => {
+                (t!("settings_extra.iap.refreshing").to_string(), active)
+            }
             IapCredentialsState::Loaded(cached) => {
                 let remaining = cached
                     .expires_at
                     .saturating_duration_since(instant::Instant::now());
                 let mins = remaining.as_secs() / 60;
-                (format!("Loaded (refreshes in ~{mins}m)"), active)
+                (
+                    t!("settings_extra.iap.loaded", minutes = mins).to_string(),
+                    active,
+                )
             }
-            IapCredentialsState::Failed { message, .. } => (format!("Failed: {message}"), ansi_red),
+            IapCredentialsState::Failed { message, .. } => (
+                t!("settings_extra.iap.failed", message = message).to_string(),
+                ansi_red,
+            ),
             IapCredentialsState::EnvInjected { .. } => {
-                ("Using injected token (WARP_IAP_TOKEN)".to_string(), active)
+                (t!("settings_extra.iap.injected_token").to_string(), active)
             }
         };
 
@@ -1237,7 +1251,7 @@ impl SettingsWidget for IapCredentialsWidget {
 
         let label = Align::new(
             Text::new_inline(
-                "Staging IAP credentials".to_string(),
+                t!("settings_extra.iap.title").to_string(),
                 appearance.ui_font_family(),
                 REGULAR_TEXT_FONT_SIZE,
             )
@@ -1269,9 +1283,9 @@ impl SettingsWidget for IapCredentialsWidget {
                 self.refresh_button_mouse_state.clone(),
             )
             .with_text_label(if is_refreshing {
-                "Refreshing…".into()
+                t!("settings_extra.iap.refreshing").to_string()
             } else {
-                "Refresh".into()
+                t!("settings_extra.iap.refresh").to_string()
             })
             .with_style(UiComponentStyles {
                 font_size: Some(12.),

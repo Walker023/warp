@@ -36,6 +36,7 @@ use self::context_chip::{ChipFingerprintInput, ChipRuntimePolicy, ContextChip, R
 use self::renderer::RendererStyles;
 use crate::appearance::Appearance;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::themes::theme::PromptColors;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
@@ -205,6 +206,49 @@ pub enum ContextChipKind {
 }
 
 impl ContextChipKind {
+    pub fn display_title(&self) -> String {
+        match self {
+            Self::WorkingDirectory => {
+                t!("common_extra.context_chips.titles.working_directory").to_string()
+            }
+            Self::Username => t!("common_extra.context_chips.titles.user").to_string(),
+            Self::Hostname => t!("common_extra.context_chips.titles.host").to_string(),
+            Self::Date => t!("common_extra.context_chips.titles.date").to_string(),
+            Self::Time12 => t!("common_extra.context_chips.titles.time_12").to_string(),
+            Self::Time24 => t!("common_extra.context_chips.titles.time_24").to_string(),
+            Self::VirtualEnvironment => {
+                t!("common_extra.context_chips.titles.python_virtualenv").to_string()
+            }
+            Self::CondaEnvironment => {
+                t!("common_extra.context_chips.titles.conda_environment").to_string()
+            }
+            Self::NodeVersion => t!("common_extra.context_chips.titles.node_version").to_string(),
+            Self::Custom { title } => title.clone(),
+            Self::ShellGitBranch => t!("common_extra.context_chips.titles.git_branch").to_string(),
+            Self::GitBranchStatus => {
+                t!("common_extra.context_chips.titles.git_branch_status").to_string()
+            }
+            Self::GitDiffStats => {
+                t!("common_extra.context_chips.titles.git_diff_stats").to_string()
+            }
+            Self::GithubPullRequest => {
+                t!("common_extra.context_chips.titles.github_pull_request").to_string()
+            }
+            Self::KubernetesContext => {
+                t!("common_extra.context_chips.titles.kubernetes_context").to_string()
+            }
+            Self::SvnBranch => t!("common_extra.context_chips.titles.svn_branch").to_string(),
+            Self::SvnDirtyItems => {
+                t!("common_extra.context_chips.titles.svn_uncommitted_file_count").to_string()
+            }
+            Self::Ssh => t!("common_extra.context_chips.titles.remote_login").to_string(),
+            Self::Subshell => t!("common_extra.context_chips.titles.subshell").to_string(),
+            Self::AgentPlanAndTodoList => {
+                t!("common_extra.context_chips.titles.agent_plan_todo").to_string()
+            }
+        }
+    }
+
     pub fn to_chip(&self) -> Option<ContextChip> {
         match self {
             Self::WorkingDirectory => Some(ContextChip::builtin_with_runtime_policy(
@@ -410,16 +454,22 @@ impl ContextChipKind {
             Self::VirtualEnvironment => ChipValue::Text("pyenv".to_string()),
             Self::CondaEnvironment => ChipValue::Text("condaenv".to_string()),
             Self::NodeVersion => ChipValue::Text("v18.17.0".to_string()),
-            Self::Date => ChipValue::Text("July 12, 2023".to_string()),
+            Self::Date => {
+                ChipValue::Text(t!("common_extra.context_chips.placeholders.date").to_string())
+            }
             Self::Time12 => ChipValue::Text("03:48 pm".to_string()),
             Self::Time24 => ChipValue::Text("15:48".to_string()),
-            Self::Custom { .. } => ChipValue::Text("custom chip".to_string()),
+            Self::Custom { .. } => ChipValue::Text(
+                t!("common_extra.context_chips.placeholders.custom_chip").to_string(),
+            ),
             Self::KubernetesContext => ChipValue::Text("kube-context".to_string()),
             Self::SvnBranch => ChipValue::Text("svn-feature-branch".to_string()),
             Self::SvnDirtyItems => ChipValue::Text("3".to_string()),
             Self::Ssh => ChipValue::Text("alice@127.0.0.1".to_string()),
             Self::Subshell => ChipValue::Text("bash".to_string()),
-            Self::AgentPlanAndTodoList => ChipValue::Text("Plan and Todo List".to_string()),
+            Self::AgentPlanAndTodoList => {
+                ChipValue::Text(t!("common_extra.context_chips.placeholders.plan_todo").to_string())
+            }
         }
     }
 

@@ -15,6 +15,7 @@ use super::artifact_upload::{
     CompletedFileArtifactUpload, FileArtifactUploadRequest, FileArtifactUploader,
 };
 use crate::ai::artifact_download::{download_artifact_bytes, download_destination};
+use crate::i18n::t;
 #[cfg(test)]
 use crate::server::server_api::ai::FileArtifactRecord;
 use crate::server::server_api::ai::{AIClient, ArtifactDownloadResponse};
@@ -143,7 +144,7 @@ async fn get_artifact(
     ai_client
         .get_artifact_download(artifact_uid)
         .await
-        .with_context(|| format!("Failed to get artifact '{artifact_uid}'"))
+        .with_context(|| t!("ai_cli.artifact.error.get_failed", uid = artifact_uid).to_string())
 }
 
 async fn download_artifact(
@@ -233,38 +234,92 @@ fn write_get_output_to<W: std::io::Write>(
     match output_format {
         OutputFormat::Json | OutputFormat::Ndjson => {
             serde_json::to_writer(&mut *output, &output_record)
-                .context("unable to write JSON output")?;
+                .context(t!("ai_cli.artifact.error.write_json").to_string())?;
             writeln!(&mut *output)?;
         }
         OutputFormat::Pretty => {
-            writeln!(&mut *output, "Artifact UID: {}", output_record.artifact_uid)?;
             writeln!(
                 &mut *output,
-                "Artifact type: {}",
-                output_record.artifact_type
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.uid",
+                    uid = &output_record.artifact_uid
+                )
             )?;
-            writeln!(&mut *output, "Created at: {}", output_record.created_at)?;
-            writeln!(&mut *output, "Download URL: {}", output_record.download_url)?;
-            writeln!(&mut *output, "Expires at: {}", output_record.expires_at)?;
-            writeln!(&mut *output, "Content type: {}", output_record.content_type)?;
+            writeln!(
+                &mut *output,
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.type",
+                    artifact_type = &output_record.artifact_type
+                )
+            )?;
+            writeln!(
+                &mut *output,
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.created_at",
+                    time = &output_record.created_at
+                )
+            )?;
+            writeln!(
+                &mut *output,
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.download_url",
+                    url = &output_record.download_url
+                )
+            )?;
+            writeln!(
+                &mut *output,
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.expires_at",
+                    time = &output_record.expires_at
+                )
+            )?;
+            writeln!(
+                &mut *output,
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.content_type",
+                    content_type = &output_record.content_type
+                )
+            )?;
             if let Some(filepath) = output_record.filepath {
-                writeln!(&mut *output, "Filepath: {filepath}")?;
+                writeln!(
+                    &mut *output,
+                    "{}",
+                    t!("ai_cli.artifact.detail.filepath", path = &filepath)
+                )?;
             }
             if let Some(filename) = output_record.filename {
-                writeln!(&mut *output, "Filename: {filename}")?;
+                writeln!(
+                    &mut *output,
+                    "{}",
+                    t!("ai_cli.artifact.detail.filename", name = &filename)
+                )?;
             }
             if let Some(description) = output_record.description {
-                writeln!(&mut *output, "Description: {description}")?;
+                writeln!(
+                    &mut *output,
+                    "{}",
+                    t!(
+                        "ai_cli.artifact.detail.description",
+                        description = &description
+                    )
+                )?;
             }
             if let Some(size_bytes) = output_record.size_bytes {
-                writeln!(&mut *output, "Size bytes: {size_bytes}")?;
+                writeln!(
+                    &mut *output,
+                    "{}",
+                    t!("ai_cli.artifact.detail.size_bytes", size = size_bytes)
+                )?;
             }
         }
         OutputFormat::Text => {
-            writeln!(
-                &mut *output,
-                "Artifact UID\tArtifact type\tCreated at\tDownload URL\tExpires at\tContent type\tFilepath\tFilename\tDescription\tSize bytes"
-            )?;
+            writeln!(&mut *output, "{}", t!("ai_cli.artifact.table.metadata"))?;
             writeln!(
                 &mut *output,
                 "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
@@ -304,21 +359,38 @@ fn write_download_output_to<W: std::io::Write>(
     match output_format {
         OutputFormat::Json | OutputFormat::Ndjson => {
             serde_json::to_writer(&mut *output, output_record)
-                .context("unable to write JSON output")?;
+                .context(t!("ai_cli.artifact.error.write_json").to_string())?;
             writeln!(&mut *output)?;
         }
         OutputFormat::Pretty => {
-            writeln!(&mut *output, "Artifact downloaded")?;
-            writeln!(&mut *output, "Artifact UID: {}", output_record.artifact_uid)?;
+            writeln!(&mut *output, "{}", t!("ai_cli.artifact.status.downloaded"))?;
             writeln!(
                 &mut *output,
-                "Artifact type: {}",
-                output_record.artifact_type
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.uid",
+                    uid = &output_record.artifact_uid
+                )
             )?;
-            writeln!(&mut *output, "Path: {}", output_record.path.display())?;
+            writeln!(
+                &mut *output,
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.type",
+                    artifact_type = &output_record.artifact_type
+                )
+            )?;
+            writeln!(
+                &mut *output,
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.path",
+                    path = output_record.path.display()
+                )
+            )?;
         }
         OutputFormat::Text => {
-            writeln!(&mut *output, "Artifact UID\tArtifact type\tPath")?;
+            writeln!(&mut *output, "{}", t!("ai_cli.artifact.table.download"))?;
             writeln!(
                 &mut *output,
                 "{}\t{}\t{}",
@@ -356,33 +428,57 @@ fn write_upload_output_to<W: std::io::Write>(
     match output_format {
         OutputFormat::Json | OutputFormat::Ndjson => {
             serde_json::to_writer(&mut *output, &output_record)
-                .context("unable to write JSON output")?;
+                .context(t!("ai_cli.artifact.error.write_json").to_string())?;
             writeln!(&mut *output)?;
         }
         OutputFormat::Pretty => {
-            writeln!(&mut *output, "Artifact uploaded")?;
-            writeln!(&mut *output, "Artifact UID: {}", output_record.artifact_uid)?;
-            writeln!(&mut *output, "Filepath: {}", output_record.filepath)?;
+            writeln!(&mut *output, "{}", t!("ai_cli.artifact.status.uploaded"))?;
             writeln!(
                 &mut *output,
-                "Description: {}",
-                output_record.description.as_deref().unwrap_or("")
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.uid",
+                    uid = &output_record.artifact_uid
+                )
             )?;
-            writeln!(&mut *output, "MIME type: {}", output_record.mime_type)?;
             writeln!(
                 &mut *output,
-                "Size bytes: {}",
-                output_record
-                    .size_bytes
-                    .map(|size| size.to_string())
-                    .unwrap_or_default()
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.filepath",
+                    path = &output_record.filepath
+                )
+            )?;
+            writeln!(
+                &mut *output,
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.description",
+                    description = output_record.description.as_deref().unwrap_or("")
+                )
+            )?;
+            writeln!(
+                &mut *output,
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.mime_type",
+                    mime_type = &output_record.mime_type
+                )
+            )?;
+            writeln!(
+                &mut *output,
+                "{}",
+                t!(
+                    "ai_cli.artifact.detail.size_bytes",
+                    size = output_record
+                        .size_bytes
+                        .map(|size| size.to_string())
+                        .unwrap_or_default()
+                )
             )?;
         }
         OutputFormat::Text => {
-            writeln!(
-                &mut *output,
-                "Artifact UID\tFilepath\tDescription\tMIME type\tSize bytes"
-            )?;
+            writeln!(&mut *output, "{}", t!("ai_cli.artifact.table.upload"))?;
             writeln!(
                 &mut *output,
                 "{}\t{}\t{}\t{}\t{}",

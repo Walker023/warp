@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use rust_i18n::t;
 use warpui_core::elements::{Align, CacheOption, CornerRadius, Empty, Image, Radius, Text};
 use warpui_core::geometry::vector::vec2f;
 use warpui_core::{AppContext, Element, SizeConstraint};
@@ -69,7 +70,7 @@ impl RenderableBlock for RenderableMermaidDiagram {
         let placeholder_color = model.styles().placeholder_color;
         let placeholder = Align::new(
             Text::new(
-                "Rendering Mermaid diagram…",
+                t!("editor.mermaid.rendering").to_string(),
                 code_text.font_family,
                 code_text.font_size,
             )
@@ -81,7 +82,7 @@ impl RenderableBlock for RenderableMermaidDiagram {
         .finish();
         let failure_notice = Align::new(
             Text::new(
-                "Error rendering Mermaid diagram. Please check syntax.",
+                t!("editor.mermaid.render_error").to_string(),
                 code_text.font_family,
                 code_text.font_size,
             )
@@ -93,7 +94,7 @@ impl RenderableBlock for RenderableMermaidDiagram {
         .finish();
         let timeout_notice = Align::new(
             Text::new(
-                "Failed to render Mermaid diagram",
+                t!("editor.mermaid.render_failure").to_string(),
                 code_text.font_family,
                 code_text.font_size,
             )

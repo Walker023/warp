@@ -11,6 +11,7 @@ use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::ai::blocklist::AIQueryHistoryOutputStatus;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::ai_queries::fuzzy_match::FuzzyMatchAIQueryResults;
 use crate::search::command_search::searcher::CommandSearchItemAction;
 use crate::search::item::SearchItem;
@@ -151,10 +152,13 @@ impl SearchItem for AIQuerySearchResultItem {
         details_column.add_child(
             Container::new(
                 ui_builder
-                    .paragraph(format!(
-                        "Ran {}",
-                        format_approx_duration_from_now(self.start_time)
-                    ))
+                    .paragraph(
+                        t!(
+                            "workspace_search_ui.search.ran",
+                            name = format_approx_duration_from_now(self.start_time)
+                        )
+                        .to_string(),
+                    )
                     .build()
                     .finish(),
             )
@@ -178,6 +182,10 @@ impl SearchItem for AIQuerySearchResultItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("AI query: {}", self.query_text)
+        t!(
+            "workspace_search_ui.search.a11y.ai_query",
+            name = self.query_text
+        )
+        .to_string()
     }
 }

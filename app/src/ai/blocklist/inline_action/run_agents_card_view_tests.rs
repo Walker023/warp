@@ -10,6 +10,7 @@ use warp_util::local_or_remote_path::LocalOrRemotePath;
 
 use super::RunAgentsEditState;
 use crate::ai::blocklist::inline_action::orchestration_controls::OrchestrationEditState;
+use crate::i18n::t;
 
 fn make_request(harness: &str, mode: RunAgentsExecutionMode) -> RunAgentsRequest {
     make_request_with_skills(harness, mode, Vec::new())
@@ -153,7 +154,7 @@ fn local_with_disabled_codex_disables_accept() {
     let state = make_edit_state_with_orch_fields("codex", RunAgentsExecutionMode::Local);
     assert_eq!(
         state.orch.accept_disabled_reason(),
-        Some("Local Codex child agents are temporarily disabled.")
+        Some(t!("ai_ui.inline_action.orchestration.local_codex_disabled").to_string())
     );
 }
 
@@ -519,7 +520,7 @@ mod override_from_approved_config_tests {
             .override_from_approved_config(&local_config("auto", "codex"));
         assert_eq!(
             state.orch.accept_disabled_reason(),
-            Some("Local Codex child agents are temporarily disabled.")
+            Some(t!("ai_ui.inline_action.orchestration.local_codex_disabled").to_string())
         );
     }
 }

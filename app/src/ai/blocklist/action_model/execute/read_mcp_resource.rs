@@ -15,6 +15,8 @@ use crate::ai::{
         BlocklistAIPermissions,
     },
 };
+#[cfg(not(target_family = "wasm"))]
+use crate::i18n::t;
 use crate::terminal::model::session::active_session::ActiveSession;
 
 pub struct ReadMCPResourceExecutor {
@@ -113,7 +115,9 @@ impl ReadMCPResourceExecutor {
 
             let Some(resource) = resource else {
                 return ActionExecution::Sync(AIAgentActionResultType::ReadMCPResource(
-                    ReadMCPResourceResult::Error("MCP server resource not found".to_owned()),
+                    ReadMCPResourceResult::Error(
+                        t!("ai_actions.mcp.resource_not_found").to_string(),
+                    ),
                 ));
             };
 
@@ -122,7 +126,9 @@ impl ReadMCPResourceExecutor {
             let Some(reconnecting_peer) = templatable_mcp_client.server_with_resource(resource)
             else {
                 return ActionExecution::Sync(AIAgentActionResultType::ReadMCPResource(
-                    ReadMCPResourceResult::Error("MCP server for resource not found".to_owned()),
+                    ReadMCPResourceResult::Error(
+                        t!("ai_actions.mcp.resource_server_not_found").to_string(),
+                    ),
                 ));
             };
 

@@ -53,16 +53,6 @@ const SIDECAR_HORIZONTAL_GAP: f32 = 4.;
 
 const MENU_MAX_HEIGHT: f32 = 280.;
 
-const BUTTON_TOOLTIP: &str = "API key";
-
-const MENU_HEADER_LABEL: &str = "API key";
-
-const SIDECAR_HEADER_LABEL: &str = "Choose a type";
-
-const NO_SECRET_LABEL: &str = "Inherit key from environment";
-
-const NEW_ITEM_LABEL: &str = "New";
-
 const MAIN_MENU_SAVE_POSITION_ID: &str = "auth_secret_selector_main_menu";
 type PendingDeleteKey = (Harness, String, SecretOwner);
 
@@ -104,14 +94,17 @@ impl AuthSecretSelector {
         ctx: &mut ViewContext<Self>,
     ) -> Self {
         let button = ctx.add_typed_action_view(|_ctx| {
-            ActionButton::new(NO_SECRET_LABEL, NakedHeaderButtonTheme)
-                .with_size(ButtonSize::AgentInputButton)
-                .with_menu(true)
-                .with_icon(Icon::Key)
-                .with_tooltip(BUTTON_TOOLTIP)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(AuthSecretSelectorAction::ToggleMenu);
-                })
+            ActionButton::new(
+                t!("terminal_ui.ambient_agent.auth.inherit_from_environment").to_string(),
+                NakedHeaderButtonTheme,
+            )
+            .with_size(ButtonSize::AgentInputButton)
+            .with_menu(true)
+            .with_icon(Icon::Key)
+            .with_tooltip(t!("terminal_ui.ambient_agent.auth.api_key").to_string())
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(AuthSecretSelectorAction::ToggleMenu);
+            })
         });
 
         let menu = ctx.add_typed_action_view(|_ctx| {
@@ -311,12 +304,13 @@ impl AuthSecretSelector {
         let Some(hovered_index) = hovered_index else {
             return;
         };
+        let new_item_label = t!("common.new").to_string();
         let is_new_item = self.menu.read(ctx, |menu, _| {
             menu.items()
                 .get(hovered_index)
                 .map(|item| {
                     matches!(item,
-                    MenuItem::Item(fields) if fields.label() == NEW_ITEM_LABEL)
+                    MenuItem::Item(fields) if fields.label() == new_item_label.as_str())
                 })
                 .unwrap_or(false)
         });
@@ -336,7 +330,9 @@ impl AuthSecretSelector {
             .as_ref(ctx)
             .selected_harness_auth_secret_name()
             .map(|s| s.to_string())
-            .unwrap_or_else(|| NO_SECRET_LABEL.to_string());
+            .unwrap_or_else(|| {
+                t!("terminal_ui.ambient_agent.auth.inherit_from_environment").to_string()
+            });
         self.button.update(ctx, |button, ctx| {
             button.set_label(label, ctx);
         });
@@ -402,7 +398,11 @@ impl AuthSecretSelector {
         // window) shouldn't pop a duplicate confirmation here.
         if removed_pending {
             let window_id = ctx.window_id();
-            let message = format!("API key '{name}' deleted.");
+            let message = t!(
+                "terminal_ui.ambient_agent.auth.deleted",
+                name = name.as_str()
+            )
+            .to_string();
             ToastStack::handle(ctx).update(ctx, |ts, ctx| {
                 ts.add_ephemeral_toast(DismissibleToast::success(message), window_id, ctx);
             });
@@ -431,7 +431,12 @@ impl AuthSecretSelector {
         // double-toasting if another surface also tried to delete.
         if removed_pending {
             let window_id = ctx.window_id();
-            let message = format!("Failed to delete API key '{name}': {error}");
+            let message = t!(
+                "terminal_ui.ambient_agent.auth.delete_failed",
+                name = name.as_str(),
+                error = error
+            )
+            .to_string();
             ToastStack::handle(ctx).update(ctx, |ts, ctx| {
                 ts.add_ephemeral_toast(DismissibleToast::error(message), window_id, ctx);
             });
@@ -568,7 +573,7 @@ fn build_main_menu_items(
     header_text_color: pathfinder_color::ColorU,
 ) -> Vec<MenuItem<AuthSecretSelectorAction>> {
     let header = MenuItem::Header {
-        fields: MenuItemFields::new(MENU_HEADER_LABEL)
+        fields: MenuItemFields::new(t!("terminal_ui.ambient_agent.auth.api_key").to_string())
             .with_font_size_override(HEADER_FONT_SIZE)
             .with_override_text_color(header_text_color)
             .with_padding_override(6., MENU_HORIZONTAL_PADDING)
@@ -580,11 +585,13 @@ fn build_main_menu_items(
     let mut items = vec![header];
 
     items.push(MenuItem::Item(
-        MenuItemFields::new(NO_SECRET_LABEL)
-            .with_font_size_override(ITEM_FONT_SIZE)
-            .with_padding_override(ITEM_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
-            .with_override_hover_background_color(hover_background)
-            .with_on_select_action(AuthSecretSelectorAction::ClearSecret),
+        MenuItemFields::new(
+            t!("terminal_ui.ambient_agent.auth.inherit_from_environment").to_string(),
+        )
+        .with_font_size_override(ITEM_FONT_SIZE)
+        .with_padding_override(ITEM_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
+        .with_override_hover_background_color(hover_background)
+        .with_on_select_action(AuthSecretSelectorAction::ClearSecret),
     ));
 
     match fetch_state {
@@ -604,7 +611,13 @@ fn build_main_menu_items(
                         name: secret.name.clone(),
                         owner: secret.owner.clone(),
                     })
-                    .with_right_side_icon_a11y_label(format!("Delete API key {}", secret.name))
+                    .with_right_side_icon_a11y_label(
+                        t!(
+                            "terminal_ui.ambient_agent.auth.delete_a11y",
+                            name = secret.name.as_str()
+                        )
+                        .to_string(),
+                    )
                     .with_right_side_icon_disabled(is_pending_delete);
                 items.push(MenuItem::Item(fields));
             }
@@ -630,7 +643,7 @@ fn build_main_menu_items(
     }
 
     items.push(MenuItem::Item(
-        MenuItemFields::new(NEW_ITEM_LABEL)
+        MenuItemFields::new(t!("common.new").to_string())
             .with_font_size_override(ITEM_FONT_SIZE)
             .with_padding_override(ITEM_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
             .with_override_hover_background_color(hover_background)
@@ -661,7 +674,7 @@ fn build_sidecar_items(
     header_text_color: pathfinder_color::ColorU,
 ) -> Vec<MenuItem<AuthSecretSelectorAction>> {
     let header = MenuItem::Header {
-        fields: MenuItemFields::new(SIDECAR_HEADER_LABEL)
+        fields: MenuItemFields::new(t!("terminal_ui.ambient_agent.auth.choose_type").to_string())
             .with_font_size_override(HEADER_FONT_SIZE)
             .with_override_text_color(header_text_color)
             .with_padding_override(6., MENU_HORIZONTAL_PADDING)
@@ -674,7 +687,7 @@ fn build_sidecar_items(
 
     for (index, info) in auth_secret_types_for_harness(harness).iter().enumerate() {
         items.push(MenuItem::Item(
-            MenuItemFields::new(info.display_name)
+            MenuItemFields::new(info.localized_display_name())
                 .with_font_size_override(ITEM_FONT_SIZE)
                 .with_padding_override(ITEM_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
                 .with_override_hover_background_color(hover_background)

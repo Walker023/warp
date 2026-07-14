@@ -57,7 +57,6 @@ const MAX_PROMPT_LINES: f32 = 5.;
 const PROMPT_PREVIEW_MAX_CHARS: usize = 500;
 /// Suffix on rows auto-queued during an agent-requested long-running command, which fire
 /// when that command completes rather than at the end of the full response.
-
 /// Returns the position-cache id used to look up a row's bounding rect during a drag.
 /// Indexed by the row's current visual index so swaps maintain stable lookups.
 fn queue_row_position_id(panel_view_id: EntityId, index: usize) -> String {
@@ -1330,5 +1329,5 @@ fn render_row(props: RenderRowProps<'_>, app: &AppContext) -> Box<dyn Element> {
 
 /// Returns the user-visible header label for `count` queued prompts.
 fn header_label_text(count: usize) -> String {
-    format!("{count} queued")
+    t!("terminal_ui.queued_prompts.count", count = count).to_string()
 }

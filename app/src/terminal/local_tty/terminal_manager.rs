@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "remote_tty", allow(dead_code))]
+
 use std::any::Any;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -33,6 +35,7 @@ use crate::banner::BannerState;
 use crate::context_chips::prompt::Prompt;
 use crate::context_chips::ContextChipKind;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::persistence::ModelEvent;
 use crate::send_telemetry_on_executor;
 use crate::server::telemetry::TelemetryEvent;
@@ -526,7 +529,9 @@ fn on_shell_determined<S: TerminalSurface>(
             report_error!("Could not compute fallback shell");
             manager.view.update(ctx, |surface, ctx| {
                 surface.on_pty_spawn_failed(
-                    anyhow::Error::msg("Could not find a fallback shell. If you have PowerShell or WSL installed, please file an issue."),
+                    anyhow::Error::msg(
+                        t!("terminal_ui.shell_terminated.no_fallback_shell").to_string(),
+                    ),
                     ctx,
                 );
             });

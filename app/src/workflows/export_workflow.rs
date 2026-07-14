@@ -14,6 +14,7 @@ use warpui::{AppContext, SingletonEntity};
 use super::workflow::{Argument, ArgumentType, Workflow};
 use super::workflow_enum::{EnumVariants, WorkflowEnum};
 use crate::cloud_object::model::persistence::CloudModel;
+use crate::i18n::t;
 use crate::server::ids::{ClientId, SyncId};
 
 /// Separate structure for exporting arguments. This new structure holds explicit enum information,
@@ -142,7 +143,10 @@ impl ExportArgument {
         } else if let Some(command) = enum_command {
             EnumVariants::Dynamic(command)
         } else {
-            return Err(anyhow::anyhow!("Missing valid enum variants"));
+            return Err(anyhow::anyhow!(t!(
+                "workflows_ui.errors.missing_enum_variants"
+            )
+            .to_string()));
         };
 
         Ok(WorkflowEnum {
@@ -275,7 +279,8 @@ where
                 type Value = Field;
 
                 fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                    formatter.write_str("workflow identifier")
+                    formatter
+                        .write_str(t!("workflows_ui.errors.expected_workflow_identifier").as_ref())
                 }
 
                 fn visit_str<E>(self, value: &str) -> Result<Field, E>
@@ -299,7 +304,7 @@ where
         type Value = (Workflow, HashMap<ClientId, WorkflowEnum>);
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("struct Workflow")
+            formatter.write_str(t!("workflows_ui.errors.expected_workflow_struct").as_ref())
         }
 
         fn visit_map<V>(

@@ -1,0 +1,6 @@
+ai_misc:
+  conversation_prefix:
+    fork: "(分支) "
+    pre_rewind: "(回退前) "
+  document:
+    updated_plan_query: "我已更新计划。"

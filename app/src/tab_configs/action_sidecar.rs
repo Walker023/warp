@@ -9,6 +9,7 @@ use warpui::ui_components::components::{UiComponent, UiComponentStyles};
 use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::settings::ai::DefaultSessionMode;
 use crate::tab_configs::TabConfig;
 use crate::terminal::available_shells::AvailableShell;
@@ -130,13 +131,13 @@ pub(crate) fn render_action_sidecar(
         appearance
             .ui_builder()
             .button(ButtonVariant::Outlined, mouse_states.make_default.clone())
-            .with_centered_text_label("Make default".into())
+            .with_centered_text_label(t!("tab_configs_ui.sidecar.make_default").to_string())
             .with_style(disabled_style)
             .with_tooltip({
                 let ui_builder = appearance.ui_builder().clone();
                 move || {
                     ui_builder
-                        .tool_tip("Already the default".into())
+                        .tool_tip(t!("tab_configs_ui.sidecar.already_default").to_string())
                         .build()
                         .finish()
                 }
@@ -149,7 +150,7 @@ pub(crate) fn render_action_sidecar(
         appearance
             .ui_builder()
             .button(ButtonVariant::Outlined, mouse_states.make_default.clone())
-            .with_centered_text_label("Make default".into())
+            .with_centered_text_label(t!("tab_configs_ui.sidecar.make_default").to_string())
             .with_style(button_style)
             .build()
             .with_cursor(Cursor::PointingHand)
@@ -171,7 +172,7 @@ pub(crate) fn render_action_sidecar(
             let edit_button = appearance
                 .ui_builder()
                 .button(ButtonVariant::Outlined, mouse_states.edit_config.clone())
-                .with_centered_text_label("Edit config".into())
+                .with_centered_text_label(t!("tab_configs_ui.sidecar.edit_config").to_string())
                 .with_style(button_style)
                 .build()
                 .with_cursor(Cursor::PointingHand)
@@ -202,7 +203,7 @@ pub(crate) fn render_action_sidecar(
             let remove_button = appearance
                 .ui_builder()
                 .button(ButtonVariant::Outlined, mouse_states.remove_config.clone())
-                .with_centered_text_label("Remove".into())
+                .with_centered_text_label(t!("tab_configs_ui.sidecar.remove").to_string())
                 .with_style(remove_style)
                 .with_hovered_styles(UiComponentStyles {
                     border_color: Some(theme.accent().into()),

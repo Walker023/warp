@@ -12,6 +12,7 @@ use warpui::SingletonEntity;
 
 use crate::ai::active_agent_views_model::{ActiveAgentViewsModel, ConversationOrTaskId};
 use crate::ai::agent_conversations_model::AgentConversationEntryId;
+use crate::i18n::t;
 use crate::terminal::input::inline_menu::{
     default_navigation_message_items, InlineMenuAction, InlineMenuMessageArgs, InlineMenuRowAction,
     InlineMenuType,
@@ -50,9 +51,9 @@ impl InlineMenuAction for AcceptConversation {
             let is_active = active_ids.contains(&ConversationOrTaskId::from(item.item_id));
 
             let text = if is_active {
-                " go to conversation"
+                t!("terminal_ui.input.menu_actions.go_to_conversation")
             } else {
-                " continue in this pane"
+                t!("terminal_ui.input.menu_actions.continue_in_pane")
             };
 
             let item_id = item.item_id;
@@ -62,7 +63,7 @@ impl InlineMenuAction for AcceptConversation {
                         key: "enter".to_owned(),
                         ..Default::default()
                     }),
-                    MessageItem::text(text),
+                    MessageItem::text(text.to_string()),
                 ],
                 move |ctx| {
                     ctx.dispatch_typed_action(InlineMenuRowAction::Accept {
@@ -85,7 +86,7 @@ impl InlineMenuAction for AcceptConversation {
                     background_color: Some(ColorU::transparent_black()),
                 },
                 MessageItem::Text {
-                    content: " continue in this pane".into(),
+                    content: t!("terminal_ui.input.menu_actions.continue_in_pane"),
                     color: Some(disabled_color),
                 },
             ]);

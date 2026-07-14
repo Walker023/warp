@@ -9,6 +9,7 @@ use warpui::fonts::{Properties, Weight};
 use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::command_palette::mixer::CommandPaletteItemAction;
 use crate::search::command_palette::styles;
 use crate::search::files::icon::icon_from_file_path;
@@ -97,17 +98,25 @@ impl SearchItem for FileSearchItem {
 
     fn accessibility_label(&self) -> String {
         if self.is_directory {
-            format!("Directory: {}", self.path.display())
+            t!(
+                "workspace_search_ui.search.a11y.directory",
+                name = self.path.display()
+            )
+            .to_string()
         } else {
-            format!("File: {}", self.path.display())
+            t!(
+                "workspace_search_ui.search.a11y.file",
+                name = self.path.display()
+            )
+            .to_string()
         }
     }
 
     fn accessibility_help_message(&self) -> Option<String> {
         Some(if self.is_directory {
-            "Press Enter to navigate to this directory".to_string()
+            t!("workspace_search_ui.search.a11y.navigate_directory").to_string()
         } else {
-            "Press Enter to open this file".to_string()
+            t!("workspace_search_ui.search.a11y.open_file").to_string()
         })
     }
 
@@ -161,7 +170,11 @@ impl SearchItem for CreateFileSearchItem {
         let text_color = highlight_state.sub_text_fill(appearance).into_solid();
 
         let label = Text::new_inline(
-            format!("Create a file named {}…", &self.file_name),
+            t!(
+                "workspace_search_ui.search.create_file_named",
+                name = &self.file_name
+            )
+            .to_string(),
             appearance.ui_font_family(),
             appearance.monospace_font_size(),
         )
@@ -195,14 +208,21 @@ impl SearchItem for CreateFileSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Create file: {}", self.file_name)
+        t!(
+            "workspace_search_ui.search.a11y.create_file",
+            name = self.file_name
+        )
+        .to_string()
     }
 
     fn accessibility_help_message(&self) -> Option<String> {
-        Some(format!(
-            "Press Enter to create {} in the current directory",
-            self.file_name
-        ))
+        Some(
+            t!(
+                "workspace_search_ui.search.a11y.create_file_help",
+                name = self.file_name
+            )
+            .to_string(),
+        )
     }
 
     fn render_details(&self, _ctx: &AppContext) -> Option<Box<dyn Element>> {

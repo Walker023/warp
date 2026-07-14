@@ -50,7 +50,10 @@ pub fn render_cloud_mode_loading_screen(
         // Add link at the end if it exists
         if let Some(link_target) = tip.link() {
             fragments.push(FormattedTextFragment::plain_text(" "));
-            fragments.push(FormattedTextFragment::hyperlink("Learn more", link_target));
+            fragments.push(FormattedTextFragment::hyperlink(
+                t!("common.learn_more").to_string(),
+                link_target,
+            ));
         }
 
         let formatted_text = FormattedText::new(vec![FormattedTextLine::Line(fragments)]);
@@ -143,7 +146,12 @@ fn render_tier_limits_footer(
     let policy = workspace.billing_metadata.tier.ambient_agents_policy?;
 
     let shape = policy.instance_shape.as_ref()?;
-    let specs = format!("{}CPU, {}GB", shape.vcpus, shape.memory_gb);
+    let specs = t!(
+        "terminal_ui.ambient_agent.loading.machine_specs",
+        cpu = shape.vcpus,
+        memory = shape.memory_gb
+    )
+    .to_string();
 
     // If there's no way to upgrade, don't render the footer at all
     // (Build Max users can still upgrade to Business plans)
@@ -154,19 +162,25 @@ fn render_tier_limits_footer(
         return None;
     }
 
-    let mut fragments = vec![FormattedTextFragment::plain_text(format!(
-        "Your agent is currently running on a {} machine. ",
-        specs
-    ))];
+    let mut fragments = vec![FormattedTextFragment::plain_text(
+        t!(
+            "terminal_ui.ambient_agent.loading.machine_prefix",
+            specs = specs
+        )
+        .to_string(),
+    )];
 
     // Get the upgrade URL for the current team
     let upgrade_url = UserWorkspaces::as_ref(app)
         .current_team()
         .map(|team| UserWorkspaces::upgrade_link_for_team(team.uid))?;
 
-    fragments.push(FormattedTextFragment::hyperlink("Upgrade", upgrade_url));
+    fragments.push(FormattedTextFragment::hyperlink(
+        t!("terminal_ui.ambient_agent.loading.upgrade").to_string(),
+        upgrade_url,
+    ));
     fragments.push(FormattedTextFragment::plain_text(
-        " for more powerful cloud agents.",
+        t!("terminal_ui.ambient_agent.loading.upgrade_suffix").to_string(),
     ));
 
     let formatted_text = FormattedText::new(vec![FormattedTextLine::Line(fragments)]);
@@ -234,7 +248,7 @@ pub fn render_cloud_mode_error_screen(
 
     // Error title text
     let title_text = Text::new(
-        "Failed to start environment",
+        t!("terminal_ui.ambient_agent.loading.environment_failed").to_string(),
         appearance.ui_font_family(),
         appearance.monospace_font_size() + 2.,
     )
@@ -324,7 +338,7 @@ pub fn render_cloud_mode_github_auth_required_screen(
 
     // Title text - "GitHub Authentication Required"
     let title_text = Text::new(
-        "GitHub Authentication Required",
+        t!("ambient_agent.status.github_auth_required").to_string(),
         appearance.ui_font_family(),
         appearance.monospace_font_size() + 2.,
     )
@@ -411,7 +425,7 @@ pub fn render_cloud_mode_cancelled_screen(appearance: &Appearance) -> Box<dyn El
 
     // Title text - "Cloud Agent Run Cancelled"
     let title_text = Text::new(
-        "Cloud Agent Run Cancelled",
+        t!("terminal_ui.ambient_agent.loading.cancelled_title").to_string(),
         appearance.ui_font_family(),
         appearance.monospace_font_size() + 2.,
     )
@@ -421,7 +435,7 @@ pub fn render_cloud_mode_cancelled_screen(appearance: &Appearance) -> Box<dyn El
 
     // Subtitle text - "No cloud environment was started"
     let subtitle_text = Text::new(
-        "No cloud environment was started",
+        t!("terminal_ui.ambient_agent.loading.cancelled_subtitle").to_string(),
         appearance.ui_font_family(),
         appearance.monospace_font_size(),
     )

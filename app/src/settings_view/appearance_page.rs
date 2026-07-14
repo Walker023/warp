@@ -119,11 +119,12 @@ const MIN_NEW_WINDOW_ROWS_OR_COLS: u16 = 5;
 const MAX_NEW_WINDOW_ROWS_OR_COLS: u16 = 2000;
 
 fn default_font_label(is_ai_font: bool) -> String {
-    if is_ai_font {
-        format!("{} (default)", AIFontName::default_value())
+    let font_name = if is_ai_font {
+        AIFontName::default_value()
     } else {
-        format!("{} (default)", MonospaceFontName::default_value())
-    }
+        MonospaceFontName::default_value()
+    };
+    t!("settings_extra.appearance.default_font", name = font_name).to_string()
 }
 
 pub fn init_actions_from_parent_view<T: Action + Clone>(
@@ -903,7 +904,7 @@ impl AppearanceSettingsPageView {
                     me.thin_strokes_dropdown.update(ctx, |dropdown, ctx| {
                         let thin_strokes = *FontSettings::as_ref(ctx).use_thin_strokes;
                         dropdown.set_selected_by_name(
-                            &Self::thin_strokes_dropdown_item_label(thin_strokes),
+                            Self::thin_strokes_dropdown_item_label(thin_strokes),
                             ctx,
                         );
                     });
@@ -927,7 +928,7 @@ impl AppearanceSettingsPageView {
             me.input_mode_dropdown.update(ctx, |dropdown, ctx| {
                 let input_mode = *InputModeSettings::as_ref(ctx).input_mode;
                 dropdown
-                    .set_selected_by_name(&Self::input_mode_dropdown_item_label(input_mode), ctx);
+                    .set_selected_by_name(Self::input_mode_dropdown_item_label(input_mode), ctx);
                 ctx.notify();
             });
             ctx.notify()
@@ -1631,25 +1632,25 @@ impl AppearanceSettingsPageView {
         }
     }
 
-    fn app_icon_dropdown_item_label(val: AppIcon) -> &'static str {
+    fn app_icon_dropdown_item_label(val: AppIcon) -> String {
         match val {
-            AppIcon::Aurora => "Aurora",
-            AppIcon::Default => "Default",
-            AppIcon::Classic1 => "Classic 1",
-            AppIcon::Classic2 => "Classic 2",
-            AppIcon::Classic3 => "Classic 3",
-            AppIcon::Comets => "Comets",
-            AppIcon::GlassSky => "Glass Sky",
-            AppIcon::Glitch => "Glitch",
-            AppIcon::Cow => "Cow",
-            AppIcon::Glow => "Glow",
-            AppIcon::Holographic => "Holographic",
-            AppIcon::Mono => "Mono",
-            AppIcon::Neon => "Neon",
-            AppIcon::Original => "Original",
-            AppIcon::Starburst => "Starburst",
-            AppIcon::Sticker => "Sticker",
-            AppIcon::WarpOne => "Warp 1",
+            AppIcon::Aurora => "Aurora".to_string(),
+            AppIcon::Default => t!("common.default").to_string(),
+            AppIcon::Classic1 => "Classic 1".to_string(),
+            AppIcon::Classic2 => "Classic 2".to_string(),
+            AppIcon::Classic3 => "Classic 3".to_string(),
+            AppIcon::Comets => "Comets".to_string(),
+            AppIcon::GlassSky => "Glass Sky".to_string(),
+            AppIcon::Glitch => "Glitch".to_string(),
+            AppIcon::Cow => "Cow".to_string(),
+            AppIcon::Glow => "Glow".to_string(),
+            AppIcon::Holographic => "Holographic".to_string(),
+            AppIcon::Mono => "Mono".to_string(),
+            AppIcon::Neon => "Neon".to_string(),
+            AppIcon::Original => "Original".to_string(),
+            AppIcon::Starburst => "Starburst".to_string(),
+            AppIcon::Sticker => "Sticker".to_string(),
+            AppIcon::WarpOne => "Warp 1".to_string(),
         }
     }
 
@@ -3279,7 +3280,7 @@ impl SettingsWidget for WindowOpacityWidget {
                         .is_supported_on_current_platform()
                 {
                     message.to_mut().push_str(
-                        &t!("settings.appearance_page.transparency_settings_hint").to_string(),
+                        t!("settings.appearance_page.transparency_settings_hint").as_ref(),
                     );
                 }
 
@@ -3395,7 +3396,7 @@ impl SettingsWidget for WindowBlurTextureWidget {
         let window_settings = WindowSettings::as_ref(app);
         let use_blur_texture = *window_settings.background_blur_texture;
         let mut col = Flex::column().with_child(render_body_item::<AppearancePageAction>(
-            "Use Window Blur (Acrylic texture)".to_string(),
+            t!("settings_extra.appearance.use_window_blur").to_string(),
             None,
             LocalOnlyIconState::for_setting(
                 BackgroundBlurTexture::storage_key(),
@@ -3421,7 +3422,7 @@ impl SettingsWidget for WindowBlurTextureWidget {
                 col.add_child(
                     Container::new(
                         FormattedTextElement::from_str(
-                            "The selected hardware may not support rendering transparent windows.",
+                            t!("settings_extra.appearance.transparency_unsupported"),
                             appearance.ui_font_family(),
                             appearance.ui_font_size(),
                         )
@@ -4952,7 +4953,7 @@ impl SettingsWidget for EditToolbarWidget {
         _app: &AppContext,
     ) -> Box<dyn Element> {
         let label = render_body_item_label::<AppearancePageAction>(
-            "Header toolbar layout".to_string(),
+            t!("settings_extra.appearance.header_toolbar_layout").to_string(),
             None,
             None,
             LocalOnlyIconState::Hidden,
@@ -5058,7 +5059,7 @@ impl SettingsWidget for DirectoryTabColorsWidget {
             .with_spacing(4.)
             .with_child(
                 Text::new(
-                    "Directory tab colors",
+                    t!("settings_extra.appearance.directory_tab_colors").to_string(),
                     appearance.ui_font_family(),
                     appearance.ui_font_size(),
                 )
@@ -5068,7 +5069,7 @@ impl SettingsWidget for DirectoryTabColorsWidget {
             )
             .with_child(
                 Text::new(
-                    "Automatically color tabs based on the directory or repo you're working in.",
+                    t!("settings_extra.appearance.directory_tab_colors_description").to_string(),
                     appearance.ui_font_family(),
                     appearance.ui_font_size(),
                 )
@@ -5127,7 +5128,7 @@ impl SettingsWidget for DirectoryTabColorsWidget {
                 };
                 let is_selected = current_color == tab_color;
                 let tooltip_text = match ansi_id {
-                    None => "Default (no color)".to_string(),
+                    None => t!("settings_extra.appearance.default_no_color").to_string(),
                     Some(id) => id.to_string(),
                 };
                 let dir_path_clone = PathBuf::from(&dir_path);
@@ -5208,7 +5209,7 @@ impl SettingsWidget for ZenModeWidget {
     ) -> Box<dyn Element> {
         render_dropdown_item(
             appearance,
-            "Show the tab bar",
+            t!("settings_extra.appearance.show_tab_bar").to_string(),
             None,
             None,
             LocalOnlyIconState::for_setting(
@@ -5245,7 +5246,7 @@ impl SettingsWidget for AltScreenPaddingWidget {
         let terminal_settings = &TerminalSettings::as_ref(app);
         let theme = appearance.theme();
         let mut column = Flex::column().with_child(render_body_item::<AppearancePageAction>(
-            "Use custom padding in alt-screen".into(),
+            t!("settings_extra.appearance.use_custom_alt_screen_padding").to_string(),
             Some(AdditionalInfo {
                 mouse_state: self.additional_info_mouse_state.clone(),
                 on_click_action: Some(AppearancePageAction::OpenUrl(
@@ -5306,7 +5307,7 @@ impl SettingsWidget for AltScreenPaddingWidget {
                     Container::new(
                         Align::new(
                             Text::new(
-                                "Uniform padding (px)",
+                                t!("settings_extra.appearance.uniform_padding_pixels").to_string(),
                                 appearance.ui_font_family(),
                                 appearance.ui_font_size(),
                             )
@@ -5361,11 +5362,12 @@ impl SettingsWidget for ZoomLevelWidget {
             ctx.dispatch_typed_action(AppearancePageAction::ResetZoomLevel);
         })
         .finish();
+        let zoom_description = t!("settings_extra.appearance.zoom_description").to_string();
 
         render_dropdown_item(
             appearance,
-            "Zoom",
-            Some("Adjusts the default zoom level across all windows"),
+            t!("settings_extra.appearance.zoom").to_string(),
+            Some(&zoom_description),
             Some(reset_button),
             LocalOnlyIconState::for_setting(
                 crate::window_settings::ZoomLevel::storage_key(),

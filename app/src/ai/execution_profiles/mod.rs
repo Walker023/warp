@@ -13,6 +13,7 @@ use crate::cloud_object::model::json_model::JsonModel;
 use crate::cloud_object::{
     GenericStringObjectFormat, GenericStringObjectUniqueKey, JsonObjectType, Revision, UniquePer,
 };
+use crate::i18n::t;
 use crate::server::sync_queue::QueueItem;
 use crate::settings::AISettings;
 use crate::workspaces::user_workspaces::UserWorkspaces;
@@ -23,9 +24,12 @@ pub(crate) const LONG_CONTEXT_PRICING_WARNING_URL: &str =
 pub(crate) fn long_context_pricing_warning_title() -> FormattedTextInline {
     vec![
         FormattedTextFragment::plain_text(
-            "OpenAI automatically applies long-context pricing when context exceeds 272,000 tokens. ",
+            t!("ai_ui.execution_profiles.long_context_warning").to_string(),
         ),
-        FormattedTextFragment::hyperlink("Learn more", LONG_CONTEXT_PRICING_WARNING_URL),
+        FormattedTextFragment::hyperlink(
+            t!("common.learn_more").to_string(),
+            LONG_CONTEXT_PRICING_WARNING_URL,
+        ),
     ]
 }
 
@@ -97,7 +101,7 @@ pub fn create_default_from_legacy_settings(app: &AppContext) -> AIExecutionProfi
     // ignore it. The same applies to "Autonomy".
     let ai_settings = AISettings::as_ref(app);
     AIExecutionProfile {
-        name: "Default".to_string(),
+        name: t!("common.default").to_string(),
         is_default_profile: true,
         command_denylist: ai_settings.agent_mode_command_execution_denylist.clone(),
         // We initialize the command allowlist to be anything the user added, excluding all
@@ -220,9 +224,9 @@ impl StringModel for AIExecutionProfile {
     fn display_name(&self) -> String {
         // Handles case where default profile was previously created and named "Untitled"
         if self.is_default_profile {
-            "Default".to_string()
+            t!("common.default").to_string()
         } else if self.name.trim().is_empty() {
-            "Untitled".to_string()
+            t!("ai_ui.rules.untitled").to_string()
         } else {
             self.name.clone()
         }

@@ -10,6 +10,7 @@ use warpui::{AppContext, Entity, ModelContext, SingletonEntity};
 
 use super::workflow::Workflow;
 use super::WorkflowSource;
+use crate::i18n::t;
 use crate::terminal::model::session::Session;
 #[cfg(feature = "local_fs")]
 use crate::user_config::load_workflows;
@@ -214,13 +215,10 @@ pub fn prompt_chip_logging_workflow(shell_family: ShellFamily) -> Option<Workflo
     }
     let log_file_path = crate::context_chips::logging::log_file_path().ok()?;
     Some(Workflow::Command {
-        name: "Tail prompt chip log".into(),
+        name: t!("workflows_ui.debug.prompt_chip_log_name").to_string(),
         command: tail_command_for_shell(shell_family, &log_file_path),
         tags: vec!["warp".into(), "debug".into()],
-        description: Some(
-            "Shows the diagnostic log of shell commands run by prompt context chips (dogfood only)"
-                .into(),
-        ),
+        description: Some(t!("workflows_ui.debug.prompt_chip_log_description").to_string()),
         arguments: vec![],
         source_url: None,
         author: Some("Warp".into()),

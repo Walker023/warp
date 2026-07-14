@@ -1008,19 +1008,19 @@ impl View for CustomEndpointModal {
     }
 }
 
-fn validate_url(url: &str) -> Result<(), &'static str> {
+fn validate_url(url: &str) -> Result<(), String> {
     if url.trim().is_empty() {
         return Ok(());
     }
-    let parsed = Url::parse(url).map_err(|_| "Invalid URL")?;
+    let parsed = Url::parse(url).map_err(|_| t!("settings_extra.ai.invalid_url").to_string())?;
     if parsed.scheme() != "https" {
-        return Err("URL must use HTTPS");
+        return Err(t!("settings_extra.ai.url_must_use_https").to_string());
     }
     let Some(host) = parsed.host_str().filter(|h| !h.is_empty()) else {
-        return Err("URL must include a host");
+        return Err(t!("settings_extra.ai.url_must_include_host").to_string());
     };
     if is_restricted_host(host) {
-        return Err("URL must not use a local or private host");
+        return Err(t!("settings_extra.ai.url_private_host_forbidden").to_string());
     }
     Ok(())
 }

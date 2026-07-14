@@ -54,7 +54,6 @@ use crate::workspace::view::conversation_list::item::{
 };
 use crate::workspace::{ToastStack, WorkspaceAction};
 
-const VIEW_ALL_LABEL: &str = "View all";
 /// Maximum number of past items to show before the user toggles "view all".
 const INITIAL_MAX_PAST_ITEMS: usize = 10;
 
@@ -239,7 +238,7 @@ impl ConversationListView {
                 ctx,
             );
 
-            editor.set_placeholder_text(&t!("common.search").to_string(), ctx);
+            editor.set_placeholder_text(t!("common.search").to_string(), ctx);
             editor
         });
         ctx.subscribe_to_view(&query_editor, |me, _handle, event, ctx| {
@@ -273,11 +272,14 @@ impl ConversationListView {
         // We use this as both the "view all" and "show less" button
         // (switching out the text on-toggle).
         let toggle_view_all_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new(VIEW_ALL_LABEL, SecondaryTheme)
-                .with_size(ButtonSize::Small)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(ConversationListViewAction::ToggleViewAll);
-                })
+            ActionButton::new(
+                t!("workspace_search_ui.workspace.conversation_list.view_all").to_string(),
+                SecondaryTheme,
+            )
+            .with_size(ButtonSize::Small)
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(ConversationListViewAction::ToggleViewAll);
+            })
         });
 
         let item_overflow_menu = ctx.add_typed_action_view(|_| {
@@ -925,8 +927,12 @@ fn render_section_header(
 
     let title_text = Text::new_inline(
         match section {
-            ConversationSection::Active => "ACTIVE",
-            ConversationSection::Past => "PAST",
+            ConversationSection::Active => {
+                t!("workspace_search_ui.workspace.conversation_list.active").to_string()
+            }
+            ConversationSection::Past => {
+                t!("workspace_search_ui.workspace.conversation_list.past").to_string()
+            }
         },
         appearance.ui_font_family(),
         11.,
@@ -1000,7 +1006,10 @@ impl TypedActionView for ConversationListView {
                     ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                         toast_stack.add_ephemeral_toast(
                             DismissibleToast::error(
-                                "Conversations cannot be deleted while in progress.".to_string(),
+                                t!(
+                                    "workspace_search_ui.workspace.conversation_list.delete_in_progress"
+                                )
+                                .to_string(),
                             ),
                             window_id,
                             ctx,
@@ -1015,7 +1024,10 @@ impl TypedActionView for ConversationListView {
                     .as_ref(ctx)
                     .get_item_by_id(&id, ctx)
                     .map(|entry| entry.display.title)
-                    .unwrap_or_else(|| "Conversation".to_string());
+                    .unwrap_or_else(|| {
+                        t!("workspace_search_ui.workspace.conversation_list.conversation")
+                            .to_string()
+                    });
                 ctx.emit(Event::ShowDeleteConfirmationDialog {
                     conversation_id: *conversation_id,
                     conversation_title,
@@ -1175,8 +1187,10 @@ impl TypedActionView for ConversationListView {
                         ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                             toast_stack.add_ephemeral_toast(
                                 DismissibleToast::error(
-                                    "Conversations cannot be deleted while in progress."
-                                        .to_string(),
+                                    t!(
+                                        "workspace_search_ui.workspace.conversation_list.delete_in_progress"
+                                    )
+                                    .to_string(),
                                 ),
                                 window_id,
                                 ctx,
@@ -1243,9 +1257,9 @@ impl TypedActionView for ConversationListView {
                 self.view_all = !self.view_all;
 
                 let label = if self.view_all {
-                    "Show less"
+                    t!("workspace_search_ui.workspace.conversation_list.show_less").to_string()
                 } else {
-                    VIEW_ALL_LABEL
+                    t!("workspace_search_ui.workspace.conversation_list.view_all").to_string()
                 };
                 self.toggle_view_all_button
                     .update(ctx, |button, ctx| button.set_label(label, ctx));
@@ -1322,7 +1336,7 @@ impl View for ConversationListView {
         } else if self.item_count() == 0 {
             Container::new(
                 Text::new_inline(
-                    "No matching conversations",
+                    t!("workspace_search_ui.workspace.conversation_list.no_matching").to_string(),
                     appearance.ui_font_family(),
                     appearance.ui_font_size(),
                 )

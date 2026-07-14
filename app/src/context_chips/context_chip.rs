@@ -4,6 +4,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 
 use super::ChipValue;
+use crate::i18n::t;
 use crate::terminal::model::block::{Block, BlockMetadata};
 use crate::terminal::model::session::{Session, SessionId};
 use crate::terminal::shell::ShellType;
@@ -168,11 +169,17 @@ pub enum ChipDisabledReason {
 impl ChipDisabledReason {
     pub fn tooltip_text(&self) -> String {
         match self {
-            Self::RequiresLocalSession => "Requires a local session".to_string(),
-            Self::RequiresExecutable { command } if command == "gh" => {
-                "Requires the GitHub CLI".to_string()
+            Self::RequiresLocalSession => {
+                t!("common_extra.context_chips.disabled.requires_local_session").to_string()
             }
-            Self::RequiresExecutable { command } => format!("Requires the `{command}` command"),
+            Self::RequiresExecutable { command } if command == "gh" => {
+                t!("common_extra.context_chips.disabled.requires_github_cli").to_string()
+            }
+            Self::RequiresExecutable { command } => t!(
+                "common_extra.context_chips.disabled.requires_command",
+                command = command
+            )
+            .to_string(),
         }
     }
 }

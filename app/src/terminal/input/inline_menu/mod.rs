@@ -17,6 +17,7 @@ pub use view::{
 };
 
 use super::{InputSuggestionsMode, UserQueryMenuAction};
+use crate::i18n::t;
 
 /// Identifies a specific inline menu type.
 #[derive(
@@ -50,20 +51,27 @@ pub enum InlineMenuType {
 }
 
 impl InlineMenuType {
-    fn display_label(&self) -> &'static str {
+    fn display_label(&self) -> String {
         match self {
-            InlineMenuType::SlashCommands => "/Commands",
-            InlineMenuType::ModelSelector => "/Model",
-            InlineMenuType::ConversationMenu => "/Conversations",
-            InlineMenuType::ProfileSelector => "/Profiles",
-            InlineMenuType::PromptsMenu => "/Prompts",
-            InlineMenuType::SkillMenu => "/Skills",
-            InlineMenuType::UserQueryMenu => "/Fork",
-            InlineMenuType::RewindMenu => "/Rewind",
-            InlineMenuType::InlineHistoryMenu => "History",
-            InlineMenuType::IndexedReposMenu => "/Repos",
-            InlineMenuType::PlanMenu => "/Plans",
+            InlineMenuType::SlashCommands => t!("terminal_ui.input.inline_menu.header.commands"),
+            InlineMenuType::ModelSelector => t!("terminal_ui.input.inline_menu.header.model"),
+            InlineMenuType::ConversationMenu => {
+                t!("terminal_ui.input.inline_menu.header.conversations")
+            }
+            InlineMenuType::ProfileSelector => {
+                t!("terminal_ui.input.inline_menu.header.profiles")
+            }
+            InlineMenuType::PromptsMenu => t!("terminal_ui.input.inline_menu.header.prompts"),
+            InlineMenuType::SkillMenu => t!("terminal_ui.input.inline_menu.header.skills"),
+            InlineMenuType::UserQueryMenu => t!("terminal_ui.input.inline_menu.header.fork"),
+            InlineMenuType::RewindMenu => t!("terminal_ui.input.inline_menu.header.rewind"),
+            InlineMenuType::InlineHistoryMenu => {
+                t!("terminal_ui.input.inline_menu.header.history")
+            }
+            InlineMenuType::IndexedReposMenu => t!("terminal_ui.input.inline_menu.header.repos"),
+            InlineMenuType::PlanMenu => t!("terminal_ui.input.inline_menu.header.plans"),
         }
+        .to_string()
     }
 
     pub(crate) fn from_suggestions_mode(mode: &InputSuggestionsMode) -> Option<Self> {

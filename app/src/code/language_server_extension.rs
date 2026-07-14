@@ -23,6 +23,7 @@ use crate::code::local_code_editor::{
     HOVER_TOOLTIP_MAX_WIDTH,
 };
 use crate::editor::InteractionState;
+use crate::i18n::t;
 
 /// A processed diagnostic with its converted offset range.
 /// Stored on LocalCodeEditorView and used for both decoration and hover display.
@@ -593,11 +594,19 @@ impl LocalCodeEditorView {
 
         // Create the diagnostic text with bold severity prefix.
         let severity_text = match diagnostic.severity {
-            lsp_types::DiagnosticSeverity::ERROR => "Error",
-            lsp_types::DiagnosticSeverity::WARNING => "Warning",
-            lsp_types::DiagnosticSeverity::INFORMATION => "Info",
-            lsp_types::DiagnosticSeverity::HINT => "Hint",
-            _ => "Diagnostic",
+            lsp_types::DiagnosticSeverity::ERROR => {
+                t!("code_editor_extra.code_editor.diagnostics.error")
+            }
+            lsp_types::DiagnosticSeverity::WARNING => {
+                t!("code_editor_extra.code_editor.diagnostics.warning")
+            }
+            lsp_types::DiagnosticSeverity::INFORMATION => {
+                t!("code_editor_extra.code_editor.diagnostics.info")
+            }
+            lsp_types::DiagnosticSeverity::HINT => {
+                t!("code_editor_extra.code_editor.diagnostics.hint")
+            }
+            _ => t!("code_editor_extra.code_editor.diagnostics.diagnostic"),
         };
 
         let text = FormattedText::new([FormattedTextLine::Line(vec![

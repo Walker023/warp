@@ -9,6 +9,7 @@ use warpui::{AppContext, Element, SingletonEntity};
 
 use super::HistoryEntry;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::input_suggestions::AIQueryHistoryEntryDetails;
 use crate::ui_components::icons::Icon as UiIcon;
 use crate::util::time_format::{format_approx_duration_from_now, human_readable_precise_duration};
@@ -41,7 +42,11 @@ pub fn render_rich_history(entry: &HistoryEntry, ctx: &AppContext) -> Box<dyn El
         flex_column.add_child(
             Container::new(render_row_with_icon_and_paragraph(
                 icon.into(),
-                format!("Exit code {}", exit_code.value()),
+                t!(
+                    "terminal_ui.rich_history.exit_code",
+                    code = exit_code.value()
+                )
+                .to_string(),
                 appearance,
             ))
             .with_margin_top(DETAILS_PARAGRAPH_SPACING)
@@ -77,10 +82,13 @@ pub fn render_rich_history(entry: &HistoryEntry, ctx: &AppContext) -> Box<dyn El
         flex_column.add_child(
             Container::new(
                 ui_builder
-                    .paragraph(format!(
-                        "Finished in {}",
-                        human_readable_precise_duration((completed_ts).sub(start_ts))
-                    ))
+                    .paragraph(
+                        t!(
+                            "terminal_ui.rich_history.finished_in",
+                            time = human_readable_precise_duration((completed_ts).sub(start_ts))
+                        )
+                        .to_string(),
+                    )
                     .build()
                     .finish(),
             )
@@ -93,10 +101,13 @@ pub fn render_rich_history(entry: &HistoryEntry, ctx: &AppContext) -> Box<dyn El
         flex_column.add_child(
             Container::new(
                 ui_builder
-                    .paragraph(format!(
-                        "Last ran {}",
-                        format_approx_duration_from_now(start_ts)
-                    ))
+                    .paragraph(
+                        t!(
+                            "input_suggestions.last_ran",
+                            time = format_approx_duration_from_now(start_ts)
+                        )
+                        .to_string(),
+                    )
                     .build()
                     .finish(),
             )
@@ -138,10 +149,13 @@ pub(crate) fn render_ai_query_rich_history(
         Container::new(
             appearance
                 .ui_builder()
-                .paragraph(format!(
-                    "Ran {}",
-                    format_approx_duration_from_now(entry.start_time)
-                ))
+                .paragraph(
+                    t!(
+                        "terminal_ui.rich_history.ran",
+                        time = format_approx_duration_from_now(entry.start_time)
+                    )
+                    .to_string(),
+                )
                 .build()
                 .finish(),
         )

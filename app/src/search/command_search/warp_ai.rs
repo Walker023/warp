@@ -131,7 +131,11 @@ impl SearchItem for WarpAISearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Warp AI: {}", self.item_body_text())
+        t!(
+            "workspace_search_ui.search.a11y.warp_ai",
+            name = self.item_body_text()
+        )
+        .to_string()
     }
 }
 

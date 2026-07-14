@@ -18,6 +18,7 @@ use crate::ai::blocklist::inline_action::inline_action_icons::icon_size;
 use crate::appearance::Appearance;
 use crate::code::editor::view::CodeEditorView;
 use crate::code::editor_management::CodeSource;
+use crate::i18n::t;
 use crate::search::files::icon::icon_from_file_path;
 use crate::search::ItemHighlightState;
 use crate::ui_components::blended_colors;
@@ -217,7 +218,7 @@ fn render_linked_code_block_internal(
             let insert_button = render_button(
                 appearance,
                 Icon::AtSign,
-                "Add as Context",
+                t!("ai_ui.code_block.add_as_context").as_ref(),
                 mouse_handles.insert_button,
                 insert_text,
                 on_insert,
@@ -236,7 +237,7 @@ fn render_linked_code_block_internal(
             let copy_button = render_button(
                 appearance,
                 Icon::Copy,
-                "Copy",
+                t!("common.copy").as_ref(),
                 mouse_handles.copy_button,
                 code_clone.clone(),
                 on_copy,
@@ -255,7 +256,7 @@ fn render_linked_code_block_internal(
             let open_button = render_button(
                 appearance,
                 Icon::LinkExternal,
-                "Open in Warp",
+                t!("ai_ui.code_block.open_in_warp").as_ref(),
                 mouse_handles.open_button,
                 code_clone.clone(),
                 on_open,
@@ -324,7 +325,7 @@ fn render_plain_code_block_internal(
             let copy_button = render_button(
                 appearance,
                 Icon::Copy,
-                "Copy",
+                t!("common.copy").as_ref(),
                 mouse_handles.copy_button,
                 code_clone.clone(),
                 on_copy,
@@ -339,7 +340,7 @@ fn render_plain_code_block_internal(
             let insert_button = render_button(
                 appearance,
                 Icon::TerminalInput,
-                "Run in terminal",
+                t!("ai_ui.code_block.run_in_terminal").as_ref(),
                 mouse_handles.insert_button,
                 code_clone.clone(),
                 on_execute,

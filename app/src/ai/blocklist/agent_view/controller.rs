@@ -13,6 +13,7 @@ use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::blocklist::orchestration_topology::{
     adjacent_orchestration_child_conversation_id, OrchestrationNavigationDirection,
 };
+use crate::i18n::t;
 use crate::terminal::input::message_bar::{Message, MessageItem};
 use crate::terminal::input::slash_commands::SlashCommandTrigger;
 use crate::terminal::TerminalModel;
@@ -1032,9 +1033,9 @@ fn exit_confirmation_message(
                 ..Default::default()
             },
             if should_stop_and_exit {
-                "again to stop and exit"
+                t!("ai_ui.agent_controller.stop_and_exit").to_string()
             } else {
-                "again to exit"
+                t!("ai_ui.agent_controller.exit").to_string()
             },
         ),
         ExitConfirmationTrigger::CtrlC => (
@@ -1043,7 +1044,7 @@ fn exit_confirmation_message(
                 ctrl: true,
                 ..Default::default()
             },
-            "again to exit",
+            t!("ai_ui.agent_controller.exit").to_string(),
         ),
     };
 
@@ -1061,7 +1062,7 @@ fn new_conversation_keybinding_confirmation_message(
     let appearance = Appearance::handle(app).as_ref(app);
     Message::new(vec![
         MessageItem::keystroke(keystroke),
-        MessageItem::text("again to start new conversation"),
+        MessageItem::text(t!("ai_ui.agent_controller.new_conversation").to_string()),
     ])
     .with_text_color(appearance.theme().ansi_fg_magenta())
 }

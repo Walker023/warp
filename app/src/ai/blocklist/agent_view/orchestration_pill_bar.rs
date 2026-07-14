@@ -59,6 +59,7 @@ use crate::ai::blocklist::telemetry::{
 use crate::ai::blocklist::{BlocklistAIHistoryEvent, BlocklistAIHistoryModel};
 use crate::ai::harness_display;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields};
 use crate::pane_group::pane::view::PaneHeaderAction;
 use crate::terminal::view::TerminalAction;
@@ -328,7 +329,7 @@ impl Entity for OrchestrationPillBar {
 
 impl OrchestrationPillBar {
     fn overflow_menu_item(
-        label: &'static str,
+        label: String,
         icon: Icon,
         action: OrchestrationPillBarAction,
         hover_background: Fill,
@@ -457,19 +458,19 @@ impl OrchestrationPillBar {
 
         let mut items = if is_open_elsewhere {
             vec![item(
-                "Focus pane",
+                t!("ai_ui.orchestration_pill.focus_pane").to_string(),
                 Icon::ArrowSplit,
                 OrchestrationPillBarAction::FocusOpenedConversation(conversation_id),
             )]
         } else {
             vec![
                 item(
-                    "Open in new pane",
+                    t!("ai_ui.orchestration_pill.open_new_pane").to_string(),
                     Icon::ArrowSplit,
                     OrchestrationPillBarAction::OpenInNewPane(conversation_id),
                 ),
                 item(
-                    "Open in new tab",
+                    t!("ai_ui.orchestration_pill.open_new_tab").to_string(),
                     Icon::Plus,
                     OrchestrationPillBarAction::OpenInNewTab(conversation_id),
                 ),
@@ -477,7 +478,7 @@ impl OrchestrationPillBar {
         };
         if Self::oz_run_url_for_conversation(conversation_id, ctx).is_some() {
             items.push(item(
-                "View in Oz",
+                t!("ai_ui.conversation_details.view_in_oz").to_string(),
                 Icon::Oz,
                 OrchestrationPillBarAction::ViewInOz(conversation_id),
             ));
@@ -498,15 +499,21 @@ impl OrchestrationPillBar {
         items.push(MenuItem::Separator);
         if is_in_progress {
             items.push(destructive_item(
-                "Stop agent",
+                t!("ai_ui.orchestration_pill.stop_agent").to_string(),
                 Icon::StopFilled,
                 OrchestrationPillBarAction::Stop(conversation_id),
             ));
         }
         let (kill_label, kill_icon) = if is_in_finished_state {
-            ("Delete agent", Icon::Trash)
+            (
+                t!("ai_ui.orchestration_pill.delete_agent").to_string(),
+                Icon::Trash,
+            )
         } else {
-            ("Kill agent", Icon::X)
+            (
+                t!("ai_ui.orchestration_pill.kill_agent").to_string(),
+                Icon::X,
+            )
         };
         items.push(destructive_item(
             kill_label,
@@ -647,7 +654,8 @@ impl OrchestrationPillBar {
             let name = child
                 .agent_name()
                 .filter(|n| !n.is_empty())
-                .unwrap_or("Agent");
+                .map(str::to_string)
+                .unwrap_or_else(|| t!("ai_ui.agent_management.metadata.agent").to_string());
             let pin_state = if pill_bar_model.is_pinned(&child.id()) {
                 PillPinState::Pinned
             } else {
@@ -655,9 +663,9 @@ impl OrchestrationPillBar {
             };
             specs.push(PillSpec {
                 conversation_id: child.id(),
-                label: name.to_string(),
-                avatar_color: pill_avatar_color(name, theme),
-                avatar_glyph: AvatarGlyph::Letter(pill_initial(name)),
+                label: name.clone(),
+                avatar_color: pill_avatar_color(&name, theme),
+                avatar_glyph: AvatarGlyph::Letter(pill_initial(&name)),
                 status: Some(child.status().clone()),
                 is_selected: child.id() == active_id,
                 kind: PillKind::Child,
@@ -716,7 +724,7 @@ fn orchestrator_label(orchestrator: &AIConversation) -> String {
         .agent_name()
         .filter(|n| !n.is_empty())
         .map(|n| n.to_string())
-        .unwrap_or_else(|| "Orchestrator".to_string())
+        .unwrap_or_else(|| t!("ai_ui.usage.orchestrator").to_string())
 }
 
 impl OrchestrationPillBar {
@@ -1326,7 +1334,7 @@ fn render_hover_card(
         .filter(|n| !n.is_empty())
         .map(|n| n.to_string())
         .or_else(|| conversation.title())
-        .unwrap_or_else(|| "Agent".to_string());
+        .unwrap_or_else(|| t!("ai_ui.agent_management.metadata.agent").to_string());
 
     // Header: small avatar disc + bold agent name on the left, status
     // badge right-aligned. We use the conversation's `ConversationStatus`
@@ -2268,7 +2276,7 @@ pub fn render_orchestration_breadcrumbs(
                 .filter(|t| !t.is_empty())
                 .or_else(|| p.agent_name().map(str::to_string))
         })
-        .unwrap_or_else(|| "Orchestrator".to_string());
+        .unwrap_or_else(|| t!("ai_ui.usage.orchestrator").to_string());
 
     // Treat empty `agent_name` as missing so the label, avatar color, and
     // initial all consistently fall back to "Agent". Without the
@@ -2278,8 +2286,9 @@ pub fn render_orchestration_breadcrumbs(
     let child_name = active
         .agent_name()
         .filter(|n| !n.is_empty())
-        .unwrap_or("Agent");
-    let child_label = child_name.to_string();
+        .map(str::to_string)
+        .unwrap_or_else(|| t!("ai_ui.agent_management.metadata.agent").to_string());
+    let child_label = child_name.clone();
 
     // Parent crumb uses the Oz glyph on a neutral disc to match the
     // orchestrator pill in the pill bar.
@@ -2296,8 +2305,8 @@ pub fn render_orchestration_breadcrumbs(
     let child_spec = CrumbSpec {
         conversation_id: active_id,
         label: child_label,
-        avatar_color: pill_avatar_color(child_name, theme),
-        avatar_glyph: AvatarGlyph::Letter(pill_initial(child_name)),
+        avatar_color: pill_avatar_color(&child_name, theme),
+        avatar_glyph: AvatarGlyph::Letter(pill_initial(&child_name)),
         is_active: true,
     };
 

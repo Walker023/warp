@@ -1,0 +1,105 @@
+workflows_ui:
+  debug:
+    prompt_chip_log_name: "查看提示上下文芯片日志"
+    prompt_chip_log_description: "显示提示上下文芯片运行的 Shell 命令诊断日志（仅限内部测试）"
+  errors:
+    missing_enum_variants: "缺少有效的枚举值"
+    expected_workflow_identifier: "工作流标识符"
+    expected_workflow_struct: "Workflow 结构体"
+  categories:
+    filters:
+      all: "全部"
+      my_workflows: "我的工作流"
+      repository_workflows: "仓库工作流"
+      team_workflows: "团队工作流"
+    a11y:
+      showing_category: "正在显示“%{category}”分类中的工作流"
+      showing_all: "正在显示所有工作流"
+      showing_mine: "正在显示我的工作流"
+      showing_project: "正在显示仓库工作流"
+      showing_team: "正在显示团队工作流"
+      selected_workflow: "已选择工作流“%{name}”：%{content}"
+      title: "工作流"
+      help: "搜索工作流，或使用上、下方向键导航并查找工作流。按 Enter 确认工作流，按 Esc 退出。"
+    empty:
+      no_matches: "未找到匹配的工作流。"
+      try_prefix: "试试"
+      create_own: "创建自己的工作流"
+    heading: "分类"
+    search_placeholder: "搜索工作流"
+  info_box:
+    edit_prompt: "编辑提示词"
+    edit_workflow: "编辑工作流"
+    argument_with_description: "%{name}：%{description}"
+    command_edited: "命令已编辑。"
+    reset: "重置"
+    cycle_parameters: "用于循环切换参数"
+    save_as_workflow: "另存为工作流"
+    environment_variables: "环境变量"
+    new_environment_variables: "新建环境变量"
+    view_context: "查看上下文"
+  editor:
+    untitled: "未命名"
+    title_placeholder: "添加标题"
+    description_placeholder: "添加说明"
+    command_placeholder: |-
+      echo "Hello {{your_name}}" # 使用花括号插入参数
+      # 输入单行命令或完整的 Shell 脚本
+    enum_command_placeholder: |-
+      # 输入按换行分隔并生成枚举值的 Shell 命令。
+
+      git branch -a
+    prompt_placeholder: "在此输入提示词...（例如，“创建一个按日期对对象数组排序的函数”或“帮我调试这个 React 组件”。）"
+  buttons:
+    create: "创建"
+    update: "更新"
+    cancel: "取消"
+    autofill: "自动填充"
+    loading: "加载中"
+    run_in_warp: "在 Warp 中运行"
+  mode:
+    editing: "编辑中"
+    viewing: "查看中"
+    sign_in_to_edit: "登录后编辑"
+  aliases:
+    heading: "别名"
+    help: "别名可让你使用短字符串执行工作流。每个别名可以使用不同的参数值和环境变量，且别名仅供你个人使用。"
+    name_placeholder: "别名名称"
+    default: "默认"
+    add: "添加别名"
+  unsaved:
+    message: "你有尚未保存的更改。"
+    keep_editing: "继续编辑"
+    discard_changes: "放弃更改"
+  toasts:
+    error_saving_aliases: "保存别名时出错"
+    contains_secrets: "此工作流包含密钥，无法保存"
+    create_failed: "无法创建工作流"
+    prompt_copied: "已复制提示词。"
+    command_copied: "已复制命令。"
+  ai:
+    generate_metadata_tooltip: "使用 Warp AI 生成标题、说明或参数"
+    no_credits_contact_admin: "你的 AI 额度似乎已用完。请联系团队管理员升级，以获取更多额度。"
+    upgrade_for_credits: "升级以获取更多额度。"
+    no_credits: "你的 AI 额度似乎已用完。"
+  arguments:
+    heading: "参数"
+    description_placeholder: "说明"
+    value_placeholder: "值（可选）"
+    default_value_placeholder: "默认值（可选）"
+    add_tooltip: "添加工作流参数"
+    viewer_help: "填写此工作流的参数并复制，然后在终端会话中运行"
+    add_environment_variables: "添加环境变量"
+    environment_variables: "环境变量"
+  environment_variables:
+    none: "无"
+  trash:
+    no_access: "你已无法访问此工作流"
+    moved: "工作流已移到垃圾箱"
+    restore_tooltip: "从垃圾箱恢复工作流"
+    restore: "恢复"
+  menu:
+    copy_link: "复制链接"
+    open_on_desktop: "在桌面版中打开"
+    duplicate: "创建副本"
+    trash: "移到垃圾箱"

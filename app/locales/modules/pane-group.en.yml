@@ -1,0 +1,29 @@
+pane_group_ui:
+  get_started:
+    title: "Get started"
+    welcome: "Welcome to Warp"
+    tagline: "The Agentic Development Environment"
+    new_session: " New session in %{directory}  %{keybinding}"
+  header:
+    open_files: "Open files and review code diffs"
+    sharing:
+      unsharable_conversation: "This conversation cannot be shared because it is not stored in the cloud.\nTo sync it to the cloud and share it, enable the setting under Settings > Privacy, then make another request."
+      share: "Share"
+      copy_link: "Copy link"
+      read_only: "Read-only"
+      read_only_sign_in: "Read-only. Sign in to edit"
+  code_diff:
+    requested_edit: "Requested Edit"
+  unsupported_shell:
+    message: "Warp doesn't currently support your default shell, so it is falling back to zsh.  "
+    learn_more: "Learn more"
+  child_agent:
+    wasm_unsupported: "Local child agents are not supported in web builds."
+    powershell_unsupported: "Local child harnesses currently require bash, zsh, or fish; PowerShell is not supported."
+    shell_not_detected: "Local child harnesses currently require a detected bash, zsh, or fish session."
+    harness_missing: "Local child harness type is missing."
+    harness_unsupported: "Unsupported local child harness '%{harness}'."
+    hidden_agent_failed: "Failed to create a hidden pane for the local child agent."
+    create_task_failed: "Failed to create local child task: %{error}"
+    hidden_harness_failed: "Failed to create a hidden pane for the local child harness."
+    create_harness_task_failed: "Failed to create local %{harness} child task: %{error}"

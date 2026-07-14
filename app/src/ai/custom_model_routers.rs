@@ -20,6 +20,7 @@ use serde::{Deserialize, Serialize};
 use warp_multi_agent_api as api;
 
 use super::llms::{LLMContextWindow, LLMId, LLMInfo, LLMProvider, LLMUsageMetadata};
+use crate::i18n::t;
 
 /// The shared `config_key` namespace prefix for all custom model routers.
 /// Both local (YAML-authored) and cloud/team (server-synced) routers live under
@@ -109,8 +110,10 @@ impl CustomModelRouter {
         let id = local_id_from_path(source_path, &name);
         let config_key = format!("{LOCAL_CUSTOM_ROUTER_PREFIX}{id}");
         let routing_kind = match &routing {
-            CustomModelRouting::Complexity(_) => "Routes by task complexity",
-            CustomModelRouting::Prompt(_) => "Routes by prompt content",
+            CustomModelRouting::Complexity(_) => {
+                t!("ai_ui.model_router.routing.complexity").to_string()
+            }
+            CustomModelRouting::Prompt(_) => t!("ai_ui.model_router.routing.prompt").to_string(),
         };
         let description = match source_path {
             Some(path) => {
@@ -119,7 +122,7 @@ impl CustomModelRouter {
                     warp_core::paths::home_relative_path(path)
                 )
             }
-            None => routing_kind.to_owned(),
+            None => routing_kind,
         };
         let info = LLMInfo {
             display_name: name.clone(),
@@ -212,30 +215,52 @@ impl CustomModelRouter {
             CustomModelRouting::Complexity(c) => {
                 if c.default.trim().is_empty() {
                     return Err(
-                        "complexity routing requires a non-empty `default` model".to_owned()
+                        t!("ai_ui.model_router.validation.complexity_default_required").to_string(),
                     );
                 }
-                validate_target(&c.default).map_err(|e| format!("`default`: {e}"))?;
+                validate_target(&c.default).map_err(|e| {
+                    t!("ai_ui.model_router.validation.default_error", error = e).to_string()
+                })?;
                 for (bucket, target) in
                     [("easy", &c.easy), ("medium", &c.medium), ("hard", &c.hard)]
                 {
                     if let Some(model) = target {
-                        validate_target(model)
-                            .map_err(|e| format!("complexity bucket `{bucket}`: {e}"))?;
+                        validate_target(model).map_err(|e| {
+                            t!(
+                                "ai_ui.model_router.validation.complexity_bucket_error",
+                                bucket = bucket,
+                                error = e
+                            )
+                            .to_string()
+                        })?;
                     }
                 }
             }
             CustomModelRouting::Prompt(p) => {
                 if p.default_model.trim().is_empty() {
-                    return Err("prompt routing requires a non-empty `default` model".to_owned());
+                    return Err(
+                        t!("ai_ui.model_router.validation.prompt_default_required").to_string()
+                    );
                 }
-                validate_target(&p.default_model).map_err(|e| format!("`default`: {e}"))?;
+                validate_target(&p.default_model).map_err(|e| {
+                    t!("ai_ui.model_router.validation.default_error", error = e).to_string()
+                })?;
                 for (index, rule) in p.rules.iter().enumerate() {
                     if rule.description.trim().is_empty() {
-                        return Err(format!("prompt rule {index}: `description` is empty"));
+                        return Err(t!(
+                            "ai_ui.model_router.validation.prompt_rule_description_empty",
+                            index = index
+                        )
+                        .to_string());
                     }
-                    validate_target(&rule.model)
-                        .map_err(|e| format!("prompt rule {index}: {e}"))?;
+                    validate_target(&rule.model).map_err(|e| {
+                        t!(
+                            "ai_ui.model_router.validation.prompt_rule_error",
+                            index = index,
+                            error = e
+                        )
+                        .to_string()
+                    })?;
                 }
             }
         }
@@ -260,12 +285,14 @@ fn local_id_from_path(source_path: Option<&Path>, fallback: &str) -> String {
 fn validate_target(model_id: &str) -> Result<(), String> {
     let trimmed = model_id.trim();
     if trimmed.is_empty() {
-        return Err("target model id is empty".to_owned());
+        return Err(t!("ai_ui.model_router.validation.target_empty").to_string());
     }
     if is_auto_target(trimmed) {
-        return Err(format!(
-            "target `{trimmed}` is an auto model; custom model routers must route to concrete models"
-        ));
+        return Err(t!(
+            "ai_ui.model_router.validation.auto_target",
+            target = trimmed
+        )
+        .to_string());
     }
     Ok(())
 }
@@ -440,7 +467,7 @@ impl YamlCustomModelRouter {
     fn into_domain(self, source_path: Option<&Path>) -> Result<CustomModelRouter, String> {
         let name = self.name.trim().to_owned();
         if name.is_empty() {
-            return Err("custom model router `name` is empty".to_owned());
+            return Err(t!("ai_ui.model_router.validation.name_empty").to_string());
         }
         let routing = match self.model_type.as_str() {
             "complexity" => {
@@ -450,13 +477,23 @@ impl YamlCustomModelRouter {
                     .filter(|d| !d.is_empty())
                     // complexity also requires a catch-all default.
                     .ok_or_else(|| {
-                        format!("`{name}`: complexity type requires a `default` model")
+                        t!(
+                            "ai_ui.model_router.validation.complexity_type_default_required",
+                            name = &name
+                        )
+                        .to_string()
                     })?;
                 let routing: YamlComplexityRouting = if self.routing.is_null() {
                     YamlComplexityRouting::default()
                 } else {
-                    serde_yaml::from_value(self.routing)
-                        .map_err(|e| format!("`{name}`: invalid complexity routing: {e}"))?
+                    serde_yaml::from_value(self.routing).map_err(|e| {
+                        t!(
+                            "ai_ui.model_router.validation.invalid_complexity_routing",
+                            name = &name,
+                            error = e
+                        )
+                        .to_string()
+                    })?
                 };
                 CustomModelRouting::Complexity(ComplexityRouting {
                     default: default_model,
@@ -470,12 +507,24 @@ impl YamlCustomModelRouter {
                     .default
                     .map(|d| d.trim().to_owned())
                     .filter(|d| !d.is_empty())
-                    .ok_or_else(|| format!("`{name}`: prompt type requires a `default` model"))?;
+                    .ok_or_else(|| {
+                        t!(
+                            "ai_ui.model_router.validation.prompt_type_default_required",
+                            name = &name
+                        )
+                        .to_string()
+                    })?;
                 let rules: Vec<YamlPromptRule> = if self.routing.is_null() {
                     Vec::new()
                 } else {
-                    serde_yaml::from_value(self.routing)
-                        .map_err(|e| format!("`{name}`: invalid prompt routing: {e}"))?
+                    serde_yaml::from_value(self.routing).map_err(|e| {
+                        t!(
+                            "ai_ui.model_router.validation.invalid_prompt_routing",
+                            name = &name,
+                            error = e
+                        )
+                        .to_string()
+                    })?
                 };
                 CustomModelRouting::Prompt(PromptRouting {
                     default_model,
@@ -489,9 +538,12 @@ impl YamlCustomModelRouter {
                 })
             }
             other => {
-                return Err(format!(
-                    "`{name}`: unknown type `{other}` (expected `complexity` or `prompt`)"
-                ));
+                return Err(t!(
+                    "ai_ui.model_router.validation.unknown_type",
+                    name = &name,
+                    type_name = other
+                )
+                .to_string());
             }
         };
 
@@ -524,7 +576,7 @@ pub fn parse_model_config_yaml(
     contents: &str,
     source_path: Option<&Path>,
 ) -> Result<CustomModelRouter, String> {
-    let router: YamlCustomModelRouter =
-        serde_yaml::from_str(contents).map_err(|e| format!("invalid YAML: {e}"))?;
+    let router: YamlCustomModelRouter = serde_yaml::from_str(contents)
+        .map_err(|e| t!("ai_ui.model_router.validation.invalid_yaml", error = e).to_string())?;
     router.into_domain(source_path)
 }

@@ -32,6 +32,7 @@ use warpui::{
 use super::editor::view::{CodeEditorRenderOptions, CodeEditorView};
 use super::global_buffer_model::GlobalBufferModel;
 use crate::editor::InteractionState;
+use crate::i18n::t;
 use crate::search::result_renderer::ItemHighlightState;
 
 /// Maximum height for the find references card.
@@ -164,7 +165,7 @@ impl FindReferencesView {
 
                 // Guard against empty file names from malformed LSP URIs
                 let file_name = if file_name.is_empty() {
-                    "[unknown]".to_string()
+                    t!("code_editor_extra.code_editor.references.unknown").to_string()
                 } else {
                     file_name
                 };
@@ -496,9 +497,13 @@ fn render_header(
 
     // "Showing X references" title
     let title_text = if total_refs == 1 {
-        "Showing 1 reference".to_string()
+        t!("code_editor_extra.code_editor.references.showing_one").to_string()
     } else {
-        format!("Showing {total_refs} references")
+        t!(
+            "code_editor_extra.code_editor.references.showing_many",
+            count = total_refs
+        )
+        .to_string()
     };
 
     let title = Align::new(
@@ -644,7 +649,7 @@ fn render_reference_entry(
             } else {
                 // Show loading indicator when line_content is None
                 Text::new_inline(
-                    "Loading...",
+                    t!("code_editor_extra.code_editor.references.loading").to_string(),
                     appearance.monospace_font_family(),
                     appearance.monospace_font_size(),
                 )

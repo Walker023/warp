@@ -509,13 +509,13 @@ impl CommandSearchView {
 
             let (a11y_content, a11y_help_content) = if was_immediately_executed {
                 (
-                    "Result executed".to_owned(),
-                    "Press Cmd-Up to navigate to the command's output.".to_owned(),
+                    t!("workspace_search_ui.search.a11y.result_executed").to_string(),
+                    t!("workspace_search_ui.search.a11y.executed_help").to_string(),
                 )
             } else {
                 (
-                    "Result accepted.".to_owned(),
-                    "You can edit the command here before pressing Enter to execute it.".to_owned(),
+                    t!("workspace_search_ui.search.a11y.result_accepted").to_string(),
+                    t!("workspace_search_ui.search.a11y.accepted_help").to_string(),
                 )
             };
             ctx.emit_a11y_content(AccessibilityContent::new(

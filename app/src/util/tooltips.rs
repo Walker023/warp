@@ -10,6 +10,7 @@ use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use warpui::{AppContext, Element, EventContext, SingletonEntity};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::settings::PrivacySettings;
 use crate::terminal::model::secrets::SecretLevel;
 use crate::ui_components::blended_colors;
@@ -135,18 +136,20 @@ where
                 redaction,
                 TooltipRedaction::SecretNotSentToLLMMessaging { .. }
             ) {
-                "This wasn't included in the AI conversation."
+                t!("common_extra.tooltips.redaction.not_sent").to_string()
             } else {
-                "This won't be included in any AI conversations or shared blocks."
+                t!("common_extra.tooltips.redaction.will_not_be_sent").to_string()
             };
 
             // Generate the appropriate message based on secret level
             let secret_message = match secret_level {
                 Some(SecretLevel::Enterprise) => {
-                    "Pattern matched your organization's secret redaction regex list."
+                    t!("common_extra.tooltips.redaction.enterprise_pattern").to_string()
                 }
-                Some(SecretLevel::User) => "Pattern matched your secret redaction regex list.",
-                None => "Pattern matched the secret redaction regex list.",
+                Some(SecretLevel::User) => {
+                    t!("common_extra.tooltips.redaction.user_pattern").to_string()
+                }
+                None => t!("common_extra.tooltips.redaction.default_pattern").to_string(),
             };
 
             tooltip.add_child(
@@ -201,7 +204,7 @@ where
             .with_child(
                 appearance
                     .ui_builder()
-                    .span("*Secrets are not sent to Warp's server.")
+                    .span(t!("common_extra.tooltips.redaction.server_note").to_string())
                     .with_style(UiComponentStyles {
                         font_size: Some(12.),
                         margin: Some(Coords::default().top(4.)),

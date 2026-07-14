@@ -3440,7 +3440,7 @@ impl TeamsWidget {
         appearance: &Appearance,
     ) -> Box<dyn Element> {
         let description = self.render_sub_text(
-            delete_disabled_reason.user_facing_message().into(),
+            delete_disabled_reason.user_facing_message(),
             appearance,
             None,
         );

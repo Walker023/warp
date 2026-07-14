@@ -546,7 +546,10 @@ pub fn render_revoke_all_button(
                 );
 
             stack.add_positioned_child(
-                render_tooltip("Revoke all edit permissions".to_string(), appearance),
+                render_tooltip(
+                    t!("terminal_ui.shared_session.roles.revoke_all_edit").to_string(),
+                    appearance,
+                ),
                 OffsetPositioning::offset_from_parent(
                     vec2f(0., 3.),
                     ParentOffsetBounds::Unbounded,

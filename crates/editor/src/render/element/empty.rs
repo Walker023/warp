@@ -34,10 +34,11 @@ impl RenderableBlock for Empty {
         ctx: &mut warpui_core::LayoutContext,
         app: &warpui_core::AppContext,
     ) {
+        let placeholder_text = paragraph_placeholder_text(model.selections().len() == 1);
         self.placeholder
             .layout(&self.viewport_item, model, ctx, app, |_| {
                 placeholder::Options {
-                    text: paragraph_placeholder_text(model.selections().len() == 1),
+                    text: placeholder_text.as_ref(),
                     block_style: BufferBlockStyle::PlainText,
                 }
             });

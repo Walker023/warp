@@ -19,6 +19,7 @@ use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, SingleLineEditorOptions,
     TextOptions,
 };
+use crate::i18n::t;
 
 const EDITOR_WIDTH: f32 = 368.;
 const EDITOR_VERTICAL_PADDING: f32 = 12.;
@@ -52,7 +53,10 @@ impl LinkEditor {
 
         let tag_editor = ctx.add_typed_action_view(|ctx| {
             let mut editor = EditorView::single_line(editor_options.clone(), ctx);
-            editor.set_placeholder_text("Text", ctx);
+            editor.set_placeholder_text(
+                t!("notebooks.link_editor.text_placeholder").to_string(),
+                ctx,
+            );
             editor
         });
 
@@ -62,7 +66,8 @@ impl LinkEditor {
 
         let url_editor = ctx.add_typed_action_view(|ctx| {
             let mut editor = EditorView::single_line(editor_options.clone(), ctx);
-            editor.set_placeholder_text("Link (web or file)", ctx);
+            editor
+                .set_placeholder_text(t!("notebooks.link_editor.url_placeholder").to_string(), ctx);
             editor
         });
 
@@ -251,7 +256,7 @@ impl View for LinkEditor {
         let mut link_button = appearance
             .ui_builder()
             .button(ButtonVariant::Accent, self.apply_link_mouse_state.clone())
-            .with_centered_text_label("Apply link".to_string());
+            .with_centered_text_label(t!("notebooks.link_editor.apply").to_string());
 
         // Disable the link button if either of the editors are empty.
         if !self.is_valid(app) {

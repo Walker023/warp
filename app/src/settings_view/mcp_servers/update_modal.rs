@@ -127,13 +127,16 @@ impl UpdateModalBody {
 
     fn render_title(&self, appearance: &Appearance) -> Box<dyn Element> {
         let theme = appearance.theme();
-        let name = self.server_name.as_deref().unwrap_or("Server");
+        let name = self
+            .server_name
+            .clone()
+            .unwrap_or_else(|| t!("settings_extra.mcp.server").to_string());
 
         // Renders MCP avatar icon
-        let avatar_content = if let Some(icon) = ExternalProductIcon::from_string(name) {
+        let avatar_content = if let Some(icon) = ExternalProductIcon::from_string(&name) {
             AvatarContent::ExternalProductIcon(icon)
         } else {
-            AvatarContent::DisplayName(name.to_string())
+            AvatarContent::DisplayName(name.clone())
         };
         let avatar = Avatar::new(
             avatar_content,
@@ -157,7 +160,7 @@ impl UpdateModalBody {
 
         // Renders MCP title text
         let title = Text::new(
-            format!("Update {name}"),
+            t!("settings_extra.mcp.update_title", name = name).to_string(),
             appearance.ui_font_family(),
             appearance.header_font_size(),
         )
@@ -224,10 +227,11 @@ impl UpdateModalBody {
 
     fn render_description(&self, appearance: &Appearance) -> Box<dyn Element> {
         // Modal appears only when multiple updates are available
-        let description = format!(
-            "This server has {} updates available, which would you like to proceed with?",
-            self.update_options.len()
-        );
+        let description = t!(
+            "settings_extra.mcp.updates_available_description",
+            name = self.update_options.len()
+        )
+        .to_string();
 
         Text::new(
             description,
@@ -261,9 +265,9 @@ impl UpdateModalBody {
                 ..
             } => {
                 let publisher_string = match publisher {
-                    Author::CurrentUser => "another device",
-                    Author::OtherUser { name } => name,
-                    Author::Unknown => "a team member",
+                    Author::CurrentUser => t!("settings_extra.mcp.another_device").to_string(),
+                    Author::OtherUser { name } => name.clone(),
+                    Author::Unknown => t!("settings_extra.mcp.team_member").to_string(),
                 };
                 let datetime = Local
                     .timestamp_opt(*new_version_ts, 0)
@@ -271,15 +275,15 @@ impl UpdateModalBody {
                     .unwrap_or_else(Local::now);
                 let formatted_time = format_approx_duration_from_now(datetime);
                 (
-                    format!("Update from {publisher_string}"),
+                    t!("settings_extra.mcp.update_from", name = publisher_string).to_string(),
                     formatted_time.to_string(),
                 )
             }
             MCPServerUpdate::Gallery {
                 name, new_version, ..
             } => (
-                format!("Update from {name}"),
-                format!("Version {new_version}"),
+                t!("settings_extra.mcp.update_from", name = name).to_string(),
+                t!("settings_extra.mcp.version", name = new_version).to_string(),
             ),
         };
 
@@ -395,7 +399,7 @@ impl View for UpdateModalBody {
         // Add update options
         if self.update_options.is_empty() {
             let no_updates_text = Text::new(
-                "No updates available",
+                t!("settings_extra.mcp.no_updates_available").to_string(),
                 appearance.ui_font_family(),
                 appearance.ui_font_size(),
             )

@@ -16,6 +16,7 @@ use warpui::{
 };
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::modal::MODAL_CORNER_RADIUS;
 use crate::util::color::lighten;
 
@@ -27,16 +28,6 @@ const ACTION_BUTTON_HEIGHT: f32 = 40.;
 const ACTION_BUTTON_BORDER_WIDTH: f32 = 2.;
 const ACTION_BUTTON_HORIZONTAL_PADDING: f32 = 8.;
 const ACTION_BUTTON_FONT_SIZE: f32 = 14.;
-
-const AUTH_OVERRIDE_DESCRIPTION: &str = "It looks like you logged into a Warp account through a web browser. If you continue, any personal Warp drive objects and preferences from this anonymous session with be permanently deleted.";
-const AUTH_OVERRIDE_CONFIRMATION_WARNING: &str = "This cannot be undone.";
-const AUTH_OVERRIDE_INITIAL_STEP_HEADER: &str = "New login detected";
-const AUTH_OVERRIDE_CONFIRM_CONFIRMATION_STEP_HEADER: &str =
-    "Delete personal Warp Drive objects and preferences?";
-const AUTH_OVERRIDE_BULK_EXPORT_BUTTON_LABEL: &str = "Export your data";
-const AUTH_OVERRIDE_BULK_EXPORT_DESCRIPTION: &str = " to import later.";
-const AUTH_OVERRIDE_CANCEL_BUTTON_LABEL: &str = "Cancel";
-const AUTH_OVERRIDE_CONTINUE_BUTTON_LABEL: &str = "Continue";
 
 #[derive(Clone, Copy, Debug)]
 pub enum AuthOverrideWarningBodyAction {
@@ -100,9 +91,11 @@ impl AuthOverrideWarningBody {
         };
 
         let text = match self.confirmation_step {
-            AuthOverrideConfirmationStep::Initial => AUTH_OVERRIDE_INITIAL_STEP_HEADER,
+            AuthOverrideConfirmationStep::Initial => {
+                t!("auth_extra.override_warning.new_login").to_string()
+            }
             AuthOverrideConfirmationStep::ConfirmChangeUser => {
-                AUTH_OVERRIDE_CONFIRM_CONFIRMATION_STEP_HEADER
+                t!("auth_extra.override_warning.confirm_delete").to_string()
             }
         };
 
@@ -154,7 +147,7 @@ impl AuthOverrideWarningBody {
             AuthOverrideConfirmationStep::Initial => {
                 let description = Container::new(
                     ui_builder
-                        .paragraph(AUTH_OVERRIDE_DESCRIPTION)
+                        .paragraph(t!("auth_extra.override_warning.description").to_string())
                         .with_style(muted_styles)
                         .build()
                         .finish(),
@@ -167,7 +160,7 @@ impl AuthOverrideWarningBody {
                         .with_child(
                             ui_builder
                                 .link(
-                                    AUTH_OVERRIDE_BULK_EXPORT_BUTTON_LABEL.into(),
+                                    t!("auth_extra.override_warning.export_data").to_string(),
                                     None,
                                     Some(Box::new(|ctx| {
                                         ctx.dispatch_typed_action(
@@ -184,7 +177,7 @@ impl AuthOverrideWarningBody {
                         )
                         .with_child(
                             ui_builder
-                                .span(AUTH_OVERRIDE_BULK_EXPORT_DESCRIPTION)
+                                .span(t!("auth_extra.override_warning.export_suffix").to_string())
                                 .with_style(muted_styles)
                                 .build()
                                 .finish(),
@@ -200,7 +193,7 @@ impl AuthOverrideWarningBody {
             AuthOverrideConfirmationStep::ConfirmChangeUser => {
                 let confirmation = Container::new(
                     ui_builder
-                        .paragraph(AUTH_OVERRIDE_CONFIRMATION_WARNING)
+                        .paragraph(t!("auth_extra.override_warning.irreversible").to_string())
                         .with_style(muted_styles)
                         .build()
                         .finish(),
@@ -285,7 +278,7 @@ impl AuthOverrideWarningBody {
                 Some(click_button_style),
                 None,
             )
-            .with_centered_text_label(AUTH_OVERRIDE_CANCEL_BUTTON_LABEL.into())
+            .with_centered_text_label(t!("auth_extra.override_warning.cancel").to_string())
             .build()
             .on_click(move |ctx, _, _| {
                 ctx.dispatch_typed_action(AuthOverrideWarningBodyAction::Close);
@@ -311,7 +304,7 @@ impl AuthOverrideWarningBody {
                 Some(outline_click_button_style),
                 None,
             )
-            .with_centered_text_label(AUTH_OVERRIDE_CONTINUE_BUTTON_LABEL.into())
+            .with_centered_text_label(t!("auth_extra.override_warning.continue").to_string())
             .build()
             .on_click(move |ctx, _, _| {
                 ctx.dispatch_typed_action(continue_action);
@@ -376,8 +369,8 @@ impl View for AuthOverrideWarningBody {
 
     fn accessibility_contents(&self, _: &AppContext) -> Option<AccessibilityContent> {
         Some(AccessibilityContent::new(
-            "New login detected",
-            "Warp has detected a new login from a web browser. Press escape to cancel and continue using Warp without login.",
+            t!("auth_extra.override_warning.new_login").to_string(),
+            t!("auth_extra.override_warning.accessibility_description").to_string(),
             WarpA11yRole::HelpRole,
         ))
     }

@@ -16,6 +16,7 @@ use warpui::ui_components::components::UiComponent;
 use warpui::{Element, EventContext};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::tab_configs::session_config::SessionType;
 use crate::ui_components::blended_colors;
 use crate::view_components::callout_bubble::{
@@ -87,13 +88,17 @@ where
     let on_accent_bg = bg.is_some();
     let on_select = Arc::new(on_select);
 
-    let label = Text::new_inline("Session type".to_string(), appearance.ui_font_family(), 12.)
-        .with_color(if on_accent_bg {
-            callout_label_color(appearance)
-        } else {
-            blended_colors::text_disabled(theme, bg_fill)
-        })
-        .finish();
+    let label = Text::new_inline(
+        t!("tab_configs_ui.session_form.session_type").to_string(),
+        appearance.ui_font_family(),
+        12.,
+    )
+    .with_color(if on_accent_bg {
+        callout_label_color(appearance)
+    } else {
+        blended_colors::text_disabled(theme, bg_fill)
+    })
+    .finish();
 
     let mut pills_row = Flex::row().with_spacing(PILL_GAP);
 
@@ -113,13 +118,9 @@ where
         .with_height(14.)
         .finish();
 
-        let name = Text::new_inline(
-            session_type.pill_label().to_string(),
-            appearance.ui_font_family(),
-            14.,
-        )
-        .with_color(item_color)
-        .finish();
+        let name = Text::new_inline(session_type.pill_label(), appearance.ui_font_family(), 14.)
+            .with_color(item_color)
+            .finish();
 
         let pill_content = Flex::row()
             .with_main_axis_size(MainAxisSize::Max)
@@ -224,7 +225,7 @@ where
     let on_accent_bg = bg.is_some();
 
     let label = Text::new_inline(
-        "Select directory".to_string(),
+        t!("tab_configs_ui.session_form.select_directory").to_string(),
         appearance.ui_font_family(),
         12.,
     )
@@ -356,7 +357,7 @@ where
             if state.is_hovered() {
                 let tooltip = Container::new(
                     Text::new_inline(
-                        "Select a git repository to enable worktree support".to_string(),
+                        t!("tab_configs_ui.session_form.worktree_requires_repo").to_string(),
                         font_family,
                         12.,
                     )
@@ -400,7 +401,7 @@ where
         blended_colors::text_sub(theme, theme.background())
     };
     let label = Text::new(
-        "Automatically create a worktree when opening a new tab",
+        t!("tab_configs_ui.session_form.create_worktree").to_string(),
         appearance.ui_font_family(),
         12.,
     )
@@ -487,8 +488,7 @@ where
             if state.is_hovered() {
                 let tooltip = Container::new(
                     Text::new_inline(
-                        "You must select that you want to automatically create a \
-                         worktree in order to select this"
+                        t!("tab_configs_ui.session_form.autogenerate_requires_worktree")
                             .to_string(),
                         font_family,
                         12.,
@@ -534,7 +534,7 @@ where
     };
 
     let label = Text::new(
-        "Auto-generate worktree branch name",
+        t!("tab_configs_ui.session_form.autogenerate_branch_name").to_string(),
         appearance.ui_font_family(),
         12.,
     )

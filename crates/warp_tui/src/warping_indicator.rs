@@ -14,6 +14,7 @@
 use std::sync::LazyLock;
 use std::time::Duration;
 
+use rust_i18n::t;
 use warpui_core::elements::animation::{AnimationClock, Keyframe, KeyframeTimeline};
 use warpui_core::elements::shimmer_math::ShimmerConfig;
 use warpui_core::elements::tui::{
@@ -80,7 +81,7 @@ pub(crate) fn render_warping_indicator(elapsed: Duration, app: &AppContext) -> B
     });
 
     let label = TuiShimmeringText::new(
-        "Warping",
+        t!("warp_tui.warping_indicator.label").to_string(),
         builder.warping_base_color(),
         builder.warping_shimmer_color(),
         ShimmerConfig::default(),

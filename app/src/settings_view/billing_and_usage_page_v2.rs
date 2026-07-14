@@ -52,6 +52,7 @@ use crate::ui_components::blended_colors;
 use crate::ui_components::buttons::icon_button;
 use crate::ui_components::icons::Icon;
 use crate::ui_components::tab_selector::{self, SettingsTab};
+use crate::util::time_format::{format_localized_datetime, LocalizedDateTimeFormat};
 use crate::view_components::action_button::{ActionButton, PrimaryTheme, SecondaryTheme};
 use crate::view_components::ToastFlavor;
 use crate::workspaces::update_manager::TeamUpdateManager;
@@ -137,10 +138,7 @@ enum AddonCreditsPanelState {
 }
 
 enum AddonCreditsRestriction {
-    UpgradeToBuild {
-        link_text: &'static str,
-        url: String,
-    },
+    UpgradeToBuild { link_text: String, url: String },
     ContactAccountExecutive,
     ContactTeamAdmin,
 }
@@ -191,7 +189,11 @@ impl GrantBucket {
             .all(|e| e.date_naive() == first.date_naive())
         {
             let local = first.with_timezone(&Local);
-            format!("Expires {}", local.format("%b %d, %Y"))
+            t!(
+                "settings_extra.billing.expires_on",
+                name = format_localized_datetime(local, LocalizedDateTimeFormat::MonthDayYear)
+            )
+            .to_string()
         } else {
             String::new()
         }
@@ -780,10 +782,11 @@ impl BillingAndUsagePageV2View {
         let outline_color = theme.outline().into_solid();
 
         if has_base_credits {
-            let reset_str = ai_model
-                .next_refresh_time_local()
-                .format("Resets %b %d at %-I:%M %p")
-                .to_string();
+            let reset_time = format_localized_datetime(
+                ai_model.next_refresh_time_local(),
+                LocalizedDateTimeFormat::MonthDayTime,
+            );
+            let reset_str = t!("settings_extra.billing.resets_at", name = reset_time).to_string();
             let base_remaining = ai_model
                 .request_limit()
                 .saturating_sub(ai_model.requests_used()) as i64;
@@ -897,12 +900,13 @@ impl BillingAndUsagePageV2View {
         .finish();
 
         let credits_text = if credits_remaining == 1 {
-            "1 credit remaining".to_string()
+            t!("settings_extra.billing.one_credit_remaining").to_string()
         } else {
-            format!(
-                "{} credits remaining",
-                credits_remaining.separate_with_commas()
+            t!(
+                "settings_extra.billing.credits_remaining",
+                name = credits_remaining.separate_with_commas()
             )
+            .to_string()
         };
         let credits_label = Text::new_inline(credits_text, appearance.ui_font_family(), 12.)
             .with_color(blended_colors::text_sub(theme, theme.surface_1()))
@@ -1085,7 +1089,7 @@ impl BillingAndUsagePageV2View {
             } else if can_upgrade {
                 return AddonCreditsPanelState::IneligiblePlan(
                     AddonCreditsRestriction::UpgradeToBuild {
-                        link_text: "Upgrade to Build",
+                        link_text: t!("settings_extra.billing.upgrade_build").to_string(),
                         url: UserWorkspaces::upgrade_link_for_team(team_uid),
                     },
                 );
@@ -1137,11 +1141,20 @@ impl BillingAndUsagePageV2View {
             .map(|opt| {
                 let credits = opt.credits.separate_with_commas();
                 let dollars = format!("${:.2}", opt.price_usd_cents as f64 / 100.0);
-                format!("{credits} credits / {dollars}")
+                format!(
+                    "{} / {dollars}",
+                    t!("settings_extra.billing.credits_count", name = credits)
+                )
             })
             .unwrap_or_default();
         let auto_reload_credit_amount = selected_credit_option
-            .map(|o| format!("{} credits", o.credits.separate_with_commas()))
+            .map(|o| {
+                t!(
+                    "settings_extra.billing.credits_count",
+                    name = o.credits.separate_with_commas()
+                )
+                .to_string()
+            })
             .unwrap_or_else(|| t!("settings.billing.selected_credit_amount").to_string());
         let auto_reload_tooltip_text = t!(
             "settings.billing.auto_reload_tooltip",
@@ -1231,7 +1244,9 @@ impl BillingAndUsagePageV2View {
                 FormattedTextElement::new(
                     FormattedText::new([FormattedTextLine::Line(vec![
                         FormattedTextFragment::hyperlink(link_text, url),
-                        FormattedTextFragment::plain_text(" to purchase add-on credits."),
+                        FormattedTextFragment::plain_text(
+                            t!("settings_extra.billing.purchase_addon_suffix").to_string(),
+                        ),
                     ])]),
                     appearance.ui_font_size(),
                     appearance.ui_font_family(),
@@ -1488,9 +1503,13 @@ impl BillingAndUsagePageV2View {
         .finish();
 
         let credits_text = if credits_purchased == 1 {
-            "1 credit".to_string()
+            t!("settings_extra.billing.one_credit").to_string()
         } else {
-            format!("{} credits", credits_purchased.separate_with_commas())
+            t!(
+                "settings_extra.billing.credits_count",
+                name = credits_purchased.separate_with_commas()
+            )
+            .to_string()
         };
 
         let credits_component = Container::new(
@@ -2246,8 +2265,12 @@ fn render_balance_card(
     .finish();
 
     let remaining_label_text = match total {
-        Some(limit) => format!("/ {} remaining", limit.separate_with_commas()),
-        None => "remaining".to_string(),
+        Some(limit) => t!(
+            "settings_extra.billing.remaining_of_total",
+            name = limit.separate_with_commas()
+        )
+        .to_string(),
+        None => t!("settings_extra.billing.remaining").to_string(),
     };
     let remaining_label = Text::new_inline(remaining_label_text, appearance.ui_font_family(), 14.)
         .with_color(sub_color)

@@ -345,7 +345,7 @@ impl ConversationEndedTombstoneView {
 
         if is_transcript {
             return Text::new(
-                "You're viewing a snapshot",
+                t!("terminal_ui.shared_session.snapshot.title"),
                 appearance.overline_font_family(),
                 appearance.monospace_font_size(),
             )
@@ -373,11 +373,10 @@ impl ConversationEndedTombstoneView {
         .with_margin_right(8.)
         .finish();
 
-        let title = self
-            .display_data
-            .title
-            .clone()
-            .unwrap_or_else(|| "Agent task".to_string());
+        let title =
+            self.display_data.title.clone().unwrap_or_else(|| {
+                t!("terminal_ui.shared_session.snapshot.agent_task").to_string()
+            });
         Flex::row()
             .with_main_axis_size(MainAxisSize::Min)
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
@@ -404,8 +403,7 @@ impl ConversationEndedTombstoneView {
         let theme = appearance.theme();
         Container::new(
             Text::new(
-                "This shared conversation shows the state when you opened it. \
-                 If the agent is still running, refresh to see the latest progress.",
+                t!("terminal_ui.shared_session.snapshot.description"),
                 appearance.overline_font_family(),
                 appearance.monospace_font_size(),
             )
@@ -423,23 +421,41 @@ impl ConversationEndedTombstoneView {
 
         if let Some(dir) = &self.display_data.working_directory {
             let display_dir = home_relative_path(Path::new(dir));
-            parts.push(format!("Directory: {display_dir}"));
+            parts.push(
+                t!(
+                    "terminal_ui.shared_session.snapshot.directory",
+                    name = display_dir
+                )
+                .to_string(),
+            );
         }
 
         if let Some(source) = &self.display_data.source {
-            parts.push(format!("Source: {source}"));
+            parts.push(t!("terminal_ui.shared_session.snapshot.source", name = source).to_string());
         }
 
         if let Some(skill) = &self.display_data.skill_name {
-            parts.push(format!("Skill: {skill}"));
+            parts.push(t!("terminal_ui.shared_session.snapshot.skill", name = skill).to_string());
         }
 
         if let Some(run_time) = &self.display_data.run_time {
-            parts.push(format!("Run time: {run_time}"));
+            parts.push(
+                t!(
+                    "terminal_ui.shared_session.snapshot.run_time",
+                    name = run_time
+                )
+                .to_string(),
+            );
         }
 
         if let Some(credits) = &self.display_data.credits {
-            parts.push(format!("Credits used: {credits}"));
+            parts.push(
+                t!(
+                    "terminal_ui.shared_session.snapshot.credits",
+                    name = credits
+                )
+                .to_string(),
+            );
         }
 
         if parts.is_empty() {

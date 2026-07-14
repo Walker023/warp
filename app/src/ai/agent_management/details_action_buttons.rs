@@ -7,6 +7,7 @@ use warpui::{AppContext, Element, Entity, TypedActionView, View, ViewContext, Vi
 use crate::ai::agent::conversation::AIConversationId;
 use crate::ai::agent_conversations_model::{AgentConversationEntryId, AgentRunDisplayStatus};
 use crate::ai::ambient_agents::AmbientAgentTaskId;
+use crate::i18n::t;
 use crate::ui_components::icons::Icon;
 use crate::view_components::action_button::{ActionButton, ButtonSize, SecondaryTheme};
 use crate::view_components::copyable_text_field::COPY_FEEDBACK_DURATION;
@@ -114,7 +115,7 @@ impl ConversationActionButtonsRow {
         let open_button = ctx.add_typed_action_view(|_| {
             Self::make_action_button(
                 Icon::LinkExternal,
-                "Open conversation",
+                t!("ai_ui.agent_management.actions.open_conversation").to_string(),
                 None,
                 AgentDetailsAction::Open,
             )
@@ -123,7 +124,7 @@ impl ConversationActionButtonsRow {
         let cancel_task_button = ctx.add_typed_action_view(|_| {
             Self::make_action_button(
                 Icon::StopFilled,
-                "Cancel task",
+                t!("ai_ui.agent_management.actions.cancel_task").to_string(),
                 Some(AnsiColorIdentifier::Red),
                 AgentDetailsAction::CancelTask,
             )
@@ -132,7 +133,7 @@ impl ConversationActionButtonsRow {
         let fork_conversation_button = ctx.add_typed_action_view(|_| {
             Self::make_action_button(
                 Icon::ArrowSplit,
-                "Fork conversation",
+                t!("ai_ui.agent_management.actions.fork_conversation").to_string(),
                 None,
                 AgentDetailsAction::ForkConversation,
             )
@@ -141,7 +142,7 @@ impl ConversationActionButtonsRow {
         let view_details_button = ctx.add_typed_action_view(|_| {
             Self::make_action_button(
                 Icon::Info,
-                "View details",
+                t!("ai_ui.agent_management.actions.view_details").to_string(),
                 None,
                 AgentDetailsAction::ViewDetails,
             )
@@ -150,7 +151,7 @@ impl ConversationActionButtonsRow {
         let copy_link_button = ctx.add_typed_action_view(|_| {
             Self::make_action_button(
                 Icon::Link,
-                "Copy link to run",
+                t!("ai_ui.agent_management.actions.copy_run_link").to_string(),
                 None,
                 AgentDetailsAction::CopyLink,
             )
@@ -179,7 +180,7 @@ impl ConversationActionButtonsRow {
 
     fn make_action_button(
         icon: Icon,
-        tooltip: &str,
+        tooltip: String,
         icon_color: Option<AnsiColorIdentifier>,
         action: AgentDetailsAction,
     ) -> ActionButton {

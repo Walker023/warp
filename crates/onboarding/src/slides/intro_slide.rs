@@ -177,7 +177,7 @@ impl IntroSlide {
         let get_started_button = self.get_started_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label(t!("onboarding.common.get_started").into()),
+                content: button::Content::Label(t!("onboarding.common.get_started")),
                 theme: &button::themes::Primary,
                 options: button::Options {
                     keystroke: Some(enter),

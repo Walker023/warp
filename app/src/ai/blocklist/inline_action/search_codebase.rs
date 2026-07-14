@@ -28,6 +28,7 @@ use crate::ai::blocklist::inline_action::inline_action_header::{
 };
 use crate::ai::blocklist::inline_action::inline_action_icons::cancelled_icon;
 use crate::ai::blocklist::TextLocation;
+use crate::i18n::t;
 use crate::terminal::find::TerminalFindModel;
 use crate::terminal::view::RichContentLink;
 use crate::terminal::ShellLaunchData;
@@ -155,9 +156,18 @@ impl SearchCodebaseView {
         app: &AppContext,
     ) -> Box<dyn Element> {
         let title_text = if let Some(repo_name) = &self.repo_name {
-            format!("Searched for \"{}\" in {}", self.search_query, repo_name)
+            t!(
+                "ai_ui.inline_action.search_codebase.searched_in_repo",
+                query = &self.search_query,
+                repo = repo_name
+            )
+            .to_string()
         } else {
-            format!("Searched for \"{}\"", self.search_query)
+            t!(
+                "ai_ui.inline_action.search_codebase.searched",
+                query = &self.search_query
+            )
+            .to_string()
         };
 
         let body = if self.collapsible.is_expanded {
@@ -169,7 +179,7 @@ impl SearchCodebaseView {
         render_collapsible_search_results(
             title_text,
             file_contexts.len(),
-            "results",
+            t!("ai_ui.inline_action.search_codebase.results").as_ref(),
             &self.collapsible,
             body,
             |ctx| {
@@ -229,7 +239,11 @@ impl SearchCodebaseView {
                 font_size: Some(appearance.monospace_font_size()),
                 ..Default::default()
             };
-            self.render_formatted_text("No results found".to_string(), no_results_style, appearance)
+            self.render_formatted_text(
+                t!("ai_ui.inline_action.search_codebase.no_results").to_string(),
+                no_results_style,
+                appearance,
+            )
         } else {
             render_read_files_text(
                 render_read_file_args,
@@ -461,9 +475,18 @@ impl View for SearchCodebaseView {
                 | AIActionStatus::RunningAsync,
             ) => {
                 let loading_text = if let Some(repo_name) = &self.repo_name {
-                    format!("Searching for \"{}\" in {}", self.search_query, repo_name)
+                    t!(
+                        "ai_ui.inline_action.search_codebase.searching_in_repo",
+                        query = &self.search_query,
+                        repo = repo_name
+                    )
+                    .to_string()
                 } else {
-                    format!("Searching codebase for \"{}\"", self.search_query)
+                    t!(
+                        "ai_ui.inline_action.search_codebase.searching",
+                        query = &self.search_query
+                    )
+                    .to_string()
                 };
                 let loading_icon = yellow_running_icon(appearance);
                 self.render_header(appearance, loading_text, loading_icon, app)
@@ -472,12 +495,18 @@ impl View for SearchCodebaseView {
             }
             Some(AIActionStatus::Finished(result)) if result.result.is_cancelled() => {
                 let cancelled_text = if let Some(repo_name) = &self.repo_name {
-                    format!(
-                        "Search for \"{}\" in {} cancelled",
-                        self.search_query, repo_name
+                    t!(
+                        "ai_ui.inline_action.search_codebase.cancelled_in_repo",
+                        query = &self.search_query,
+                        repo = repo_name
                     )
+                    .to_string()
                 } else {
-                    format!("Search for \"{}\" cancelled", self.search_query)
+                    t!(
+                        "ai_ui.inline_action.search_codebase.cancelled",
+                        query = &self.search_query
+                    )
+                    .to_string()
                 };
                 let cancelled_icon = cancelled_icon(appearance);
                 self.render_header(appearance, cancelled_text, cancelled_icon, app)
@@ -490,12 +519,18 @@ impl View for SearchCodebaseView {
                 .finish(),
             _ => {
                 let text = if let Some(repo_name) = &self.repo_name {
-                    format!(
-                        "Searched codebase for \"{}\" in {}",
-                        self.search_query, repo_name
+                    t!(
+                        "ai_ui.inline_action.search_codebase.searched_codebase_in_repo",
+                        query = &self.search_query,
+                        repo = repo_name
                     )
+                    .to_string()
                 } else {
-                    format!("Searched codebase for \"{}\"", self.search_query)
+                    t!(
+                        "ai_ui.inline_action.search_codebase.searched_codebase",
+                        query = &self.search_query
+                    )
+                    .to_string()
                 };
                 self.render_simple_header(text, app)
                     .with_agent_output_item_spacing(app)

@@ -11,6 +11,8 @@ use warp_core::channel::{Channel, ChannelState};
 use warpui::{AppContext, ModelContext};
 use warpui_extras::secure_storage;
 
+use crate::i18n::t;
+
 const LOCAL_CONTROL_MODE_STORAGE_KEY: &str = "LocalControlMode";
 
 /// User-selected local-control availability.
@@ -53,10 +55,10 @@ impl LocalControlMode {
         matches!(self, Self::Enabled)
     }
 
-    pub fn as_dropdown_label(self) -> &'static str {
+    pub fn as_dropdown_label(self) -> String {
         match self {
-            Self::Disabled => "Disabled",
-            Self::Enabled => "Enabled",
+            Self::Disabled => t!("settings_extra.options.disabled").to_string(),
+            Self::Enabled => t!("settings_extra.options.enabled").to_string(),
         }
     }
 }

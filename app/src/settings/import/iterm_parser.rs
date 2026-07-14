@@ -17,6 +17,7 @@ use super::config::{
     MouseAndScrollReporting, OpacitySettings, ParseableConfig, QuakeModeWindow, SettingType,
     ThemeError, ThemeType,
 };
+use crate::i18n::t;
 use crate::root_view::QuakeModePinPosition;
 use crate::settings::import::config::HotkeyError;
 use crate::settings::{ExtraMetaKeys, DEFAULT_MONOSPACE_FONT_NAME, DEFAULT_MONOSPACE_FONT_SIZE};
@@ -76,12 +77,19 @@ impl TryFrom<ITermThemeType> for ThemeType {
         let (default_light, default_dark) = default_iterm_themes();
         match theme_type {
             ITermThemeType::LightAndDark { light, dark } => Ok(ThemeType::LightAndDark {
-                light: light.into_warp_theme(" (Light)", &default_light)?,
-                dark: dark.into_warp_theme(" (Dark)", &default_dark)?,
+                light: light.into_warp_theme(
+                    t!("settings_extra.import.iterm_theme_light").to_string(),
+                    &default_light,
+                )?,
+                dark: dark.into_warp_theme(
+                    t!("settings_extra.import.iterm_theme_dark").to_string(),
+                    &default_dark,
+                )?,
             }),
-            ITermThemeType::Single(normal) => Ok(ThemeType::Single(
-                normal.into_warp_theme("", &default_dark)?,
-            )),
+            ITermThemeType::Single(normal) => Ok(ThemeType::Single(normal.into_warp_theme(
+                t!("settings_extra.import.iterm_theme").to_string(),
+                &default_dark,
+            )?)),
         }
     }
 }
@@ -117,7 +125,7 @@ impl ITermTheme {
 
     fn into_warp_theme(
         mut self,
-        suffix: &'static str,
+        theme_name: String,
         default_theme: &ITermTheme,
     ) -> Result<WarpTheme, ThemeError> {
         if self.foreground == default_theme.foreground
@@ -162,7 +170,7 @@ impl ITermTheme {
                 bright,
             },
             None,
-            Some(format!("Imported iTerm Theme{suffix}")),
+            Some(theme_name),
         ))
     }
 }
@@ -754,7 +762,9 @@ impl ParseableConfig for ITermProfile {
                 SettingType::MouseAndScrollReporting,
             ),
             option_as_meta: ImportableSetting::new(option_as_meta, SettingType::OptionAsMeta),
-            description: self.profile_name.map(|name| format!("Profile: {name}")),
+            description: self
+                .profile_name
+                .map(|name| t!("settings_extra.import.profile_name", name = name).to_string()),
             font: ImportableSetting::new(font, SettingType::Font),
             default_shell: ImportableSetting::new(default_shell, SettingType::DefaultShell),
             working_directory: ImportableSetting::new(

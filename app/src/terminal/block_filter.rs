@@ -22,14 +22,13 @@ use crate::editor::{
     EditOrigin, EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys,
     SingleLineEditorOptions, TextOptions, ValidInputType,
 };
+use crate::i18n::t;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::TelemetryEvent;
 use crate::terminal::model::terminal_model::BlockIndex;
 use crate::themes::theme::Fill;
 use crate::ui_components::blended_colors;
 use crate::ui_components::icons::Icon;
-
-const FILTER_BLOCK_PLACEHOLDER_TEXT: &str = "Filter block output";
 
 const BLOCK_FILTER_BAR_WIDTH: f32 = 380.;
 const BLOCK_FILTER_BAR_PADDING: f32 = 4.;
@@ -47,11 +46,6 @@ const MAXIMUM_CONTEXT_LINES: u16 = 99;
 const MAXIMUM_CONTEXT_LINE_EDITOR_BUFFER_LENGTH: usize = 2;
 pub type ContextLines = u16;
 pub const DEFAULT_CONTEXT_LINES_VALUE: ContextLines = 0;
-const CONTEXT_LINE_EDITOR_TOOLTIP_LABEL: &str = "Show context lines around matches";
-const REGEX_TOOLTIP_LABEL: &str = "Regex toggle";
-const CASE_SENSITIVITY_TOOLTIP_LABEL: &str = "Case sensitive search";
-const INVERT_FILTER_TOOLTIP_LABEL: &str = "Invert filter";
-
 pub const BLOCK_FILTER_DOTTED_LINE_DASH: Dash = Dash {
     dash_length: 4.,
     gap_length: 4.,
@@ -186,7 +180,8 @@ impl BlockFilterEditor {
                 },
                 ctx,
             );
-            editor.set_placeholder_text(FILTER_BLOCK_PLACEHOLDER_TEXT, ctx);
+            editor
+                .set_placeholder_text(t!("terminal_ui.block_filter.placeholder").to_string(), ctx);
             editor
         });
 
@@ -456,9 +451,9 @@ impl BlockFilterEditor {
         mouse_state_handle: MouseStateHandle,
         on_click_action: BlockFilterEditorAction,
         size: f32,
-        tooltip_text: Option<&str>,
+        tooltip_text: Option<String>,
     ) -> Box<dyn Element> {
-        Hoverable::new(mouse_state_handle, |state| {
+        Hoverable::new(mouse_state_handle, move |state| {
             let (border, background) = if is_selected {
                 (
                     Border::all(1.).with_border_fill(appearance.theme().accent()),
@@ -490,7 +485,7 @@ impl BlockFilterEditor {
             .finish();
 
             let mut stack = Stack::new().with_child(icon);
-            if let (Some(tooltip_text), true) = (tooltip_text, state.is_hovered()) {
+            if let (Some(tooltip_text), true) = (tooltip_text.as_deref(), state.is_hovered()) {
                 let tooltip = appearance
                     .ui_builder()
                     .tool_tip(tooltip_text.to_string())
@@ -535,7 +530,7 @@ impl View for BlockFilterEditor {
             self.mouse_state_handles.regex_mouse_state_handle.clone(),
             BlockFilterEditorAction::ToggleRegex,
             editor_height,
-            Some(REGEX_TOOLTIP_LABEL),
+            Some(t!("terminal_ui.block_filter.regex_tooltip").to_string()),
         );
         let case_sensitive_icon = self.render_hoverable_icon(
             appearance,
@@ -546,7 +541,7 @@ impl View for BlockFilterEditor {
                 .clone(),
             BlockFilterEditorAction::ToggleCaseSensitivity,
             editor_height,
-            Some(CASE_SENSITIVITY_TOOLTIP_LABEL),
+            Some(t!("terminal_ui.block_filter.case_sensitive_tooltip").to_string()),
         );
         let invert_filter_icon = self.render_hoverable_icon(
             appearance,
@@ -557,7 +552,7 @@ impl View for BlockFilterEditor {
                 .clone(),
             BlockFilterEditorAction::ToggleInvertFilter,
             editor_height,
-            Some(INVERT_FILTER_TOOLTIP_LABEL),
+            Some(t!("terminal_ui.block_filter.invert_tooltip").to_string()),
         );
 
         let query_editor = Shrinkable::new(
@@ -657,7 +652,7 @@ impl View for BlockFilterEditor {
                 if state.is_hovered() {
                     let tool_tip = appearance
                         .ui_builder()
-                        .tool_tip(CONTEXT_LINE_EDITOR_TOOLTIP_LABEL.to_string())
+                        .tool_tip(t!("terminal_ui.block_filter.context_lines_tooltip").to_string())
                         .build()
                         .finish();
                     stack.add_positioned_child(
@@ -751,8 +746,8 @@ impl View for BlockFilterEditor {
 
     fn accessibility_contents(&self, _: &AppContext) -> Option<AccessibilityContent> {
         Some(AccessibilityContent::new(
-            "Type searched phrase.",
-            "Press escape to quit",
+            t!("terminal_ui.block_filter.a11y_label").to_string(),
+            t!("terminal_ui.block_filter.a11y_hint").to_string(),
             WarpA11yRole::TextareaRole,
         ))
     }

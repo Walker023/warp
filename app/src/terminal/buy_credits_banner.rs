@@ -218,7 +218,7 @@ impl BuyCreditsBanner {
                 if self.banner_auto_reload_update_in_flight {
                     self.banner_auto_reload_update_in_flight = false;
                     ctx.emit(BuyCreditsBannerEvent::ShowAutoReloadError {
-                        error_message: "Failed to enable auto-reload for your team. Please try again in Settings > Billing and Usage.",
+                        error_message: t!("terminal_ui.credits.auto_reload_failed").to_string(),
                     });
                     ctx.notify();
                 }
@@ -266,10 +266,11 @@ impl BuyCreditsBanner {
             .map(|option| option.credits)
             .unwrap_or(0);
 
-        let tooltip_text = format!(
-            "When enabled, auto reload will purchase {} credits when your credit balance gets low",
-            selected_credits
-        );
+        let tooltip_text = t!(
+            "terminal_ui.credits.auto_reload_tooltip",
+            count = selected_credits
+        )
+        .to_string();
 
         // Create info icon with a custom sub_text_color & mouse cursor (i.e. as opposed to using IconWithTooltip)
         let ui_builder = appearance.ui_builder();
@@ -332,11 +333,13 @@ impl BuyCreditsBanner {
             .iter()
             .enumerate()
             .map(|(index, option)| {
-                let primary_text = format!(
-                    "${:.0} / {} credits",
-                    option.price_usd_cents as f32 / 100.,
-                    option.credits
-                );
+                let price = format!("${:.0}", option.price_usd_cents as f32 / 100.);
+                let primary_text = t!(
+                    "terminal_ui.credits.package",
+                    price = price,
+                    count = option.credits
+                )
+                .to_string();
                 let discount_percent = if base_rate > 0.0 {
                     let actual_rate = option.rate();
                     ((base_rate - actual_rate) / base_rate * 100.0).round() as u32
@@ -422,16 +425,16 @@ impl BuyCreditsBanner {
 
         // Banner text with title and description based on admin status
         let banner_description = if has_admin_permissions {
-            "Your monthly spend limit has been reached. Increase it to continue."
+            t!("terminal_ui.credits.monthly_limit_admin").to_string()
         } else {
-            "Contact a team admin to increase monthly limit."
+            t!("terminal_ui.credits.monthly_limit_member").to_string()
         };
 
         let banner_text = Flex::column()
             .with_children([
                 appearance
                     .ui_builder()
-                    .paragraph("Monthly limit reached")
+                    .paragraph(t!("terminal_ui.credits.monthly_limit_title").to_string())
                     .with_style(UiComponentStyles {
                         font_size: Some(14.),
                         ..Default::default()
@@ -567,7 +570,7 @@ impl BuyCreditsBanner {
         let make_banner_text = || {
             let mut banner_text_children = vec![appearance
                 .ui_builder()
-                .paragraph("Out of credits")
+                .paragraph(t!("terminal_ui.credits.out_of_credits").to_string())
                 .with_style(UiComponentStyles {
                     font_size: Some(14.),
                     ..Default::default()
@@ -580,10 +583,15 @@ impl BuyCreditsBanner {
                 // Create formatted text with clickable hyperlink
                 let warning_text_fragments = vec![
                     FormattedTextFragment::plain_text(
-                        "Purchasing these credits would take you over your monthly spend limit. ",
+                        t!("terminal_ui.credits.purchase_limit_prefix").to_string(),
                     ),
-                    FormattedTextFragment::hyperlink_action("Increase it", Action::ManageBilling),
-                    FormattedTextFragment::plain_text(" to continue."),
+                    FormattedTextFragment::hyperlink_action(
+                        t!("terminal_ui.credits.increase_limit").to_string(),
+                        Action::ManageBilling,
+                    ),
+                    FormattedTextFragment::plain_text(
+                        t!("terminal_ui.credits.purchase_limit_suffix").to_string(),
+                    ),
                 ];
 
                 let formatted_warning = FormattedTextElement::new(
@@ -611,9 +619,9 @@ impl BuyCreditsBanner {
             } else {
                 // Default message when not at limit
                 let banner_description = if has_admin_permissions {
-                    "Add more credits to your account to continue using Oz agents."
+                    t!("terminal_ui.credits.add_more_admin").to_string()
                 } else {
-                    "Contact a team admin to purchase more credits to continue."
+                    t!("terminal_ui.credits.add_more_member").to_string()
                 };
 
                 banner_text_children.push(
@@ -652,9 +660,9 @@ impl BuyCreditsBanner {
                 || would_purchase_exceed_limit;
 
             let button_text = if self.purchase_addon_credits_loading {
-                "Buying…".to_string()
+                t!("terminal_ui.credits.buying").to_string()
             } else {
-                "Buy".to_string()
+                t!("terminal_ui.credits.buy").to_string()
             };
 
             let button_font_color = buy_button_disabled.then_some(
@@ -811,7 +819,7 @@ pub enum BuyCreditsBannerEvent {
     OpenBillingAndUsage,
     RefocusInput,
     OpenAutoReloadModal { purchased_credits: i32 },
-    ShowAutoReloadError { error_message: &'static str },
+    ShowAutoReloadError { error_message: String },
 }
 
 impl Entity for BuyCreditsBanner {

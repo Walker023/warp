@@ -49,6 +49,7 @@ use crate::code::editor_management::CodeSource;
 use crate::code_review::comments::{
     AttachedReviewComment as CodeReviewComment, ReviewCommentBatch,
 };
+use crate::i18n::t;
 use crate::search::slash_command_menu::static_commands::commands;
 use crate::server::server_api::{AIApiError, DeserializationError};
 use crate::terminal::model::block::BlockId;
@@ -620,17 +621,34 @@ impl AIAgentOutput {
                     }
                 }
                 AIAgentOutputMessageType::TodoOperation(operation) => {
-                    result.push(format!("{operation}"));
+                    let formatted_operation = match operation {
+                        TodoOperation::UpdateTodos { todos } => {
+                            t!("ai_export.todo.update", count = todos.len())
+                        }
+                        TodoOperation::MarkAsCompleted { completed_todos } => t!(
+                            "ai_export.todo.mark_completed",
+                            count = completed_todos.len()
+                        ),
+                    };
+                    result.push(formatted_operation.to_string());
                     last_was_action = false;
                 }
                 AIAgentOutputMessageType::Subagent(subagent) => {
-                    result.push(format!("{subagent}"));
+                    result.push(
+                        t!("ai_export.subagent", task_id = subagent.task_id.as_str()).to_string(),
+                    );
                     last_was_action = false;
                 }
                 AIAgentOutputMessageType::CommentsAddressed {
                     comments: comment_ids,
                 } => {
-                    result.push(format!("Addressed {} comments", comment_ids.len()));
+                    result.push(
+                        t!(
+                            "ai_ui.agent_output.addressed_comments",
+                            count = comment_ids.len()
+                        )
+                        .to_string(),
+                    );
                     last_was_action = false;
                 }
                 AIAgentOutputMessageType::Reasoning { .. } => continue,
@@ -644,11 +662,23 @@ impl AIAgentOutput {
                 AIAgentOutputMessageType::ArtifactCreated(_) => continue,
                 AIAgentOutputMessageType::SkillInvoked(_) => continue,
                 AIAgentOutputMessageType::MessagesReceivedFromAgents { messages } => {
-                    result.push(format!("Received {} messages", messages.len()));
+                    result.push(
+                        t!(
+                            "ai_ui.agent_output.received_messages",
+                            count = messages.len()
+                        )
+                        .to_string(),
+                    );
                     last_was_action = false;
                 }
                 AIAgentOutputMessageType::EventsFromAgents { event_ids } => {
-                    result.push(format!("Received {} agent events", event_ids.len()));
+                    result.push(
+                        t!(
+                            "ai_ui.agent_output.received_agent_events",
+                            count = event_ids.len()
+                        )
+                        .to_string(),
+                    );
                     last_was_action = false;
                 }
             }
@@ -731,11 +761,6 @@ pub enum RenderableAIError {
 }
 
 impl RenderableAIError {
-    const TRANSIENT_NETWORK_ERROR_MESSAGE: &'static str =
-        "Warp lost connection while receiving the agent response. This is usually temporary.";
-    /// User-facing message shown when an agent-issued command exits the shell.
-    pub const AGENT_EXITED_SHELL_MESSAGE: &'static str =
-        "The shell exited while the agent was running a command, so the run could not continue. Ensure the agent is not asked to run commands or source scripts that can exit the shell.";
     /// Creates a transient network error. `kind` is the structured cause (including the raw API
     /// error where one exists), preserved so user reports can disambiguate the different causes
     /// behind the shared user-facing copy.
@@ -844,7 +869,11 @@ impl From<&Arc<AIApiError>> for RenderableAIError {
                     )
                 } else {
                     Self::Other {
-                        error_message: format!("Request failed with error: {value:?}"),
+                        error_message: t!(
+                            "ai_ui.renderable_error.request_failed",
+                            error = format!("{value:?}")
+                        )
+                        .to_string(),
                         will_attempt_resume: false,
                         waiting_for_network: false,
                         is_user_error,
@@ -857,7 +886,7 @@ impl From<&Arc<AIApiError>> for RenderableAIError {
                 TransientNetworkErrorKind::Api(value.clone()),
             ),
             AIApiError::GrokSubscriptionTokenRefreshFailed => Self::other(
-                "Grok subscription token could not be refreshed. Please try reconnecting your subscription.",
+                t!("ai_ui.renderable_error.grok_refresh_failed").to_string(),
                 true,
             ),
             AIApiError::Deserialization(DeserializationError::Json(_))
@@ -865,7 +894,11 @@ impl From<&Arc<AIApiError>> for RenderableAIError {
             | AIApiError::ErrorStatus(_, _)
             | AIApiError::Other(_)
             | AIApiError::Stream { .. } => Self::Other {
-                error_message: format!("Request failed with error: {value:?}"),
+                error_message: t!(
+                    "ai_ui.renderable_error.request_failed",
+                    error = format!("{value:?}")
+                )
+                .to_string(),
                 will_attempt_resume: false,
                 waiting_for_network: false,
                 is_user_error,
@@ -883,34 +916,59 @@ impl Display for RenderableAIError {
                 if let Some(message) = user_display_message {
                     write!(f, "{message}")
                 } else {
-                    write!(f, "Quota limit reached.")
+                    write!(f, "{}", t!("ai_ui.renderable_error.quota_limit"))
                 }
             }
             Self::ServerOverloaded => {
-                write!(f, "Warp is currently overloaded. Please try again later.")
+                write!(f, "{}", t!("ai_ui.block.errors.server_overloaded"))
             }
-            Self::InternalWarpError => write!(f, "Internal Warp error."),
+            Self::InternalWarpError => {
+                write!(f, "{}", t!("ai_ui.renderable_error.internal"))
+            }
             Self::ContextWindowExceeded(message) => {
-                write!(f, "Context window exceeded: {message}")
+                write!(
+                    f,
+                    "{}",
+                    t!(
+                        "ai_ui.renderable_error.context_window_exceeded",
+                        message = message
+                    )
+                )
             }
             Self::InvalidApiKey { provider, .. } => {
-                write!(f, "Invalid API key for {provider}")
+                write!(
+                    f,
+                    "{}",
+                    t!(
+                        "ai_ui.renderable_error.invalid_api_key",
+                        provider = provider
+                    )
+                )
             }
             Self::AwsBedrockCredentialsExpiredOrInvalid { model_name } => {
                 write!(
                     f,
-                    "AWS Bedrock credentials expired or invalid for {model_name}"
+                    "{}",
+                    t!(
+                        "ai_ui.renderable_error.aws_credentials_invalid",
+                        model = model_name
+                    )
                 )
             }
             Self::TransientNetworkError { kind, .. } => {
                 write!(
                     f,
-                    "{}\n\nDebug info: {kind}",
-                    Self::TRANSIENT_NETWORK_ERROR_MESSAGE
+                    "{}",
+                    t!(
+                        "ai_ui.renderable_error.transient_network",
+                        debug = kind.to_string()
+                    )
                 )
             }
             Self::Other { error_message, .. } => write!(f, "{error_message}"),
-            Self::AgentExitedShell => write!(f, "{}", Self::AGENT_EXITED_SHELL_MESSAGE),
+            Self::AgentExitedShell => {
+                write!(f, "{}", t!("ai_ui.renderable_error.agent_exited_shell"))
+            }
         }
     }
 }
@@ -1198,7 +1256,9 @@ impl<'a> std::fmt::Display for MarkdownActionResult<'a> {
                 } => {
                     write!(
                         f,
-                        "\n**Command Executed:**\n```bash\n{command}\n```\n\n**Output:**\n```\n{output}\n```"
+                        "\n**{}**\n```bash\n{command}\n```\n\n**{}**\n```\n{output}\n```",
+                        t!("ai_export.action_result.label.command_executed"),
+                        t!("ai_export.action_result.label.output")
                     )
                 }
                 RequestCommandOutputResult::LongRunningCommandSnapshot {
@@ -1208,16 +1268,25 @@ impl<'a> std::fmt::Display for MarkdownActionResult<'a> {
                 } => {
                     write!(
                         f,
-                        "\n```bash\n{command}\n```\n\n**Current Output:**\n```\n{grid_contents}\n```"
+                        "\n```bash\n{command}\n```\n\n**{}**\n```\n{grid_contents}\n```",
+                        t!("ai_export.action_result.label.current_output")
                     )
                 }
                 RequestCommandOutputResult::CancelledBeforeExecution => {
-                    write!(f, "\n_Command cancelled_")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!("ai_export.action_result.status.command_cancelled")
+                    )
                 }
                 RequestCommandOutputResult::Denylisted { command } => {
                     write!(
                         f,
-                        "\nCommand ({command}) was on denylist and so was not allowed to run"
+                        "\n{}",
+                        t!(
+                            "ai_export.action_result.status.command_denylisted",
+                            command = command.as_str()
+                        )
                     )
                 }
             },
@@ -1229,24 +1298,56 @@ impl<'a> std::fmt::Display for MarkdownActionResult<'a> {
                     write!(f, "\n```\n{grid_contents}\n```")
                 }
                 WriteToLongRunningShellCommandResult::Cancelled => {
-                    write!(f, "\n_Command cancelled_")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!("ai_export.action_result.status.command_cancelled")
+                    )
                 }
                 WriteToLongRunningShellCommandResult::Error(e) => {
-                    write!(f, "\n_Write to command failed: {e:?}")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!(
+                            "ai_export.action_result.status.write_command_failed",
+                            error = format!("{e:?}")
+                        )
+                    )
                 }
             },
             AIAgentActionResultType::RequestFileEdits(result) => match result {
                 RequestFileEditsResult::Success { diff, .. } => {
-                    write!(f, "\n\n**Diff:**\n```diff\n{diff}\n```\n\n")
+                    write!(
+                        f,
+                        "\n\n**{}**\n```diff\n{diff}\n```\n\n",
+                        t!("ai_export.action_result.label.diff")
+                    )
                 }
-                RequestFileEditsResult::Cancelled => write!(f, "\n_File edits cancelled_"),
+                RequestFileEditsResult::Cancelled => {
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!("ai_export.action_result.status.file_edits_cancelled")
+                    )
+                }
                 RequestFileEditsResult::DiffApplicationFailed { error } => {
-                    write!(f, "\n_File edits failed: {error} _")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!(
+                            "ai_export.action_result.status.file_edits_failed",
+                            error = error.to_string()
+                        )
+                    )
                 }
             },
             AIAgentActionResultType::ReadFiles(result) => match result {
                 ReadFilesResult::Success { files } => {
-                    write!(f, "\n\n**Files Read:**\n\n")?;
+                    write!(
+                        f,
+                        "\n\n**{}**\n\n",
+                        t!("ai_export.action_result.label.files_read")
+                    )?;
                     for file in files {
                         writeln!(f, "**{}**", file.file_name)?;
                         let content = &file.content;
@@ -1258,8 +1359,19 @@ impl<'a> std::fmt::Display for MarkdownActionResult<'a> {
                     }
                     Ok(())
                 }
-                ReadFilesResult::Error(error) => write!(f, "\n_Read files error: {error} _"),
-                ReadFilesResult::Cancelled => write!(f, "\n_Read files cancelled_"),
+                ReadFilesResult::Error(error) => write!(
+                    f,
+                    "\n_{}_",
+                    t!(
+                        "ai_export.action_result.status.read_files_error",
+                        error = error.to_string()
+                    )
+                ),
+                ReadFilesResult::Cancelled => write!(
+                    f,
+                    "\n_{}_",
+                    t!("ai_export.action_result.status.read_files_cancelled")
+                ),
             },
             AIAgentActionResultType::UploadArtifact(result) => match result {
                 UploadArtifactResult::Success {
@@ -1269,27 +1381,57 @@ impl<'a> std::fmt::Display for MarkdownActionResult<'a> {
                     description,
                     size_bytes,
                 } => {
-                    write!(f, "\n**Artifact Uploaded:** `{artifact_uid}`")?;
+                    write!(
+                        f,
+                        "\n**{}** `{artifact_uid}`",
+                        t!("ai_export.action_result.label.artifact_uploaded")
+                    )?;
                     if let Some(filepath) = filepath {
-                        write!(f, "\n\n**File:** `{filepath}`")?;
+                        write!(
+                            f,
+                            "\n\n**{}** `{filepath}`",
+                            t!("ai_export.action_result.label.file")
+                        )?;
                     }
                     write!(
                         f,
-                        "\n\n**MIME Type:** `{mime_type}`\n\n**Size:** `{size_bytes}` bytes"
+                        "\n\n**{}** `{mime_type}`\n\n**{}** `{size_bytes}` {}",
+                        t!("ai_export.action_result.label.mime_type"),
+                        t!("ai_export.action_result.label.size"),
+                        t!("ai_export.action_result.unit.bytes")
                     )?;
                     if let Some(description) = description {
-                        write!(f, "\n\n**Description:** {description}")?;
+                        write!(
+                            f,
+                            "\n\n**{}** {description}",
+                            t!("ai_export.action_result.label.description")
+                        )?;
                     }
                     Ok(())
                 }
                 UploadArtifactResult::Error(error) => {
-                    write!(f, "\n_Upload artifact error: {error} _")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!(
+                            "ai_export.action_result.status.upload_artifact_error",
+                            error = error.to_string()
+                        )
+                    )
                 }
-                UploadArtifactResult::Cancelled => write!(f, "\n_Upload artifact cancelled_"),
+                UploadArtifactResult::Cancelled => write!(
+                    f,
+                    "\n_{}_",
+                    t!("ai_export.action_result.status.upload_artifact_cancelled")
+                ),
             },
             AIAgentActionResultType::SearchCodebase(result) => match result {
                 SearchCodebaseResult::Success { files } => {
-                    write!(f, "\n\n**Codebase Search Results:**\n\n")?;
+                    write!(
+                        f,
+                        "\n\n**{}**\n\n",
+                        t!("ai_export.action_result.label.codebase_search_results")
+                    )?;
                     for file in files {
                         writeln!(f, "- **{}**", file.file_name)?;
                         let content = &file.content;
@@ -1302,41 +1444,93 @@ impl<'a> std::fmt::Display for MarkdownActionResult<'a> {
                     Ok(())
                 }
                 SearchCodebaseResult::Failed { message, .. } => {
-                    write!(f, "\n_Codebase search failed: {message} _")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!(
+                            "ai_export.action_result.status.codebase_search_failed",
+                            message = message.as_str()
+                        )
+                    )
                 }
-                SearchCodebaseResult::Cancelled => write!(f, "\n_Codebase search cancelled_"),
+                SearchCodebaseResult::Cancelled => write!(
+                    f,
+                    "\n_{}_",
+                    t!("ai_export.action_result.status.codebase_search_cancelled")
+                ),
             },
             AIAgentActionResultType::FileGlobV2(result) => match result {
                 FileGlobV2Result::Success { matched_files, .. } => {
-                    write!(f, "\n\n**File Glob Results:**\n\n")?;
+                    write!(
+                        f,
+                        "\n\n**{}**\n\n",
+                        t!("ai_export.action_result.label.file_glob_results")
+                    )?;
                     for file in matched_files {
                         writeln!(f, "- **{}**", file.file_path)?;
                     }
                     Ok(())
                 }
                 FileGlobV2Result::Error(message) => {
-                    write!(f, "\n_File glob error: {message} _")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!(
+                            "ai_export.action_result.status.file_glob_error",
+                            message = message.as_str()
+                        )
+                    )
                 }
-                FileGlobV2Result::Cancelled => write!(f, "\n_File glob cancelled_"),
+                FileGlobV2Result::Cancelled => write!(
+                    f,
+                    "\n_{}_",
+                    t!("ai_export.action_result.status.file_glob_cancelled")
+                ),
             },
             AIAgentActionResultType::Grep(result) => match result {
                 GrepResult::Success { matched_files } => {
-                    write!(f, "\n\n**Grep Results:**\n\n")?;
+                    write!(
+                        f,
+                        "\n\n**{}**\n\n",
+                        t!("ai_export.action_result.label.grep_results")
+                    )?;
                     for file in matched_files {
                         writeln!(f, "- **{}**", file.file_path)?;
                     }
                     Ok(())
                 }
                 GrepResult::Error(message) => {
-                    write!(f, "\n_Grep error: {message} _")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!(
+                            "ai_export.action_result.status.grep_error",
+                            message = message.as_str()
+                        )
+                    )
                 }
-                GrepResult::Cancelled => write!(f, "\n_Grep cancelled_"),
+                GrepResult::Cancelled => write!(
+                    f,
+                    "\n_{}_",
+                    t!("ai_export.action_result.status.grep_cancelled")
+                ),
             },
             AIAgentActionResultType::ReadDocuments(result) => match result {
                 ReadDocumentsResult::Success { documents } => {
-                    write!(f, "\n\n**Documents Read:**\n\n")?;
+                    write!(
+                        f,
+                        "\n\n**{}**\n\n",
+                        t!("ai_export.action_result.label.documents_read")
+                    )?;
                     for document in documents {
-                        writeln!(f, "**Document {}**", document.document_id)?;
+                        writeln!(
+                            f,
+                            "**{}**",
+                            t!(
+                                "ai_export.action_result.label.document",
+                                id = document.document_id.to_string()
+                            )
+                        )?;
                         if !document.content.trim().is_empty() {
                             writeln!(f, "```\n{}\n```\n", document.content)?;
                         }
@@ -1344,15 +1538,37 @@ impl<'a> std::fmt::Display for MarkdownActionResult<'a> {
                     Ok(())
                 }
                 ReadDocumentsResult::Error(error) => {
-                    write!(f, "\n_Read documents error: {error} _")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!(
+                            "ai_export.action_result.status.read_documents_error",
+                            error = error.to_string()
+                        )
+                    )
                 }
-                ReadDocumentsResult::Cancelled => write!(f, "\n_Read documents cancelled_"),
+                ReadDocumentsResult::Cancelled => write!(
+                    f,
+                    "\n_{}_",
+                    t!("ai_export.action_result.status.read_documents_cancelled")
+                ),
             },
             AIAgentActionResultType::EditDocuments(result) => match result {
                 EditDocumentsResult::Success { updated_documents } => {
-                    write!(f, "\n\n**Documents Edited:**\n\n")?;
+                    write!(
+                        f,
+                        "\n\n**{}**\n\n",
+                        t!("ai_export.action_result.label.documents_edited")
+                    )?;
                     for document in updated_documents {
-                        writeln!(f, "**Document {}**", document.document_id)?;
+                        writeln!(
+                            f,
+                            "**{}**",
+                            t!(
+                                "ai_export.action_result.label.document",
+                                id = document.document_id.to_string()
+                            )
+                        )?;
                         if !document.content.trim().is_empty() {
                             writeln!(f, "```\n{}\n```\n", document.content)?;
                         }
@@ -1360,15 +1576,37 @@ impl<'a> std::fmt::Display for MarkdownActionResult<'a> {
                     Ok(())
                 }
                 EditDocumentsResult::Error(error) => {
-                    write!(f, "\n_Edit documents error: {error} _")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!(
+                            "ai_export.action_result.status.edit_documents_error",
+                            error = error.to_string()
+                        )
+                    )
                 }
-                EditDocumentsResult::Cancelled => write!(f, "\n_Edit documents cancelled_"),
+                EditDocumentsResult::Cancelled => write!(
+                    f,
+                    "\n_{}_",
+                    t!("ai_export.action_result.status.edit_documents_cancelled")
+                ),
             },
             AIAgentActionResultType::CreateDocuments(result) => match result {
                 CreateDocumentsResult::Success { created_documents } => {
-                    write!(f, "\n\n**Documents Created:**\n\n")?;
+                    write!(
+                        f,
+                        "\n\n**{}**\n\n",
+                        t!("ai_export.action_result.label.documents_created")
+                    )?;
                     for document in created_documents {
-                        writeln!(f, "**Document {}**", document.document_id)?;
+                        writeln!(
+                            f,
+                            "**{}**",
+                            t!(
+                                "ai_export.action_result.label.document",
+                                id = document.document_id.to_string()
+                            )
+                        )?;
                         if !document.content.trim().is_empty() {
                             writeln!(f, "```\n{}\n```\n", document.content)?;
                         }
@@ -1376,9 +1614,20 @@ impl<'a> std::fmt::Display for MarkdownActionResult<'a> {
                     Ok(())
                 }
                 CreateDocumentsResult::Error(error) => {
-                    write!(f, "\n_Create documents error: {error} _")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!(
+                            "ai_export.action_result.status.create_documents_error",
+                            error = error.to_string()
+                        )
+                    )
                 }
-                CreateDocumentsResult::Cancelled => write!(f, "\n_Create documents cancelled_"),
+                CreateDocumentsResult::Cancelled => write!(
+                    f,
+                    "\n_{}_",
+                    t!("ai_export.action_result.status.create_documents_cancelled")
+                ),
             },
             AIAgentActionResultType::ReadShellCommandOutput(result) => match result {
                 ReadShellCommandOutputResult::CommandFinished { output, .. } => {
@@ -1391,14 +1640,26 @@ impl<'a> std::fmt::Display for MarkdownActionResult<'a> {
                 } => {
                     write!(
                         f,
-                        "\n```bash\n{command}\n```\n\n**Current Output:**\n```\n{grid_contents}\n```"
+                        "\n```bash\n{command}\n```\n\n**{}**\n```\n{grid_contents}\n```",
+                        t!("ai_export.action_result.label.current_output")
                     )
                 }
                 ReadShellCommandOutputResult::Cancelled => {
-                    write!(f, "\n_Command cancelled_")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!("ai_export.action_result.status.command_cancelled")
+                    )
                 }
                 ReadShellCommandOutputResult::Error(e) => {
-                    write!(f, "\n_Read shell command output failed: {e:?}_")
+                    write!(
+                        f,
+                        "\n_{}_",
+                        t!(
+                            "ai_export.action_result.status.read_shell_output_failed",
+                            error = format!("{e:?}")
+                        )
+                    )
                 }
             },
             other => {
@@ -2398,7 +2659,7 @@ impl CurrentHead {
             CurrentHead::BranchName(name) => name.clone(),
             CurrentHead::HeadlessCommitSha(sha) => {
                 let short = sha.chars().take(7).collect::<String>();
-                format!("Commit {short}")
+                t!("ai_ui.review.commit", sha = short).to_string()
             }
         }
     }
@@ -2826,10 +3087,8 @@ pub struct CloneRepositoryURL {
 
 impl CloneRepositoryURL {
     pub fn new(url: String) -> Self {
-        Self {
-            query: format!("Clone {url}"),
-            url,
-        }
+        let query = t!("ai_export.clone_repository", url = url.as_str()).to_string();
+        Self { query, url }
     }
 
     pub fn into_url(self) -> String {
@@ -2901,7 +3160,7 @@ impl AIAgentInput {
             } => Some(url.query.clone()),
             Self::InitProjectRules { display_query, .. }
             | Self::CreateEnvironment { display_query, .. } => display_query.clone(),
-            Self::CodeReview { .. } => Some("Address these comments".to_string()),
+            Self::CodeReview { .. } => Some(t!("ai_ui.review.address_comments").to_string()),
             Self::FetchReviewComments { .. } => Some(commands::PR_COMMENTS.name.to_string()),
             Self::InvokeSkill {
                 skill, user_query, ..
@@ -3220,12 +3479,12 @@ impl AIAgentExchange {
         let mut parts = Vec::new();
 
         if has_user_input {
-            parts.push(format!("USER:\n{input_text}"));
+            parts.push(format!("{}\n{input_text}", t!("ai_export.role.user")));
         }
 
         if has_agent_output {
             if has_user_input {
-                parts.push(format!("AGENT:\n{output_text}"));
+                parts.push(format!("{}\n{output_text}", t!("ai_export.role.agent")));
             } else {
                 parts.push(output_text);
             }

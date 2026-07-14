@@ -49,6 +49,7 @@ use crate::editor::accept_autosuggestion_keybinding_view::{
 use crate::editor::autosuggestion_ignore_view::AutosuggestionIgnore;
 use crate::editor::position_id_for_first_cursor;
 use crate::editor::view::AutosuggestionLocation;
+use crate::i18n::t;
 use crate::settings::CursorDisplayType;
 use crate::themes::theme::Fill;
 use crate::ui_components::blended_colors;
@@ -1509,7 +1510,7 @@ impl EditorElement {
                 .with_margin_right(self.view_snapshot.em_width)
                 .finish(),
                 Text::new(
-                    "Cycle suggestions",
+                    t!("code_editor_extra.editor.cycle_suggestions").to_string(),
                     self.view_snapshot.font_family,
                     font_size,
                 )

@@ -14,6 +14,8 @@ use tabwriter::TabWriter;
 use warp_cli::agent::OutputFormat;
 use warp_cli::json_filter::{JqFilter, JsonOutput};
 
+use crate::i18n::t;
+
 pub fn standard_table() -> Table {
     let mut table = Table::new();
     table
@@ -213,11 +215,21 @@ fn run_jq_filter<W: std::io::Write>(
         Default::default(),
         [input_result].into_iter(),
         // Callback to format invalid input errors.
-        |err| anyhow::anyhow!("Invalid data: {err}"),
+        |err| {
+            anyhow::anyhow!(t!(
+                "ai_sdk_driver.json_filter.invalid_data",
+                error = err.to_string()
+            )
+            .to_string())
+        },
         // Callback to handle filter outputs.
         |result| match result {
             Ok(val) => write_filter_output(&val, out),
-            Err(err) => anyhow::bail!("jq filter error: {err}"),
+            Err(err) => anyhow::bail!(t!(
+                "ai_sdk_driver.json_filter.filter_error",
+                error = err.to_string()
+            )
+            .to_string()),
         },
     )?;
 

@@ -38,6 +38,7 @@ use crate::cloud_object::CloudObjectLookup as _;
 use crate::editor::{
     EditorOptions, EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, TextOptions,
 };
+use crate::i18n::t;
 use crate::server::ids::{ClientId, HashableId, ServerId, SyncId};
 use crate::ui_components::icons::Icon;
 use crate::view_components::copyable_text_field::{
@@ -316,14 +317,20 @@ impl DisplayChipMenu {
                     };
                     let mut editor = EditorView::new(options, ctx);
                     let placeholder_text = match chip_menu_type {
-                        ChipMenuType::Directories => "Search directories...",
-                        ChipMenuType::Branches => "Search branches...",
-                        ChipMenuType::Environments => "Search environments...",
+                        ChipMenuType::Directories => {
+                            t!("common_extra.context_chips.search.directories")
+                        }
+                        ChipMenuType::Branches => {
+                            t!("common_extra.context_chips.search.branches")
+                        }
+                        ChipMenuType::Environments => {
+                            t!("common_extra.context_chips.search.environments")
+                        }
                         ChipMenuType::CodeReview => {
                             unreachable!("search input should not be constructed")
                         }
                     };
-                    editor.set_placeholder_text(placeholder_text, ctx);
+                    editor.set_placeholder_text(placeholder_text.to_string(), ctx);
                     editor
                 }))
             }
@@ -656,7 +663,7 @@ impl DisplayChipMenu {
             .map(|repo| repo.repo.clone())
             .collect::<Vec<_>>();
         let repos_text = if repo_names.is_empty() {
-            "(none)".to_string()
+            t!("common_extra.context_chips.none").to_string()
         } else {
             repo_names.join(", ")
         };
@@ -881,15 +888,25 @@ impl DisplayChipMenu {
             .with_cross_axis_alignment(CrossAxisAlignment::Start)
             .with_child(row(
                 Icon::Globe4,
-                "Name:",
+                &t!("common_extra.context_chips.environment.name"),
                 value_text(data.name.clone()),
                 false,
             ))
-            .with_child(row(Icon::Hash, "ID:", id_value, false))
-            .with_child(row(Icon::Docker, "Image:", image_value, false))
+            .with_child(row(
+                Icon::Hash,
+                &t!("common_extra.context_chips.environment.id"),
+                id_value,
+                false,
+            ))
+            .with_child(row(
+                Icon::Docker,
+                &t!("common_extra.context_chips.environment.image"),
+                image_value,
+                false,
+            ))
             .with_child(row(
                 Icon::Github,
-                "Repos:",
+                &t!("common_extra.context_chips.environment.repositories"),
                 value_text(data.repos_text.clone()),
                 true,
             ))
@@ -1075,7 +1092,7 @@ impl DisplayChipMenu {
                 let (label, font_size, horizontal_padding, vertical_padding, text_color) =
                     match self.chip_menu_type {
                         ChipMenuType::Environments => (
-                            "No results",
+                            t!("common_extra.context_chips.no_results").to_string(),
                             ENV_MENU_ITEM_FONT_SIZE,
                             ENV_MENU_ITEM_HORIZONTAL_PADDING,
                             ENV_MENU_ITEM_VERTICAL_PADDING,
@@ -1084,7 +1101,7 @@ impl DisplayChipMenu {
                         ChipMenuType::Directories
                         | ChipMenuType::Branches
                         | ChipMenuType::CodeReview => (
-                            "No results found",
+                            t!("common_extra.context_chips.no_results_found").to_string(),
                             appearance.ui_font_size(),
                             LABEL_HORIZONTAL_PADDING,
                             LABEL_VERTICAL_PADDING * 2.0,

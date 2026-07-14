@@ -32,6 +32,7 @@ use crate::i18n::t;
 use crate::menu::{Event as MenuEvent, Event, Menu, MenuItem, MenuItemFields};
 use crate::server::block::Block;
 use crate::server::server_api::block::BlockClient;
+use crate::util::time_format::{format_localized_datetime, LocalizedDateTimeFormat};
 use crate::view_components::ToastFlavor;
 
 const SCROLLBAR_WIDTH: ScrollbarWidth = ScrollbarWidth::Auto;
@@ -238,12 +239,16 @@ impl UserOwnedBlock {
         let timestamp_row = Container::new(
             appearance
                 .ui_builder()
-                .label(format!(
-                    "Executed on: {}",
-                    self.time_started
-                        .with_timezone(&Local)
-                        .format("%a, %b %-d %Y at %-I:%M %p")
-                ))
+                .label(
+                    t!(
+                        "settings_extra.shared_blocks.executed_on",
+                        name = format_localized_datetime(
+                            self.time_started.with_timezone(&Local),
+                            LocalizedDateTimeFormat::WeekdayDateTime,
+                        )
+                    )
+                    .to_string(),
+                )
                 .with_style(
                     UiComponentStyles::default()
                         .set_font_color(
@@ -422,7 +427,8 @@ impl ShowBlocksView {
 
             menu.set_items(
                 vec![MenuItem::Item(
-                    MenuItemFields::new("Unshare").with_on_select_action(ShowBlocksAction::Unshare),
+                    MenuItemFields::new(t!("settings.shared_blocks.unshare").to_string())
+                        .with_on_select_action(ShowBlocksAction::Unshare),
                 )],
                 ctx,
             );
@@ -489,7 +495,7 @@ impl ShowBlocksView {
         ctx.clipboard()
             .write(ClipboardContent::plain_text(block_url.to_string()));
         ctx.emit(ShowBlocksEvent::ShowToast {
-            message: "Link copied.".to_string(),
+            message: t!("settings_extra.shared_blocks.link_copied").to_string(),
             flavor: ToastFlavor::Default,
         })
     }
@@ -548,14 +554,14 @@ impl ShowBlocksView {
             match request_result {
                 Ok(_) => {
                     ctx.emit(ShowBlocksEvent::ShowToast {
-                        message: "Block was successfully unshared.".to_string(),
+                        message: t!("settings_extra.shared_blocks.unshared").to_string(),
                         flavor: ToastFlavor::Success,
                     });
                     user_block.unshare_request_status = UnshareBlockRequestState::Done;
                 }
                 Err(_) => {
                     ctx.emit(ShowBlocksEvent::ShowToast {
-                        message: "Failed to unshare block. Please try again.".to_string(),
+                        message: t!("settings_extra.shared_blocks.unshare_failed").to_string(),
                         flavor: ToastFlavor::Error,
                     });
                     user_block.unshare_request_status = UnshareBlockRequestState::Failed;

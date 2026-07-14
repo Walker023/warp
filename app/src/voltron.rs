@@ -40,6 +40,7 @@ use crate::editor::{
     EditorView, Event as EditorEvent, PlainTextEditorViewAction, PropagateAndNoOpNavigationKeys,
     SingleLineEditorOptions,
 };
+use crate::i18n::t;
 use crate::menu::{Event as MenuEvent, Menu, MenuItem, MenuItemFields};
 use crate::terminal::input::MenuPositioning;
 use crate::terminal::resizable_data::{ModalType, ResizableData, DEFAULT_VOLTRON_WIDTH};
@@ -96,6 +97,14 @@ impl VoltronItem {
             VoltronItem::History => "History Search",
         }
     }
+
+    fn display_name(&self) -> String {
+        match self {
+            VoltronItem::AiCommands => t!("common_extra.voltron.ai_command_search").to_string(),
+            VoltronItem::Workflows => t!("common_extra.voltron.workflows").to_string(),
+            VoltronItem::History => t!("common_extra.voltron.history_search").to_string(),
+        }
+    }
 }
 
 /// Structure used by the `on_load` method to pass extra metadata to features.
@@ -118,7 +127,7 @@ pub struct VoltronMetadata {
 /// then properly propagated to corresponding views.
 pub trait VoltronFeatureViewMeta {
     /// Placeholder text to show in the editor.
-    fn editor_placeholder_text(&self) -> &'static str;
+    fn editor_placeholder_text(&self) -> String;
 
     /// Voltron captures all the editor events and passes them to the currently focused feature by
     /// calling this method. Note that it does not call `ctx.notify()`, so it's up to the feature
@@ -259,7 +268,7 @@ impl Voltron {
         }
     }
 
-    fn placeholder(&mut self, ctx: &mut ViewContext<Self>) -> Option<&'static str> {
+    fn placeholder(&mut self, ctx: &mut ViewContext<Self>) -> Option<String> {
         if let Some(current_feature) = self.current_feature() {
             Some(match current_feature.feature_view_handle {
                 VoltronFeatureViewHandle::Workflows(view_handle) => {
@@ -354,7 +363,7 @@ impl Voltron {
             let items: Vec<MenuItem<VoltronAction>> = features
                 .into_iter()
                 .map(|view| {
-                    let item = MenuItemFields::new(view.name.as_str())
+                    let item = MenuItemFields::new(view.name.display_name())
                         .with_on_select_action(VoltronAction::SelectAndRefresh(view.name));
                     let label = view.feature_view_handle.custom_action().and_then(enclose!(
                         (context) | action | {
@@ -405,7 +414,7 @@ impl Voltron {
                             .with_text_and_icon_label(
                                 TextAndIcon::new(
                                     TextAndIconAlignment::TextFirst,
-                                    current_feature.name.as_str().to_string(),
+                                    current_feature.name.display_name(),
                                     Icon::new(icon_path, appearance.theme().active_ui_text_color()),
                                     MainAxisSize::Min,
                                     MainAxisAlignment::SpaceBetween,

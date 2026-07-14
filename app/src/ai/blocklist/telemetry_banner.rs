@@ -7,6 +7,7 @@ use warpui::ui_components::button::ButtonVariant;
 use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use warpui::{AppContext, Element, Entity, SingletonEntity, View, ViewContext};
 
+use crate::i18n::t;
 use crate::settings_view::SettingsSection;
 use crate::terminal::view::TerminalAction;
 use crate::ui_components::buttons::icon_button;
@@ -15,9 +16,6 @@ use crate::workspaces::user_workspaces::UserWorkspaces;
 use crate::workspaces::workspace::UgcCollectionEnablementSetting;
 use crate::{Appearance, FeatureFlag, WorkspaceAction};
 
-const TITLE_EXISTING_USERS: &str = "We've updated our telemetry policy.";
-const TITLE_NEW_USERS: &str = "Help improve Warp.";
-const DESCRIPTION: &str = "We may collect certain console interactions to improve Warp's AI capabilities. You can opt out any time.";
 const PRIVACY_URL: &str = "https://warp.dev/privacy";
 
 #[derive(Default, Debug, Clone)]
@@ -50,9 +48,9 @@ impl View for TelemetryBanner {
         let ui_builder = appearance.ui_builder();
 
         let title = if self.is_onboarded {
-            TITLE_EXISTING_USERS
+            t!("ai_ui.telemetry_banner.existing_user_title")
         } else {
-            TITLE_NEW_USERS
+            t!("ai_ui.telemetry_banner.new_user_title")
         };
 
         let left = Flex::row()
@@ -77,15 +75,19 @@ impl View for TelemetryBanner {
                     Flex::column()
                         .with_main_axis_alignment(MainAxisAlignment::Start)
                         .with_child(
-                            Text::new(title, ui_builder.ui_font_family(), 14.)
+                            Text::new(title.to_string(), ui_builder.ui_font_family(), 14.)
                                 .with_color(theme.active_ui_text_color().into_solid())
                                 .finish(),
                         )
                         .with_child(
-                            Text::new(DESCRIPTION, ui_builder.ui_font_family(), 12.)
-                                .with_color(theme.nonactive_ui_text_color().into_solid())
-                                .soft_wrap(true)
-                                .finish(),
+                            Text::new(
+                                t!("ai_ui.telemetry_banner.description").to_string(),
+                                ui_builder.ui_font_family(),
+                                12.,
+                            )
+                            .with_color(theme.nonactive_ui_text_color().into_solid())
+                            .soft_wrap(true)
+                            .finish(),
                         )
                         .finish(),
                 )
@@ -99,7 +101,7 @@ impl View for TelemetryBanner {
                 Container::new(
                     ui_builder
                         .button(ButtonVariant::Text, self.learn_more_mouse_state.clone())
-                        .with_text_label("Learn more".into())
+                        .with_text_label(t!("common.learn_more").to_string())
                         .with_style(UiComponentStyles {
                             height: Some(24.),
                             padding: Some(Coords {
@@ -130,7 +132,9 @@ impl View for TelemetryBanner {
                             ButtonVariant::Outlined,
                             self.privacy_settings_mouse_state.clone(),
                         )
-                        .with_text_label("Manage privacy settings".into())
+                        .with_text_label(
+                            t!("ai_ui.telemetry_banner.manage_privacy_settings").to_string(),
+                        )
                         .with_style(UiComponentStyles {
                             ..Default::default()
                         })

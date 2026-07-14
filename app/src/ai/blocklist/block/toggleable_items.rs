@@ -11,6 +11,7 @@ use warpui::ui_components::text::Span;
 use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::blended_colors;
 
 type ItemLabelFn<T> = Box<dyn Fn(&T, &AppContext) -> Span>;
@@ -175,7 +176,7 @@ impl<T: 'static> View for ToggleableItemsView<T> {
                     .finish();
 
                 let hint_text = Span::new(
-                    "to toggle selection",
+                    t!("ai_ui.toggleable_items.toggle_selection").to_string(),
                     UiComponentStyles {
                         margin: Some(Coords::default().left(6.)),
                         ..hint_styles

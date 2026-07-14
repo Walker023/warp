@@ -17,6 +17,7 @@ use warpui::{AppContext, Element, SingletonEntity};
 use crate::ai::agent::AIAgentExchangeId;
 use crate::appearance::Appearance;
 use crate::code::editor::{add_color, remove_color};
+use crate::i18n::t;
 use crate::search::{ItemHighlightState, SearchItem};
 use crate::terminal::input::inline_menu::styles::{
     font_size, icon_color, item_background, menu_background_color, primary_text_color, ICON_MARGIN,
@@ -43,7 +44,7 @@ impl RewindSearchItem {
     pub fn new_current() -> Self {
         Self {
             exchange_id: None,
-            query_text: "Current".to_string(),
+            query_text: t!("terminal_ui.input.rewind.current").to_string(),
             file_changes: FileChangesInfo::default(),
             query_match_result: None,
             score: OrderedFloat(0.0),
@@ -141,7 +142,7 @@ impl SearchItem for RewindSearchItem {
         let changes_element: Box<dyn Element> = if self.is_current {
             // "Current" item shows "No code to be restored"
             Text::new_inline(
-                "No code to be restored".to_string(),
+                t!("terminal_ui.input.rewind.no_code_changes").to_string(),
                 appearance.ui_font_family(),
                 secondary_font_size,
             )
@@ -174,7 +175,7 @@ impl SearchItem for RewindSearchItem {
             row.finish()
         } else {
             Text::new_inline(
-                "No code to be restored".to_string(),
+                t!("terminal_ui.input.rewind.no_code_changes").to_string(),
                 appearance.ui_font_family(),
                 secondary_font_size,
             )
@@ -218,14 +219,21 @@ impl SearchItem for RewindSearchItem {
 
     fn accessibility_label(&self) -> String {
         if self.is_current {
-            "Current state (no rewind)".to_string()
+            t!("terminal_ui.input.rewind.current_a11y").to_string()
         } else if self.has_code_changes() {
-            format!(
-                "Rewind to: {} (+{} -{})",
-                self.query_text, self.file_changes.lines_added, self.file_changes.lines_removed
+            t!(
+                "terminal_ui.input.rewind.rewind_changes_a11y",
+                name = self.query_text,
+                additions = self.file_changes.lines_added,
+                deletions = self.file_changes.lines_removed
             )
+            .to_string()
         } else {
-            format!("Rewind to: {} (no code changes)", self.query_text)
+            t!(
+                "terminal_ui.input.rewind.rewind_no_changes_a11y",
+                name = self.query_text
+            )
+            .to_string()
         }
     }
 }

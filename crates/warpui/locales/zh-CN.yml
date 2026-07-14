@@ -1,0 +1,5 @@
+warpui:
+  file_dialog:
+    choose_directory: "选择文件夹..."
+    choose_file: "选择文件..."
+    save_file_as: "文件另存为..."

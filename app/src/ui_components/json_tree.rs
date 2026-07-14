@@ -17,6 +17,7 @@ use warpui::elements::{
 use warpui::{Element, EventContext};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 
 // ---------------------------------------------------------------------------
 // Callback type aliases
@@ -183,18 +184,16 @@ impl JsonTreeColors {
 /// Formats the annotation for a collapsible container node, e.g. `{} 3 keys`.
 pub fn format_object_annotation(key_count: usize) -> String {
     match key_count {
-        0 => "{} 0 keys".to_string(),
-        1 => "{} 1 key".to_string(),
-        n => format!("{{}} {} keys", n),
+        1 => t!("common_extra.json_tree.object_one", count = key_count).to_string(),
+        _ => t!("common_extra.json_tree.object_many", count = key_count).to_string(),
     }
 }
 
 /// Formats the annotation for a collapsible array node, e.g. `[] 2 items`.
 pub fn format_array_annotation(item_count: usize) -> String {
     match item_count {
-        0 => "[] 0 items".to_string(),
-        1 => "[] 1 item".to_string(),
-        n => format!("[] {} items", n),
+        1 => t!("common_extra.json_tree.array_one", count = item_count).to_string(),
+        _ => t!("common_extra.json_tree.array_many", count = item_count).to_string(),
     }
 }
 

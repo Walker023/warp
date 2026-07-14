@@ -54,6 +54,7 @@ use crate::ai::harness_display;
 use crate::appearance::Appearance;
 use crate::auth::UserUid;
 use crate::cloud_object::CloudObjectLookup as _;
+use crate::i18n::t;
 use crate::notebooks::NotebookId;
 use crate::send_telemetry_from_ctx;
 use crate::server::ids::{ServerId, SyncId};
@@ -83,10 +84,6 @@ const HARNESS_CIRCLE_SIZE: f32 = 16.0;
 const HARNESS_ICON_IN_CIRCLE: f32 = 9.0;
 const LABEL_VALUE_GAP: f32 = 4.0;
 const SECTION_HEADER_GAP: f32 = 8.0;
-const RUN_METADATA_ACCESS_DENIED_TITLE: &str = "Run metadata is not available";
-const RUN_METADATA_ACCESS_DENIED_DESCRIPTION: &str =
-    "You can view this shared session, but run metadata is only visible to users with access to this run.";
-
 /// Panel rendering mode.
 #[derive(Debug, Clone, PartialEq)]
 enum PanelMode {
@@ -348,7 +345,7 @@ impl ConversationDetailsData {
             },
             title: conversation
                 .title()
-                .unwrap_or_else(|| "Conversation".to_string()),
+                .unwrap_or_else(|| t!("ai_ui.conversation_details.conversation").to_string()),
             creator,
             executor: None,
             created_at,
@@ -542,7 +539,7 @@ impl ConversationDetailsData {
                 environment_id: None,
                 conversation_id: None,
             },
-            title: "Cloud agent run".to_string(),
+            title: t!("ai_ui.conversation_details.cloud_agent_run").to_string(),
             creator: None,
             executor: None,
             created_at: None,
@@ -643,7 +640,7 @@ pub fn init(app: &mut AppContext) {
     app.register_fixed_bindings([FixedBinding::custom(
         CustomAction::Copy,
         ConversationDetailsPanelAction::CopySelectedText,
-        "Copy",
+        t!("terminal.copy").to_string(),
         id!(ConversationDetailsPanel::ui_name()) & !id!("IMEOpen"),
     )]);
 }
@@ -686,20 +683,26 @@ impl ConversationDetailsPanel {
 
         #[cfg(not(target_family = "wasm"))]
         let continue_locally_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Continue locally", PrimaryTheme)
-                .with_tooltip("Fork this conversation locally")
-                .with_size(ButtonSize::Small)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(ConversationDetailsPanelAction::ContinueLocally);
-                })
+            ActionButton::new(
+                t!("ai_ui.conversation_details.continue_locally").to_string(),
+                PrimaryTheme,
+            )
+            .with_tooltip(t!("ai_ui.conversation_details.continue_locally_tooltip").to_string())
+            .with_size(ButtonSize::Small)
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(ConversationDetailsPanelAction::ContinueLocally);
+            })
         });
         let open_in_oz_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("View in Oz", SecondaryTheme)
-                .with_tooltip("View this run in the Oz web app")
-                .with_size(ButtonSize::Small)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(ConversationDetailsPanelAction::OpenInOz);
-                })
+            ActionButton::new(
+                t!("ai_ui.conversation_details.view_in_oz").to_string(),
+                SecondaryTheme,
+            )
+            .with_tooltip(t!("ai_ui.conversation_details.view_in_oz_tooltip").to_string())
+            .with_size(ButtonSize::Small)
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(ConversationDetailsPanelAction::OpenInOz);
+            })
         });
         #[cfg(not(target_family = "wasm"))]
         ctx.subscribe_to_model(&AISettings::handle(ctx), |_, _, event, ctx| {
@@ -827,7 +830,9 @@ impl ConversationDetailsPanel {
 
                 let window_id = ctx.window_id();
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                    let toast = DismissibleToast::default("Copied branch name".to_string());
+                    let toast = DismissibleToast::default(
+                        t!("ai_ui.agent_management.copied_branch_name").to_string(),
+                    );
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
             }
@@ -1045,11 +1050,12 @@ impl ConversationDetailsPanel {
         .finish();
 
         let created_text = Text::new(
-            format!(
-                "Created by {} • {}",
-                creator.display_name,
-                format_approx_duration_from_now(created_at)
-            ),
+            t!(
+                "ai_ui.conversation_details.created_by",
+                name = &creator.display_name,
+                time = format_approx_duration_from_now(created_at)
+            )
+            .to_string(),
             appearance.ui_font_family(),
             ui_font_size,
         )
@@ -1091,7 +1097,7 @@ impl ConversationDetailsPanel {
         let ui_font_size = appearance.ui_font_size();
 
         let label_text = Text::new(
-            "Agent".to_string(),
+            t!("ai_ui.agent_management.metadata.agent").to_string(),
             appearance.ui_font_family(),
             ui_font_size,
         )
@@ -1148,7 +1154,7 @@ impl ConversationDetailsPanel {
         let ui_font_size = appearance.ui_font_size();
 
         let label_text = Text::new(
-            "Error".to_string(),
+            t!("ai_ui.conversation_details.error").to_string(),
             appearance.ui_font_family(),
             ui_font_size,
         )
@@ -1199,7 +1205,7 @@ impl ConversationDetailsPanel {
                     .finish();
 
             let title = Text::new(
-                RUN_METADATA_ACCESS_DENIED_TITLE,
+                t!("ai_ui.conversation_details.metadata_unavailable").to_string(),
                 appearance.ui_font_family(),
                 ui_font_size,
             )
@@ -1208,7 +1214,7 @@ impl ConversationDetailsPanel {
             .with_selectable(true)
             .finish();
             let description = Text::new(
-                RUN_METADATA_ACCESS_DENIED_DESCRIPTION,
+                t!("ai_ui.conversation_details.metadata_access_denied").to_string(),
                 appearance.ui_font_family(),
                 ui_font_size - 1.,
             )
@@ -1279,7 +1285,7 @@ impl ConversationDetailsPanel {
 
         // Section header
         let header = Text::new(
-            "Status".to_string(),
+            t!("ai_ui.conversation_details.status").to_string(),
             appearance.ui_font_family(),
             ui_font_size,
         )
@@ -1336,7 +1342,7 @@ impl ConversationDetailsPanel {
                 let mut stack = Stack::new().with_child(status_badge);
                 if state.is_hovered() {
                     let tooltip = ui_builder
-                        .tool_tip("View run in Oz web".to_string())
+                        .tool_tip(t!("ai_ui.conversation_details.view_run_in_oz").to_string())
                         .build()
                         .finish();
                     stack.add_positioned_overlay_child(
@@ -1387,7 +1393,7 @@ impl ConversationDetailsPanel {
         let ui_font_size = appearance.ui_font_size();
 
         let label_text = Text::new(
-            "Harness".to_string(),
+            t!("ai_ui.conversation_details.harness").to_string(),
             appearance.ui_font_family(),
             ui_font_size,
         )
@@ -1470,7 +1476,7 @@ impl ConversationDetailsPanel {
         let oz_link = appearance
             .ui_builder()
             .link(
-                "Open in Oz".to_string(),
+                t!("ai_ui.conversation_details.open_in_oz").to_string(),
                 Some(skill_url),
                 None,
                 self.mouse_states.skill_link.clone(),
@@ -1506,7 +1512,7 @@ impl ConversationDetailsPanel {
                 let source_link = appearance
                     .ui_builder()
                     .link(
-                        "Open in GitHub".to_string(),
+                        t!("ai_ui.conversation_details.open_in_github").to_string(),
                         Some(github_url),
                         None,
                         self.mouse_states.skill_source_link.clone(),
@@ -1527,7 +1533,11 @@ impl ConversationDetailsPanel {
         if trimmed.is_empty() {
             return None;
         }
-        Some(self.render_simple_field("Initial query", trimmed, appearance))
+        Some(self.render_simple_field(
+            t!("ai_ui.conversation_details.initial_query").as_ref(),
+            trimmed,
+            appearance,
+        ))
     }
 
     fn render_artifacts_section(&self, appearance: &Appearance) -> Option<Box<dyn Element>> {
@@ -1538,7 +1548,7 @@ impl ConversationDetailsPanel {
         let ui_font_size = appearance.ui_font_size();
 
         let label_text = Text::new(
-            "Artifacts".to_string(),
+            t!("ai_ui.conversation_details.artifacts").to_string(),
             appearance.ui_font_family(),
             ui_font_size,
         )
@@ -1577,7 +1587,7 @@ impl ConversationDetailsPanel {
         let ui_font_size = appearance.ui_font_size();
 
         let header_text = Text::new(
-            "Environment setup commands".to_string(),
+            t!("ai_ui.conversation_details.environment_setup_commands").to_string(),
             appearance.ui_font_family(),
             ui_font_size,
         )
@@ -1642,7 +1652,7 @@ impl ConversationDetailsPanel {
 
         // Section header
         let header = Text::new(
-            "Environment details".to_string(),
+            t!("ai_ui.conversation_details.environment_details").to_string(),
             appearance.ui_font_family(),
             ui_font_size,
         )
@@ -1663,12 +1673,19 @@ impl ConversationDetailsPanel {
              copy_button_kind: CopyButtonKind,
              action: ConversationDetailsPanelAction| {
                 render_copyable_text_field(
-                    CopyableTextFieldConfig::new(format!("{label}: {value}"))
-                        .with_font_size(ui_font_size)
-                        .with_text_color(theme.foreground().into())
-                        .with_icon_size(16.)
-                        .with_mouse_state(self.mouse_state_for_copy_button(copy_button_kind))
-                        .with_last_copied_at(self.copy_feedback_times.get(&copy_button_kind)),
+                    CopyableTextFieldConfig::new(
+                        t!(
+                            "ai_ui.conversation_details.named_value",
+                            label = label,
+                            value = value
+                        )
+                        .to_string(),
+                    )
+                    .with_font_size(ui_font_size)
+                    .with_text_color(theme.foreground().into())
+                    .with_icon_size(16.)
+                    .with_mouse_state(self.mouse_state_for_copy_button(copy_button_kind))
+                    .with_last_copied_at(self.copy_feedback_times.get(&copy_button_kind)),
                     move |ctx| {
                         ctx.dispatch_typed_action(action.clone());
                     },
@@ -1677,7 +1694,12 @@ impl ConversationDetailsPanel {
             };
 
         let name_text = Text::new(
-            format!("Name: {environment_name}"),
+            t!(
+                "ai_ui.conversation_details.named_value",
+                label = t!("ai_ui.conversation_details.name"),
+                value = environment_name
+            )
+            .to_string(),
             appearance.ui_font_family(),
             ui_font_size,
         )
@@ -1693,7 +1715,7 @@ impl ConversationDetailsPanel {
 
         section.add_child(
             Container::new(render_copyable_field(
-                "ID",
+                t!("ai_ui.conversation_details.id").as_ref(),
                 environment_id,
                 CopyButtonKind::EnvironmentId,
                 ConversationDetailsPanelAction::CopyEnvironmentId,
@@ -1704,7 +1726,7 @@ impl ConversationDetailsPanel {
 
         section.add_child(
             Container::new(render_copyable_field(
-                "Image",
+                t!("ai_ui.conversation_details.image").as_ref(),
                 &docker_image,
                 CopyButtonKind::DockerImage,
                 ConversationDetailsPanelAction::CopyDockerImage,
@@ -2014,7 +2036,7 @@ impl View for ConversationDetailsPanel {
                 if let Some(directory) = directory {
                     content.add_child(
                         Container::new(self.render_field_with_copy(
-                            "Directory",
+                            t!("ai_ui.conversation_details.directory").as_ref(),
                             directory,
                             ConversationDetailsPanelAction::CopyDirectory,
                             CopyButtonKind::Directory,
@@ -2029,7 +2051,7 @@ impl View for ConversationDetailsPanel {
                 if let Some(id) = conversation_id {
                     content.add_child(
                         Container::new(self.render_field_with_copy(
-                            "Conversation ID",
+                            t!("ai_ui.conversation_details.conversation_id").as_ref(),
                             id,
                             ConversationDetailsPanelAction::CopyConversationId,
                             CopyButtonKind::ConversationId,
@@ -2047,7 +2069,7 @@ impl View for ConversationDetailsPanel {
                 if let Some(directory) = directory {
                     content.add_child(
                         Container::new(self.render_field_with_copy(
-                            "Directory",
+                            t!("ai_ui.conversation_details.directory").as_ref(),
                             directory,
                             ConversationDetailsPanelAction::CopyDirectory,
                             CopyButtonKind::Directory,
@@ -2061,7 +2083,7 @@ impl View for ConversationDetailsPanel {
                 if let Some(task_id) = task_id {
                     content.add_child(
                         Container::new(self.render_field_with_copy(
-                            "Run ID",
+                            t!("ai_ui.conversation_details.run_id").as_ref(),
                             &task_id.to_string(),
                             ConversationDetailsPanelAction::CopyRunId,
                             CopyButtonKind::RunId,
@@ -2078,27 +2100,44 @@ impl View for ConversationDetailsPanel {
         if let Some(credits) = self.data.credits {
             let formatted = format!("{credits:.1}");
             content.add_child(
-                Container::new(self.render_simple_field("Credits used", &formatted, appearance))
-                    .with_margin_bottom(FIELD_SPACING)
-                    .finish(),
+                Container::new(self.render_simple_field(
+                    t!("ai_ui.conversation_details.credits_used").as_ref(),
+                    &formatted,
+                    appearance,
+                ))
+                .with_margin_bottom(FIELD_SPACING)
+                .finish(),
             );
         }
 
         if let Some(duration) = self.data.run_time {
             let formatted = human_readable_precise_duration(duration);
             content.add_child(
-                Container::new(self.render_simple_field("Run time", &formatted, appearance))
-                    .with_margin_bottom(FIELD_SPACING)
-                    .finish(),
+                Container::new(self.render_simple_field(
+                    t!("ai_ui.conversation_details.run_time").as_ref(),
+                    &formatted,
+                    appearance,
+                ))
+                .with_margin_bottom(FIELD_SPACING)
+                .finish(),
             );
         }
 
         if let Some(created_at) = self.data.created_at {
-            let formatted = created_at.format("%I:%M %p on %-m/%-d/%Y").to_string();
+            let formatted = t!(
+                "ai_ui.conversation_details.created_timestamp",
+                time = created_at.format("%I:%M %p"),
+                date = created_at.format("%-m/%-d/%Y")
+            )
+            .to_string();
             content.add_child(
-                Container::new(self.render_simple_field("Created on", &formatted, appearance))
-                    .with_margin_bottom(FIELD_SPACING)
-                    .finish(),
+                Container::new(self.render_simple_field(
+                    t!("ai_ui.conversation_details.created_on").as_ref(),
+                    &formatted,
+                    appearance,
+                ))
+                .with_margin_bottom(FIELD_SPACING)
+                .finish(),
             );
         }
 

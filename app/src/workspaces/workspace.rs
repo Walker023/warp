@@ -16,6 +16,7 @@ use crate::ai::execution_profiles::{
 };
 use crate::ai::llms::{LLMModelHost, LLMProvider};
 use crate::auth::UserUid;
+use crate::i18n::t;
 use crate::server::ids::ServerId;
 use crate::settings::AgentModeCommandExecutionPredicate;
 
@@ -283,16 +284,36 @@ pub enum CustomerType {
 impl CustomerType {
     pub fn to_display_string(self) -> String {
         match self {
-            CustomerType::Free => "Free".to_string(),
-            CustomerType::Turbo => "Turbo".to_string(),
-            CustomerType::SelfServe => "Team".to_string(),
-            CustomerType::Prosumer => "Pro".to_string(),
-            CustomerType::Legacy => "Early adopter".to_string(),
-            CustomerType::Enterprise => "Enterprise".to_string(),
-            CustomerType::Business => "Business".to_string(),
-            CustomerType::Lightspeed => "Lightspeed".to_string(),
-            CustomerType::Build => "Build".to_string(),
-            CustomerType::BuildMax => "Max".to_string(),
+            CustomerType::Free => {
+                t!("workspace_search_ui.workspace.customer_type.free").to_string()
+            }
+            CustomerType::Turbo => {
+                t!("workspace_search_ui.workspace.customer_type.turbo").to_string()
+            }
+            CustomerType::SelfServe => {
+                t!("workspace_search_ui.workspace.customer_type.team").to_string()
+            }
+            CustomerType::Prosumer => {
+                t!("workspace_search_ui.workspace.customer_type.pro").to_string()
+            }
+            CustomerType::Legacy => {
+                t!("workspace_search_ui.workspace.customer_type.early_adopter").to_string()
+            }
+            CustomerType::Enterprise => {
+                t!("workspace_search_ui.workspace.customer_type.enterprise").to_string()
+            }
+            CustomerType::Business => {
+                t!("workspace_search_ui.workspace.customer_type.business").to_string()
+            }
+            CustomerType::Lightspeed => {
+                t!("workspace_search_ui.workspace.customer_type.lightspeed").to_string()
+            }
+            CustomerType::Build => {
+                t!("workspace_search_ui.workspace.customer_type.build").to_string()
+            }
+            CustomerType::BuildMax => {
+                t!("workspace_search_ui.workspace.customer_type.max").to_string()
+            }
             CustomerType::Unknown => "".to_string(),
         }
     }

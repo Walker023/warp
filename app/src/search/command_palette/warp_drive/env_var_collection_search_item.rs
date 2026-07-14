@@ -9,6 +9,7 @@ use crate::cloud_object::CloudObject;
 use crate::drive::cloud_object_styling::warp_drive_icon_color;
 use crate::drive::{CloudObjectTypeAndId, DriveObjectType};
 use crate::env_vars::CloudEnvVarCollection;
+use crate::i18n::t;
 use crate::search::command_palette::mixer::CommandPaletteItemAction;
 use crate::search::command_palette::render_util::render_search_item_icon;
 use crate::search::command_palette::styles::SEARCH_ITEM_TEXT_PADDING;
@@ -63,7 +64,7 @@ impl SearchItem for EnvVarCollectionSearchItem {
                 .string_model
                 .title
                 .clone()
-                .unwrap_or("Untitled".to_owned())
+                .unwrap_or_else(|| t!("workspace_search_ui.search.untitled").to_string())
                 .to_owned(),
             appearance.ui_font_family(),
             appearance.monospace_font_size(),
@@ -163,14 +164,16 @@ impl SearchItem for EnvVarCollectionSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!(
-            "Environment Variables: {}",
-            self.cloud_env_var_collection
+        t!(
+            "workspace_search_ui.search.a11y.environment_variables",
+            name = self
+                .cloud_env_var_collection
                 .model()
                 .string_model
                 .title
                 .clone()
-                .unwrap_or("Untitled".to_owned())
+                .unwrap_or_else(|| t!("workspace_search_ui.search.untitled").to_string())
         )
+        .to_string()
     }
 }

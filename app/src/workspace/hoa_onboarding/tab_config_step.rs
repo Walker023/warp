@@ -8,6 +8,7 @@ use warpui::geometry::vector::Vector2F;
 use warpui::{Element, EventContext};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::tab_configs::session_config::SessionType;
 use crate::tab_configs::session_config_rendering;
 use crate::view_components::callout_bubble::{
@@ -55,7 +56,7 @@ where
 {
     let callout_bg = callout_background_fill(appearance).into_solid();
     let title = Text::new(
-        "Create your first tab config",
+        t!("tab_configs_ui.session_modal.title").to_string(),
         appearance.ui_font_family(),
         16.,
     )
@@ -64,7 +65,7 @@ where
     .finish();
 
     let description = Text::new(
-        "Set up a reusable starting point for your tabs. Pick a repo, choose a session type, and optionally attach a worktree. Use it whenever you want to open a tab with this setup.",
+        t!("tab_configs_ui.session_modal.subtitle_with_type").to_string(),
         appearance.ui_font_family(),
         14.,
     )

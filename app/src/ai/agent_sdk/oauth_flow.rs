@@ -5,6 +5,7 @@ use anyhow::{anyhow, Result};
 use warp_graphql::queries::get_oauth_connect_tx_status::OauthConnectTxStatus;
 use warpui::r#async::Timer;
 
+use crate::i18n::t;
 use crate::server::server_api::integrations::IntegrationsClient;
 
 /// Shared helpers for OAuth-based connect flows (txId + polling).
@@ -18,9 +19,7 @@ pub async fn poll_oauth_until_terminal(
     const POLL_INTERVAL: Duration = Duration::from_secs(5);
     const MAX_ATTEMPTS: u32 = 120; // 10 minutes total
                                    // TODO(bens): render some kind of spinner here
-    println!(
-        "Waiting for authorization to complete... If this doesn't update after authorizing, please restart the command and try again.\n"
-    );
+    println!("{}", t!("ai_sdk_management.oauth.waiting"));
 
     for attempt in 1..=MAX_ATTEMPTS {
         Timer::after(POLL_INTERVAL).await;
@@ -43,5 +42,5 @@ pub async fn poll_oauth_until_terminal(
         }
     }
 
-    Err(anyhow!("Timed out waiting for OAuth authorization"))
+    Err(anyhow!(t!("ai_sdk_management.oauth.timeout").to_string()))
 }

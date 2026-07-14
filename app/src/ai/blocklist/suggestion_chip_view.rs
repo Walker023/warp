@@ -14,6 +14,7 @@ use crate::ai::facts::{AIFact, AIMemory, CloudAIFactModel};
 use crate::cloud_object::model::generic_string_model::GenericStringObjectId;
 use crate::cloud_object::model::persistence::{CloudModel, CloudModelEvent};
 use crate::drive::CloudObjectTypeAndId;
+use crate::i18n::t;
 use crate::server::cloud_objects::update_manager::{
     ObjectOperation, OperationSuccessType, UpdateManager, UpdateManagerEvent,
 };
@@ -145,7 +146,7 @@ impl Suggestion {
     pub fn tooltip(&self) -> String {
         match self {
             Suggestion::Rule { rule, .. } => {
-                format!("Add rule: {}", rule.content.clone())
+                t!("ai_ui.suggestions.add_rule", rule = &rule.content).to_string()
             }
             Suggestion::AgentModeWorkflow { workflow, .. } => {
                 let prompt = if workflow.prompt.chars().count() > MAX_PROMPT_TOOLTIP_LENGTH {
@@ -158,7 +159,7 @@ impl Suggestion {
                 } else {
                     workflow.prompt.clone()
                 };
-                format!("Suggested prompt:\n{prompt}")
+                t!("ai_ui.suggestions.suggested_prompt", prompt = &prompt).to_string()
             }
         }
     }

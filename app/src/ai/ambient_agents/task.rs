@@ -1,5 +1,7 @@
 //! Ambient agent task types and utilities.
 
+use std::borrow::Cow;
+
 use anyhow::anyhow;
 use chrono::{DateTime, Duration as ChronoDuration, Utc};
 #[cfg(not(target_family = "wasm"))]
@@ -16,6 +18,7 @@ use warpui::{SingletonEntity, View, ViewContext};
 
 use super::AmbientAgentTaskId;
 use crate::ai::artifacts::{deserialize_artifacts, Artifact};
+use crate::i18n::t;
 use crate::server::server_api::ServerApiProvider;
 use crate::ui_components::icons::Icon;
 use crate::view_components::DismissibleToast;
@@ -67,16 +70,18 @@ impl AgentSource {
         }
     }
 
-    pub fn display_name(&self) -> &str {
+    pub fn display_name(&self) -> Cow<'static, str> {
         match self {
-            AgentSource::Linear => "Linear",
-            AgentSource::AgentWebhook => "API",
-            AgentSource::Slack => "Slack",
-            AgentSource::Cli => "CLI",
-            AgentSource::ScheduledAgent => "Scheduled",
-            AgentSource::Interactive | AgentSource::CloudMode => "Warp App",
-            AgentSource::WebApp => "Oz Web",
-            AgentSource::GitHubAction => "GitHub Action",
+            AgentSource::Linear => t!("ai_ui.agent_management.source.linear"),
+            AgentSource::AgentWebhook => t!("ai_ui.agent_management.source.api"),
+            AgentSource::Slack => t!("ai_ui.agent_management.source.slack"),
+            AgentSource::Cli => t!("ai_ui.agent_management.source.cli"),
+            AgentSource::ScheduledAgent => t!("ai_ui.agent_management.source.scheduled"),
+            AgentSource::Interactive | AgentSource::CloudMode => {
+                t!("ai_ui.agent_management.source.warp_app")
+            }
+            AgentSource::WebApp => t!("ai_ui.agent_management.source.oz_web"),
+            AgentSource::GitHubAction => t!("ai_ui.agent_management.source.github_action"),
         }
     }
 
@@ -244,7 +249,7 @@ impl AmbientAgentTask {
 
     /// Returns the short label for this task: trimmed `agent_config_snapshot.name`,
     /// trimmed `title`, or `"Agent"`.
-    pub fn display_name(&self) -> &str {
+    pub fn display_name(&self) -> Cow<'_, str> {
         if let Some(name) = self
             .agent_config_snapshot
             .as_ref()
@@ -252,14 +257,14 @@ impl AmbientAgentTask {
         {
             let trimmed = name.trim();
             if !trimmed.is_empty() {
-                return trimmed;
+                return Cow::Borrowed(trimmed);
             }
         }
         let trimmed_title = self.title.trim();
         if !trimmed_title.is_empty() {
-            return trimmed_title;
+            return Cow::Borrowed(trimmed_title);
         }
-        "Agent"
+        t!("ai_ui.agent_management.metadata.agent")
     }
 
     pub fn conversation_id(&self) -> Option<&str> {
@@ -464,18 +469,22 @@ impl AmbientAgentTaskState {
 
 impl std::fmt::Display for AmbientAgentTaskState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            AmbientAgentTaskState::Queued => write!(f, "Queued"),
-            AmbientAgentTaskState::Pending => write!(f, "Pending"),
-            AmbientAgentTaskState::Claimed => write!(f, "Claimed"),
-            AmbientAgentTaskState::InProgress => write!(f, "In progress"),
-            AmbientAgentTaskState::Succeeded => write!(f, "Done"),
-            AmbientAgentTaskState::Failed => write!(f, "Failed"),
-            AmbientAgentTaskState::Error => write!(f, "Error"),
-            AmbientAgentTaskState::Blocked => write!(f, "Blocked"),
-            AmbientAgentTaskState::Cancelled => write!(f, "Cancelled"),
-            AmbientAgentTaskState::Unknown => write!(f, "Failed"),
-        }
+        f.write_str(
+            match self {
+                AmbientAgentTaskState::Queued => t!("ai_ui.ambient_task.status.queued"),
+                AmbientAgentTaskState::Pending => t!("ai_ui.ambient_task.status.pending"),
+                AmbientAgentTaskState::Claimed => t!("ai_ui.ambient_task.status.claimed"),
+                AmbientAgentTaskState::InProgress => t!("ai_ui.ambient_task.status.in_progress"),
+                AmbientAgentTaskState::Succeeded => t!("ai_ui.agent_management.status.done"),
+                AmbientAgentTaskState::Failed | AmbientAgentTaskState::Unknown => {
+                    t!("ai_ui.agent_management.status.failed")
+                }
+                AmbientAgentTaskState::Error => t!("ai_ui.ambient_task.status.error"),
+                AmbientAgentTaskState::Blocked => t!("ai_ui.ambient_task.status.blocked"),
+                AmbientAgentTaskState::Cancelled => t!("ai_ui.ambient_task.status.cancelled"),
+            }
+            .as_ref(),
+        )
     }
 }
 
@@ -532,10 +541,10 @@ pub fn cancel_task_with_toast<V: View>(task_id: AmbientAgentTaskId, ctx: &mut Vi
         async move { ai_client.cancel_ambient_agent_task(&task_id).await },
         move |_view, result, ctx| {
             let message = match result {
-                Ok(()) => "Task cancelled".to_string(),
+                Ok(()) => t!("ai_ui.ambient_task.cancelled").to_string(),
                 Err(e) => {
                     report_error!(&e);
-                    format!("Failed to cancel task: {e}")
+                    t!("ai_ui.ambient_task.cancel_failed", error = e).to_string()
                 }
             };
             ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {

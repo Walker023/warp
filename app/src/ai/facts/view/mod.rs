@@ -18,6 +18,7 @@ use crate::cloud_object::{
     CloudObject, CloudObjectSyncStatus, GenericStringObjectFormat, JsonObjectType,
 };
 use crate::drive::CloudObjectTypeAndId;
+use crate::i18n::t;
 use crate::network::NetworkStatus;
 use crate::pane_group::focus_state::PaneFocusHandle;
 use crate::pane_group::pane::view;
@@ -32,8 +33,6 @@ mod style;
 use rule::*;
 use rule_editor::*;
 
-const OFFLINE_TEXT: &str = "You are offline. Some rules will be read only.";
-
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
 pub enum AIFactPage {
     #[default]
@@ -46,8 +45,10 @@ pub enum AIFactPage {
 impl std::fmt::Display for AIFactPage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AIFactPage::Rules => write!(f, "Rules"),
-            AIFactPage::RuleEditor { .. } => write!(f, "Rule Editor"),
+            AIFactPage::Rules => write!(f, "{}", t!("ai_ui.rules.title")),
+            AIFactPage::RuleEditor { .. } => {
+                write!(f, "{}", t!("ai_ui.rules.editor.page_title"))
+            }
         }
     }
 }
@@ -77,7 +78,8 @@ pub struct AIFactView {
 
 impl AIFactView {
     pub fn new(ctx: &mut ViewContext<Self>) -> Self {
-        let pane_configuration = ctx.add_model(|_ctx| PaneConfiguration::new(HEADER_TEXT));
+        let pane_configuration =
+            ctx.add_model(|_ctx| PaneConfiguration::new(t!("ai_ui.rules.title").to_string()));
 
         let rule_view = ctx.add_typed_action_view(RuleView::new);
         ctx.subscribe_to_view(&rule_view, |me, _, event, ctx| {
@@ -210,7 +212,7 @@ impl AIFactView {
                         Container::new(
                             appearance
                                 .ui_builder()
-                                .wrappable_text(OFFLINE_TEXT, true)
+                                .wrappable_text(t!("ai_ui.rules.offline").to_string(), true)
                                 .build()
                                 .finish(),
                         )
@@ -326,7 +328,7 @@ impl BackingView for AIFactView {
         _ctx: &view::HeaderRenderContext<'_>,
         _app: &AppContext,
     ) -> view::HeaderContent {
-        view::HeaderContent::simple(HEADER_TEXT)
+        view::HeaderContent::simple(t!("ai_ui.rules.title").to_string())
     }
 
     fn set_focus_handle(&mut self, focus_handle: PaneFocusHandle, _ctx: &mut ViewContext<Self>) {

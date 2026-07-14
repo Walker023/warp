@@ -22,6 +22,7 @@
 use std::ops::Range;
 use std::rc::Rc;
 
+use rust_i18n::t;
 use string_offset::CharOffset;
 use warp::editor::CodeEditorModel;
 use warp_editor::model::CoreEditorModel;
@@ -402,7 +403,13 @@ impl TuiEditorElement {
                 )
             }
             DisplayRowKind::Gap { line_range } => {
-                (format!("… {} lines", line_range.len()), self.styles.gap)
+                let count = line_range.len();
+                let label = if count == 1 {
+                    t!("warp_tui.editor.collapsed_line", count = count)
+                } else {
+                    t!("warp_tui.editor.collapsed_lines", count = count)
+                };
+                (label.to_string(), self.styles.gap)
             }
         };
         let gutter = self.gutter_cells(row);

@@ -321,12 +321,18 @@ impl AuthSecretFtuxDropdown {
             // Compact (modal) mode: only render "+ New …" entries.
             for (index, info) in auth_secret_types_for_harness(harness).iter().enumerate() {
                 items.push(MenuItem::Item(
-                    MenuItemFields::new(format!("New {}", info.display_name))
-                        .with_font_size_override(FONT_SIZE)
-                        .with_padding_override(MENU_ITEM_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
-                        .with_override_hover_background_color(hover_background)
-                        .with_icon(Icon::Plus)
-                        .with_on_select_action(FtuxDropdownAction::SelectNewType(index)),
+                    MenuItemFields::new(
+                        t!(
+                            "terminal_ui.ambient_agent.auth.new_named",
+                            name = info.localized_display_name()
+                        )
+                        .to_string(),
+                    )
+                    .with_font_size_override(FONT_SIZE)
+                    .with_padding_override(MENU_ITEM_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
+                    .with_override_hover_background_color(hover_background)
+                    .with_icon(Icon::Plus)
+                    .with_on_select_action(FtuxDropdownAction::SelectNewType(index)),
                 ));
             }
             self.menu.update(ctx, |menu, ctx| {
@@ -394,12 +400,18 @@ impl AuthSecretFtuxDropdown {
 
         for (index, info) in auth_secret_types_for_harness(harness).iter().enumerate() {
             items.push(MenuItem::Item(
-                MenuItemFields::new(format!("New {}", info.display_name))
-                    .with_font_size_override(FONT_SIZE)
-                    .with_padding_override(MENU_ITEM_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
-                    .with_override_hover_background_color(hover_background)
-                    .with_icon(Icon::Plus)
-                    .with_on_select_action(FtuxDropdownAction::SelectNewType(index)),
+                MenuItemFields::new(
+                    t!(
+                        "terminal_ui.ambient_agent.auth.new_named",
+                        name = info.localized_display_name()
+                    )
+                    .to_string(),
+                )
+                .with_font_size_override(FONT_SIZE)
+                .with_padding_override(MENU_ITEM_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
+                .with_override_hover_background_color(hover_background)
+                .with_icon(Icon::Plus)
+                .with_on_select_action(FtuxDropdownAction::SelectNewType(index)),
             ));
         }
 
@@ -407,8 +419,8 @@ impl AuthSecretFtuxDropdown {
 
         items.push(MenuItem::Item(
             MenuItemFields::new_with_label(
-                "Skip (advanced)",
-                "Only if your key is already set in the environment (e.g. injected as a Kubernetes secret)",
+                t!("terminal_ui.ambient_agent.auth.skip_advanced").to_string(),
+                t!("terminal_ui.ambient_agent.auth.skip_advanced_description").to_string(),
             )
             .with_font_size_override(FONT_SIZE)
             .with_padding_override(MENU_ITEM_VERTICAL_PADDING, MENU_HORIZONTAL_PADDING)
@@ -500,8 +512,7 @@ impl AuthSecretFtuxDropdown {
         let theme = appearance.theme();
         let color = internal_colors::text_sub(theme, theme.surface_1());
         Text::new_inline(
-            "No secrets found. Save to use this value directly or click the key to add a secret."
-                .to_string(),
+            t!("terminal_ui.ambient_agent.auth.no_secrets_helper").to_string(),
             appearance.ui_font_family(),
             HELPER_FONT_SIZE,
         )

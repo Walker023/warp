@@ -314,7 +314,7 @@ impl LoginSlideView {
                 },
                 ctx,
             );
-            editor.set_placeholder_text("Auth Token", ctx);
+            editor.set_placeholder_text(t!("auth_extra.auth_view.auth_token"), ctx);
             editor
         });
 
@@ -505,11 +505,11 @@ impl LoginSlideView {
     /// Disclaimer prefix shown before the "Privacy Settings" link. AI is
     /// dropped from the wording on paths that don't enable AI (e.g.
     /// Terminal+Drive), since there are no AI features to opt out of there.
-    fn privacy_disclaimer_prefix(&self) -> &'static str {
+    fn privacy_disclaimer_prefix(&self) -> String {
         if self.ai_enabled {
-            "If you'd like to opt out of analytics and AI features, you can adjust your "
+            t!("auth_extra.login_slide.analytics_ai_prefix").to_string()
         } else {
-            "If you'd like to opt out of analytics, you can adjust your "
+            t!("auth_extra.login_slide.analytics_prefix").to_string()
         }
     }
 
@@ -533,16 +533,16 @@ impl LoginSlideView {
 
         let (title_text, subtitle_text) = match self.login_purpose() {
             LoginPurpose::WarpDrive => (
-                "Get started with Warp Drive",
-                "Connect your account to save and share notebooks, workflows, and more across devices.",
+                t!("auth_extra.login_slide.drive_title").to_string(),
+                t!("auth_extra.login_slide.drive_subtitle").to_string(),
             ),
             LoginPurpose::WarpAgent => (
-                "Get started with AI",
-                "Connect your account to enable AI-powered planning, coding, and automation.",
+                t!("auth_extra.login_slide.ai_title").to_string(),
+                t!("auth_extra.login_slide.ai_subtitle").to_string(),
             ),
             LoginPurpose::ThirdParty => (
-                "Create an account",
-                "Create a Warp account to enable AI-powered planning, coding, and automations.",
+                t!("auth_extra.login_slide.third_party_title").to_string(),
+                t!("auth_extra.login_slide.third_party_subtitle").to_string(),
             ),
         };
         let title = FormattedTextElement::from_str(title_text, appearance.ui_font_family(), 36.)
@@ -572,7 +572,7 @@ impl LoginSlideView {
         let tos_line = Flex::row()
             .with_child(
                 ui_builder
-                    .span("By continuing, you agree to Warp's ")
+                    .span(t!("auth_extra.auth_view.terms_prefix").to_string())
                     .with_style(disclaimer_styles)
                     .build()
                     .finish(),
@@ -580,7 +580,7 @@ impl LoginSlideView {
             .with_child(
                 ui_builder
                     .link(
-                        "Terms of Service".into(),
+                        t!("auth_extra.auth_view.terms_of_service").to_string(),
                         Some(TOS_URL.into()),
                         None,
                         self.tos_mouse_state.clone(),
@@ -606,7 +606,7 @@ impl LoginSlideView {
             .with_child(
                 ui_builder
                     .link(
-                        "Privacy Settings".into(),
+                        t!("auth_extra.auth_view.privacy_settings").to_string(),
                         None,
                         Some(Box::new(|ctx| {
                             ctx.dispatch_typed_action(LoginSlideAction::ShowPrivacySettings);
@@ -647,7 +647,7 @@ impl LoginSlideView {
         let back_button = self.back_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label("Back".into()),
+                content: button::Content::Label(t!("auth_extra.login_slide.back")),
                 theme: &button::themes::Naked,
                 options: button::Options {
                     on_click: Some(Box::new(|ctx, _app, _pos| {
@@ -660,9 +660,10 @@ impl LoginSlideView {
 
         let cmd_enter = Keystroke::parse("cmdorctrl-enter").unwrap_or_default();
         let skip_label = match self.login_purpose() {
-            LoginPurpose::WarpDrive => "Disable Warp Drive",
-            LoginPurpose::WarpAgent => "Skip for now",
-            LoginPurpose::ThirdParty => "Skip for now",
+            LoginPurpose::WarpDrive => t!("auth_extra.login_slide.disable_drive").to_string(),
+            LoginPurpose::WarpAgent | LoginPurpose::ThirdParty => {
+                t!("auth_extra.login_slide.skip_for_now").to_string()
+            }
         };
         let skip_button = self.skip_button.render(
             appearance,
@@ -683,7 +684,7 @@ impl LoginSlideView {
         let login_button = self.login_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label("Continue".into()),
+                content: button::Content::Label(t!("auth_extra.login_slide.continue")),
                 theme: &button::themes::Primary,
                 options: button::Options {
                     keystroke: Some(enter),
@@ -729,7 +730,7 @@ impl LoginSlideView {
         };
 
         let title = FormattedTextElement::from_str(
-            "Sign in on your browser to continue",
+            t!("auth_extra.login_slide.browser_continue"),
             appearance.ui_font_family(),
             36.,
         )
@@ -746,7 +747,7 @@ impl LoginSlideView {
                 Flex::row()
                     .with_child(
                         ui_builder
-                            .span("If your browser hasn't launched, ")
+                            .span(t!("auth_extra.login_slide.browser_hint_prefix").to_string())
                             .with_style(sub_text_styles)
                             .build()
                             .finish(),
@@ -754,7 +755,7 @@ impl LoginSlideView {
                     .with_child(
                         ui_builder
                             .link(
-                                "copy the URL".into(),
+                                t!("auth_extra.login_slide.copy_url").to_string(),
                                 None,
                                 Some(Box::new(|ctx| {
                                     ctx.dispatch_typed_action(LoginSlideAction::CopyLoginUrl);
@@ -767,7 +768,7 @@ impl LoginSlideView {
                     )
                     .with_child(
                         ui_builder
-                            .span(" and open")
+                            .span(t!("auth_extra.login_slide.browser_hint_middle").to_string())
                             .with_style(sub_text_styles)
                             .build()
                             .finish(),
@@ -776,7 +777,7 @@ impl LoginSlideView {
             )
             .with_child(
                 ui_builder
-                    .span("the page manually.")
+                    .span(t!("auth_extra.login_slide.browser_hint_end").to_string())
                     .with_style(sub_text_styles)
                     .build()
                     .finish(),
@@ -830,7 +831,7 @@ impl LoginSlideView {
                 .with_child(
                     ui_builder
                         .link(
-                            "Click here to paste your token from the browser".into(),
+                            t!("auth_extra.auth_view.paste_browser_token").to_string(),
                             None,
                             Some(Box::new(|ctx| {
                                 ctx.dispatch_typed_action(LoginSlideAction::EnterToken);
@@ -859,7 +860,7 @@ impl LoginSlideView {
         let back_button = self.browser_back_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label("Back".into()),
+                content: button::Content::Label(t!("auth_extra.login_slide.back")),
                 theme: &button::themes::Naked,
                 options: button::Options {
                     on_click: Some(Box::new(|ctx, _app, _pos| {
@@ -887,15 +888,18 @@ impl LoginSlideView {
     ) -> Vec<Box<dyn Element>> {
         let theme = appearance.theme();
 
-        let title =
-            FormattedTextElement::from_str("Privacy Settings", appearance.ui_font_family(), 36.)
-                .with_color(internal_colors::text_main(
-                    theme,
-                    theme.background().into_solid(),
-                ))
-                .with_weight(Weight::Medium)
-                .with_alignment(TextAlignment::Left)
-                .finish();
+        let title = FormattedTextElement::from_str(
+            t!("auth_extra.auth_view.privacy_settings"),
+            appearance.ui_font_family(),
+            36.,
+        )
+        .with_color(internal_colors::text_main(
+            theme,
+            theme.background().into_solid(),
+        ))
+        .with_weight(Weight::Medium)
+        .with_alignment(TextAlignment::Left)
+        .finish();
 
         let actions = PrivacySettingsActions {
             toggle_telemetry: LoginSlideAction::ToggleTelemetry,
@@ -919,7 +923,7 @@ impl LoginSlideView {
         let back_button = self.done_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label("Back".into()),
+                content: button::Content::Label(t!("auth_extra.login_slide.back")),
                 theme: &button::themes::Naked,
                 options: button::Options {
                     on_click: Some(Box::new(|ctx, _app, _pos| {
@@ -1005,9 +1009,7 @@ impl LoginSlideView {
         let confirm_button = self.dialog_skip_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label(
-                    t!("auth.login_slide.skip_dialog.skip_for_now").into(),
-                ),
+                content: button::Content::Label(t!("auth.login_slide.skip_dialog.skip_for_now")),
                 theme: &button::themes::Primary,
                 options: button::Options {
                     keystroke: Some(dialog_enter),

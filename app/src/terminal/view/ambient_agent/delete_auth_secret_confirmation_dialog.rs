@@ -96,13 +96,14 @@ impl View for DeleteAuthSecretConfirmationDialog {
         };
 
         let appearance = Appearance::as_ref(app);
-        let description = format!(
-            "Are you sure you want to delete {}? This action cannot be undone. Any agents or environments referencing this secret will no longer have access to it.",
-            pending_deletion.name
-        );
+        let description = t!(
+            "terminal_ui.ambient_agent.auth.delete_confirmation",
+            name = pending_deletion.name.as_str()
+        )
+        .to_string();
 
         let dialog = Dialog::new(
-            "Delete secret".to_string(),
+            t!("terminal_ui.ambient_agent.auth.delete_title").to_string(),
             Some(description),
             dialog_styles(appearance),
         )

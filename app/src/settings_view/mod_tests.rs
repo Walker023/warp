@@ -1,6 +1,7 @@
 use settings_page::MatchData;
 
 use super::*;
+use crate::i18n::t;
 
 // ── SettingsSection classification ──────────────────────────────────────────
 
@@ -638,16 +639,16 @@ fn realistic_nav_items() -> Vec<SettingsNavItem> {
     vec![
         SettingsNavItem::Page(SettingsSection::Account),
         SettingsNavItem::Umbrella(SettingsUmbrella::new(
-            "Agents",
+            t!("settings.sections.agents").to_string(),
             SettingsSection::ai_subpages().to_vec(),
         )),
         SettingsNavItem::Page(SettingsSection::BillingAndUsage),
         SettingsNavItem::Umbrella(SettingsUmbrella::new(
-            "Code",
+            t!("settings.sections.code").to_string(),
             SettingsSection::code_subpages().to_vec(),
         )),
         SettingsNavItem::Umbrella(SettingsUmbrella::new(
-            "Cloud platform",
+            t!("settings.sections.cloud_platform").to_string(),
             SettingsSection::cloud_platform_subpages().to_vec(),
         )),
         SettingsNavItem::Page(SettingsSection::Teams),

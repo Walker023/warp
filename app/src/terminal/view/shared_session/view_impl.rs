@@ -60,7 +60,7 @@ use crate::terminal::shared_session::role_change_modal::{
 use crate::terminal::shared_session::settings::SharedSessionSettings;
 use crate::terminal::shared_session::{
     join_link, SharedSessionActionSource, SharedSessionScrollbackType, SharedSessionSource,
-    SharedSessionStatus, COPY_LINK_TEXT,
+    SharedSessionStatus,
 };
 use crate::terminal::view::{
     ContextMenuAction, Event, InlineBannerItem, InlineBannerType, PendingUserQueryKind,
@@ -955,12 +955,18 @@ impl TerminalView {
         }
 
         let Some(ambient_agent_view_model) = self.ambient_agent_view_model.as_ref() else {
-            self.show_error_toast("Couldn't continue this cloud task.".to_string(), ctx);
+            self.show_error_toast(
+                t!("terminal_ui.cloud_task.continue_failed").to_string(),
+                ctx,
+            );
             return;
         };
 
         if ambient_agent_view_model.as_ref(ctx).task_id() != Some(task_id) {
-            self.show_error_toast("Couldn't continue this cloud task.".to_string(), ctx);
+            self.show_error_toast(
+                t!("terminal_ui.cloud_task.continue_failed").to_string(),
+                ctx,
+            );
             return;
         }
         self.enable_cloud_followup_input_after_conversation_end(task_id, ctx);
@@ -995,7 +1001,7 @@ impl TerminalView {
             ctx,
         );
         self.show_persistent_toast(
-            "Sharing ended due to inactivity".to_owned(),
+            t!("terminal_ui.shared_session.inactivity.ended").to_string(),
             ToastFlavor::Error,
             ctx,
         );
@@ -1046,7 +1052,7 @@ impl TerminalView {
                 ctx,
             );
             self.show_persistent_toast(
-                "Shared editing permissions were revoked due to inactivity".to_owned(),
+                t!("terminal_ui.shared_session.inactivity.permissions_revoked").to_string(),
                 ToastFlavor::Error,
                 ctx,
             );
@@ -1572,7 +1578,9 @@ impl TerminalView {
 
         let window_id = ctx.window_id();
         crate::workspace::ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-            let toast = DismissibleToast::default(COPY_LINK_TEXT.to_string());
+            let toast = DismissibleToast::default(
+                t!("terminal_ui.shared_session.copy_link_success").to_string(),
+            );
             toast_stack.add_ephemeral_toast(toast, window_id, ctx);
         });
 
@@ -1676,7 +1684,7 @@ impl TerminalView {
             && matches!(reason, RoleUpdatedReason::InactivityLimitReached)
         {
             self.show_persistent_toast(
-                "Editing permissions were revoked because the sharer is idle".to_owned(),
+                t!("terminal_ui.shared_session.inactivity.sharer_idle").to_string(),
                 ToastFlavor::Error,
                 ctx,
             );
@@ -2023,6 +2031,7 @@ impl TerminalView {
     /// Resizes the sharer's terminal to match the viewer's reported size,
     /// going through the normal view/model/PTY resize pipeline.
     #[cfg(not(target_arch = "wasm32"))]
+    #[cfg_attr(feature = "remote_tty", allow(dead_code))]
     pub(crate) fn resize_from_viewer_report(
         &mut self,
         viewer_size: WindowSize,

@@ -19,6 +19,7 @@ use warpui::{AppContext, Entity, ModelContext, SingletonEntity, WindowId};
 use super::CloudObjectTypeAndId;
 use crate::cloud_object::model::persistence::CloudModel;
 use crate::cloud_object::Space;
+use crate::i18n::t;
 use crate::safe_warn;
 use crate::view_components::DismissibleToast;
 use crate::workspace::{active_terminal_in_window, ToastStack};
@@ -230,12 +231,12 @@ impl ExportManager {
         if is_bulk && self.exports.is_empty() {
             ToastStack::handle(ctx).update(ctx, move |toast_stack, ctx| {
                 let link_label = if cfg!(target_os = "macos") {
-                    "Open in Finder"
+                    t!("drive_extra.export.open_in_finder").to_string()
                 } else {
-                    "Open in folder"
+                    t!("drive_extra.export.open_in_folder").to_string()
                 };
 
-                let mut toast_link = ToastLink::new(link_label.to_string());
+                let mut toast_link = ToastLink::new(link_label);
                 if let Ok(path) = path {
                     // The path to open in the bulk case is one level up from the export dir.
                     let root_dir = path.parent().unwrap_or(path.as_path()).to_path_buf();
@@ -243,8 +244,10 @@ impl ExportManager {
                         .with_onclick_action(WorkspaceAction::OpenInExplorer { path: root_dir });
                 }
                 toast_stack.add_ephemeral_toast(
-                    DismissibleToast::success("Finished exporting objects".to_string())
-                        .with_link(toast_link),
+                    DismissibleToast::success(
+                        t!("drive_extra.export.finished_objects").to_string(),
+                    )
+                    .with_link(toast_link),
                     window_id,
                     ctx,
                 );
@@ -315,7 +318,7 @@ impl ExportManager {
         };
 
         let name = if name.is_empty() {
-            "Untitled".to_string()
+            t!("drive_extra.common.untitled").to_string()
         } else {
             safe_filename(&name)
         };
@@ -372,8 +375,8 @@ impl ExportManager {
         let window_id = export.remove().window_id;
         ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
             let message = match id.display_name(ctx) {
-                Some(name) => format!("Failed to export {name}"),
-                None => "Export failed".to_string(),
+                Some(name) => t!("drive_extra.export.failed_named", name = name).to_string(),
+                None => t!("drive_extra.export.failed").to_string(),
             };
             toast_stack.add_persistent_toast(DismissibleToast::error(message), window_id, ctx);
         });
@@ -393,19 +396,19 @@ impl ExportManager {
         if !export.get().is_bulk {
             ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                 let message = match export.key().display_name(ctx) {
-                    Some(name) => format!("Exported {name}"),
-                    None => "Exported object".to_string(),
+                    Some(name) => t!("drive_extra.export.exported_named", name = name).to_string(),
+                    None => t!("drive_extra.export.exported_object").to_string(),
                 };
 
                 let link_label = if cfg!(target_os = "macos") {
-                    "Open in Finder"
+                    t!("drive_extra.export.open_in_finder").to_string()
                 } else {
-                    "Open in folder"
+                    t!("drive_extra.export.open_in_folder").to_string()
                 };
 
                 toast_stack.add_ephemeral_toast(
                     DismissibleToast::success(message).with_link(
-                        ToastLink::new(link_label.to_string()).with_onclick_action(
+                        ToastLink::new(link_label).with_onclick_action(
                             WorkspaceAction::OpenInExplorer { path: root_path },
                         ),
                     ),
@@ -450,7 +453,7 @@ impl ExportId {
             .map(|object| {
                 let mut name = object.display_name();
                 if name.is_empty() {
-                    name.push_str("Untitled")
+                    name.push_str(&t!("drive_extra.common.untitled"))
                 }
                 name
             })

@@ -38,6 +38,7 @@ use crate::ai::agent::{
 };
 use crate::ai::artifacts::Artifact;
 use crate::ai::document::ai_document_model::AIDocumentModel;
+use crate::i18n::t;
 use crate::input_suggestions::HistoryOrder;
 use crate::persistence::model::{AgentConversation, AgentConversationData};
 use crate::persistence::ModelEvent;
@@ -1513,7 +1514,7 @@ impl BlocklistAIHistoryModel {
     /// and copying the existing conversation's tasks into the new conversation.
     ///
     /// The `prefix` parameter specifies the prefix added to the root task description
-    /// (e.g., `FORK_PREFIX` for forks, `PRE_REWIND_PREFIX` for pre-rewind backups).
+    /// (e.g., [`fork_prefix`] for forks, [`pre_rewind_prefix`] for pre-rewind backups).
     ///
     /// When `preserve_task_ids` is true, the forked conversation reuses the source's task ids
     /// instead of minting new ones. Used by local-to-cloud handoff so the local
@@ -1617,7 +1618,7 @@ impl BlocklistAIHistoryModel {
     /// until the next root-task user query).
     ///
     /// The `prefix` parameter specifies the prefix added to the root task description
-    /// (e.g., `FORK_PREFIX` for forks, `PRE_REWIND_PREFIX` for pre-rewind backups).
+    /// (e.g., [`fork_prefix`] for forks, [`pre_rewind_prefix`] for pre-rewind backups).
     pub fn fork_conversation_at_exchange(
         &mut self,
         source_conversation: &AIConversation,
@@ -3243,12 +3244,16 @@ pub enum AIQueryHistoryOutputStatus {
 
 impl AIQueryHistoryOutputStatus {
     /// Returns a string representation of the output status.
-    pub(crate) fn display_text(&self) -> &'static str {
+    pub(crate) fn display_text(&self) -> String {
         match self {
-            AIQueryHistoryOutputStatus::Completed => "Completed successfully",
-            AIQueryHistoryOutputStatus::Pending => "Pending",
-            AIQueryHistoryOutputStatus::Cancelled => "Cancelled by user",
-            AIQueryHistoryOutputStatus::Failed => "Failed",
+            AIQueryHistoryOutputStatus::Completed => {
+                t!("ai_ui.history_status.completed").to_string()
+            }
+            AIQueryHistoryOutputStatus::Pending => t!("ai_ui.history_status.pending").to_string(),
+            AIQueryHistoryOutputStatus::Cancelled => {
+                t!("ai_ui.history_status.cancelled").to_string()
+            }
+            AIQueryHistoryOutputStatus::Failed => t!("ai_ui.history_status.failed").to_string(),
         }
     }
 
@@ -3457,11 +3462,15 @@ fn update_forked_task_properties(
         .collect()
 }
 
-/// The default prefix used when forking a conversation.
-pub const FORK_PREFIX: &str = "(Fork) ";
+/// Returns the localized prefix used when forking a conversation.
+pub fn fork_prefix() -> String {
+    t!("ai_misc.conversation_prefix.fork").to_string()
+}
 
-/// The prefix used when saving a conversation before a rewind operation.
-pub const PRE_REWIND_PREFIX: &str = "(Pre-Rewind) ";
+/// Returns the localized prefix used when saving a conversation before a rewind operation.
+pub fn pre_rewind_prefix() -> String {
+    t!("ai_misc.conversation_prefix.pre_rewind").to_string()
+}
 
 #[cfg(test)]
 #[path = "history_model_tests.rs"]

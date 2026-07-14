@@ -1817,7 +1817,7 @@ impl CodePageWidget {
             };
 
             return IndexingStatusPresentation {
-                text: Cow::from(text),
+                text,
                 color,
                 icon: Some(icon),
                 refresh_action: Some(IndexingRefreshAction::Resync),

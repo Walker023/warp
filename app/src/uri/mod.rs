@@ -27,6 +27,7 @@ use crate::ai::ambient_agents::github_auth_notifier::GitHubAuthNotifier;
 use crate::cloud_object::ObjectType;
 use crate::drive::{OpenWarpDriveObjectArgs, OpenWarpDriveObjectSettings};
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::linear::{LinearAction, LinearIssueWork};
 use crate::root_view::{
@@ -997,7 +998,7 @@ impl Action {
                     if let Some(window_id) = primary_window_id {
                         ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                             let toast =
-                                DismissibleToast::error("Custom URI is invalid.".to_owned());
+                                DismissibleToast::error(t!("common_extra.uri.invalid").to_string());
                             toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                         });
                     }
@@ -1197,8 +1198,8 @@ impl Action {
             | Self::FocusCloudMode
             | Self::AutoHandoffToCloud { .. } => W::default(),
             Self::NewTab => W::ShowPrimaryWindow(WindowActivationFallbackBehavior::Notify {
-                title: "New tab created".to_owned(),
-                description: "Go to Warp to see your new tab.".to_owned(),
+                title: t!("common_extra.uri.new_tab_created").to_string(),
+                description: t!("common_extra.uri.view_new_tab").to_string(),
             }),
             Self::NewWindow => W::Nothing,
         }
@@ -1238,7 +1239,9 @@ pub fn handle_incoming_uri(url: &Url, ctx: &mut AppContext) {
         Err(e) => {
             if let Some(window_id) = primary_window_id {
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                    let toast = DismissibleToast::error(format!("Custom URI is invalid: {e:?}"));
+                    let toast = DismissibleToast::error(
+                        t!("common_extra.uri.invalid_detail", error = format!("{e:?}")).to_string(),
+                    );
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
             }

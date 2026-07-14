@@ -1,4 +1,5 @@
 use pathfinder_color::ColorU;
+use rust_i18n::t;
 use warpui_core::elements::{
     Align, Border, ConstrainedBox, Container, CornerRadius, Hoverable, Icon, ListIndentLevel,
     MouseStateHandle, Radius, Rect,
@@ -114,10 +115,11 @@ impl RenderableBlock for RenderableTaskList {
             ctx,
             app,
         );
+        let placeholder_text = t!("editor.placeholder.task_list");
         self.placeholder
             .layout(&self.viewport_item, model, ctx, app, |block| {
                 placeholder::Options {
-                    text: "To-do list",
+                    text: placeholder_text.as_ref(),
                     block_style: match block {
                         BlockItem::TaskList {
                             indent_level,

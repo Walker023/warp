@@ -7,6 +7,7 @@ use super::workspace::{
     WorkspaceSettings,
 };
 use crate::auth::UserUid;
+use crate::i18n::t;
 use crate::server::ids::ServerId;
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Serialize, Deserialize)]
@@ -61,16 +62,16 @@ pub enum TeamDeleteDisabledReason {
 }
 
 impl TeamDeleteDisabledReason {
-    pub fn user_facing_message(&self) -> &str {
+    pub fn user_facing_message(&self) -> String {
         match self {
             TeamDeleteDisabledReason::ActivePaidSubscription => {
-                "Your team cannot be deleted with an active subscription."
+                t!("workspace_search_ui.workspace.team_delete.active_subscription").to_string()
             }
             TeamDeleteDisabledReason::RemainingBonusCredits => {
-                "Your team cannot be deleted with unused add-on credits."
+                t!("workspace_search_ui.workspace.team_delete.remaining_credits").to_string()
             }
             TeamDeleteDisabledReason::OtherMembers => {
-                "Your team cannot be deleted with other team members."
+                t!("workspace_search_ui.workspace.team_delete.other_members").to_string()
             }
         }
     }

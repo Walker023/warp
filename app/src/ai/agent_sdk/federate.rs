@@ -12,6 +12,7 @@ use warpui::platform::TerminationMode;
 use warpui::{AppContext, SingletonEntity as _};
 
 use super::common::set_ambient_task_context_from_run_id;
+use crate::i18n::t;
 
 /// Run identity federation commands.
 pub fn run(
@@ -20,7 +21,10 @@ pub fn run(
     command: FederateCommand,
 ) -> Result<()> {
     if !FeatureFlag::OzIdentityFederation.is_enabled() {
-        return Err(anyhow::anyhow!("This feature is not enabled"));
+        return Err(anyhow::anyhow!(t!(
+            "ai_cli.common.error.feature_not_enabled"
+        )
+        .to_string()));
     }
     match command {
         FederateCommand::IssueToken(args) => issue_token(ctx, args, global_options.output_format),
@@ -39,8 +43,9 @@ fn issue_token(
     let duration: std::time::Duration = args.duration.into();
     let audience = args.audience;
     let subject_template = match args.subject_template {
-        Some(template) => vec1::Vec1::try_from_vec(template)
-            .map_err(|_| anyhow::anyhow!("--subject-template requires at least one value"))?,
+        Some(template) => vec1::Vec1::try_from_vec(template).map_err(|_| {
+            anyhow::anyhow!(t!("ai_cli.federate.error.subject_template_empty").to_string())
+        })?,
         None => vec1::vec1!["principal".to_owned()],
     };
 
@@ -71,9 +76,15 @@ fn issue_token(
                         println!("{token_value}");
                     }
                     OutputFormat::Pretty => {
-                        println!("Token: {token_value}");
-                        println!("Expires at: {expires_at}");
-                        println!("Issuer: {issuer}");
+                        println!(
+                            "{}",
+                            t!("ai_cli.federate.label.token", token = &token_value)
+                        );
+                        println!(
+                            "{}",
+                            t!("ai_cli.federate.label.expires_at", time = &expires_at)
+                        );
+                        println!("{}", t!("ai_cli.federate.label.issuer", issuer = &issuer));
                     }
                 }
                 ctx.terminate_app(TerminationMode::ForceTerminate, None);

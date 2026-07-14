@@ -12,6 +12,7 @@ use warpui::{Entity, ModelContext, SingletonEntity};
 use crate::autoupdate::{self};
 use crate::channel::{Channel, ChannelState};
 use crate::features::{FeatureFlag, PREVIEW_FLAGS};
+use crate::i18n::{get_available_locales, t};
 use crate::server::server_api::ServerApi;
 
 pub struct ChangelogModel {
@@ -142,14 +143,19 @@ impl ChangelogModel {
 
             let mut preview_flags_string = preview_flags_vec
                 .iter()
-                .map(|flag| format!("* ***Preview-exclusive***: {flag}"))
+                .map(|flag| {
+                    format!(
+                        "* ***{}***: {flag}",
+                        t!("common_extra.changelog.preview_exclusive")
+                    )
+                })
                 .join("\n");
             preview_flags_string.push('\n');
 
             // Insert preview-exclusive features into the "New features" section (markdown_sections[0])
             if markdown_sections.is_empty() {
                 markdown_sections.push(MarkdownSection {
-                    title: ChangelogHeader::NewFeatures.to_string(),
+                    title: ChangelogHeader::NewFeatures.server_title().to_owned(),
                     markdown: preview_flags_string,
                 });
             } else {
@@ -163,20 +169,27 @@ impl ChangelogModel {
         // are no meaningful updates this release.
         if markdown_sections.is_empty() {
             markdown_sections.push(MarkdownSection {
-                title: ChangelogHeader::NewFeatures.to_string(),
-                markdown: "* No notable changes this release\n".to_owned(),
+                title: ChangelogHeader::NewFeatures.server_title().to_owned(),
+                markdown: format!("* {}\n", t!("common_extra.changelog.no_notable_changes")),
             });
             if ChannelState::channel() == Channel::Dev {
-                markdown_sections[0].markdown.push_str("* *Don't forget to put changelog information in your PR description, if applicable!*\n");
+                markdown_sections[0].markdown.push_str(&format!(
+                    "* *{}*\n",
+                    t!("common_extra.changelog.dev_reminder")
+                ));
             }
         } else if markdown_sections
             .iter()
             .all(|section| section.markdown.is_empty())
         {
             // Add this to the "New features" section (markdown_sections[0])
-            "* No notable changes this release\n".clone_into(&mut markdown_sections[0].markdown);
+            markdown_sections[0].markdown =
+                format!("* {}\n", t!("common_extra.changelog.no_notable_changes"));
             if ChannelState::channel() == Channel::Dev {
-                markdown_sections[0].markdown.push_str("* *Don't forget to put changelog information in your PR description, if applicable!*\n");
+                markdown_sections[0].markdown.push_str(&format!(
+                    "* *{}*\n",
+                    t!("common_extra.changelog.dev_reminder")
+                ));
             }
         }
     }
@@ -188,7 +201,18 @@ impl ChangelogModel {
                     if let Ok(parsed_markdown) = parse_markdown(markdown_section.markdown.as_str())
                     {
                         self.parsed_changelog
-                            .insert(markdown_section.title.clone(), parsed_markdown);
+                            .insert(markdown_section.title.clone(), parsed_markdown.clone());
+
+                        if let Some(header) =
+                            ChangelogHeader::from_server_title(&markdown_section.title)
+                        {
+                            for locale in get_available_locales() {
+                                self.parsed_changelog.insert(
+                                    header.localized_title(&locale),
+                                    parsed_markdown.clone(),
+                                );
+                            }
+                        }
                     }
                 }
             }
@@ -207,13 +231,46 @@ pub enum ChangelogHeader {
     BugFixes,
 }
 
+impl ChangelogHeader {
+    fn server_title(self) -> &'static str {
+        match self {
+            ChangelogHeader::NewFeatures => "New features",
+            ChangelogHeader::Improvements => "Improvements",
+            ChangelogHeader::BugFixes => "Bug fixes",
+        }
+    }
+
+    fn from_server_title(title: &str) -> Option<Self> {
+        match title {
+            "New features" => Some(ChangelogHeader::NewFeatures),
+            "Improvements" => Some(ChangelogHeader::Improvements),
+            "Bug fixes" => Some(ChangelogHeader::BugFixes),
+            _ => None,
+        }
+    }
+
+    fn localized_title(self, locale: &str) -> String {
+        match self {
+            ChangelogHeader::NewFeatures => t!(
+                "common_extra.changelog.sections.new_features",
+                locale = locale
+            )
+            .to_string(),
+            ChangelogHeader::Improvements => t!(
+                "common_extra.changelog.sections.improvements",
+                locale = locale
+            )
+            .to_string(),
+            ChangelogHeader::BugFixes => {
+                t!("common_extra.changelog.sections.bug_fixes", locale = locale).to_string()
+            }
+        }
+    }
+}
+
 impl fmt::Display for ChangelogHeader {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            ChangelogHeader::NewFeatures => write!(f, "New features"),
-            ChangelogHeader::Improvements => write!(f, "Improvements"),
-            ChangelogHeader::BugFixes => write!(f, "Bug fixes"),
-        }
+        f.write_str(&self.localized_title(rust_i18n::locale().as_ref()))
     }
 }
 

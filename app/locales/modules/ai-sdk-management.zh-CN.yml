@@ -1,0 +1,202 @@
+ai_sdk_management:
+  admin:
+    login:
+      already_with_email: "你已以 %{username}（%{email}）身份登录。"
+      already_as: "你已以 %{name} 身份登录。"
+      already: "你已登录。"
+      success: "登录成功"
+      authentication_failed_detail: "身份验证失败：%{error}"
+      authentication_failed: "身份验证失败"
+      open_url: "要登录，请在浏览器中打开以下 URL：\n%{url}"
+      visit_and_enter_code: "要登录，请访问 %{url} 并输入以下代码：%{code}"
+    whoami:
+      user_id: "用户 ID：%{id}"
+      service_account_id: "服务账户 ID：%{id}"
+      display_name: "显示名称：%{name}"
+      email: "电子邮箱：%{email}"
+      team_id: "团队 ID：%{id}"
+      team_name: "团队名称：%{name}"
+      user_id_unavailable: "无法确定用户 ID。你是否已登录？"
+      serialization_failed: "无法序列化 whoami 输出"
+      ndjson_unsupported: "`whoami` 不支持 `--output-format ndjson`"
+    logout:
+      not_logged_in: "你尚未登录。"
+      success: "已成功退出登录。"
+
+  agent_config:
+    error:
+      invalid_repo: "仓库格式“%{repo}”无效。预期格式为“owner/repo”或“https://github.com/owner/repo”"
+      max_authorization_attempts: "授权尝试次数已超过上限（%{count} 次）。请稍后重试。"
+      private_repo_inaccessible: "无法访问私有仓库 %{owner}/%{repo}"
+      github_not_connected: "用户尚未连接 GitHub"
+      github_authorization_failed: "GitHub 授权失败，请重试。"
+      github_authorization_expired: "GitHub 授权已过期，请重试。"
+      unexpected_oauth_status: "OAuth 状态异常"
+      oauth_poll_failed: "轮询 OAuth 状态时出错：%{error}"
+      authorization_flow_missing: "无法列出智能体：需要授权，但服务器未提供授权流程"
+      github_auth_check_failed: "检查 GitHub 授权状态失败"
+    info:
+      private_repo_authorization_required: "\n访问私有仓库需要授权。"
+      opening_github_authorization: "正在浏览器中打开 GitHub 授权页面：%{url}\n"
+      authorize_here: "\n在此授权访问：%{url}\n"
+      rerun_after_authorizing: "授权后，请重新运行此命令。"
+      fetching_from_repo: "正在从指定仓库获取智能体技能..."
+      fetching_from_environments: "正在从你的 Warp 环境获取智能体技能..."
+    output:
+      no_skills: "未找到技能。"
+      agent: "\n智能体："
+      agents: "\n智能体（%{count} 个）："
+      id: "ID：%{id}"
+      description: "说明"
+      base_prompt: "基础提示词"
+      source: "来源：%{owner}/%{name}"
+      environments: "环境：%{environments}"
+
+  agent_management:
+    table:
+      uid: "UID"
+      name: "名称"
+      created: "创建时间"
+      description: "说明"
+      secrets: "密钥"
+      skills: "技能"
+      base_model: "基础模型"
+      environment: "环境"
+    status:
+      no_agents: "未找到智能体。"
+      disabled_hidden: "已隐藏 %{count} 个已禁用的智能体"
+      deleted: "已删除智能体 %{uid}。"
+    hint:
+      skills: "\n\n要查找智能体技能？请改用 `%{binary} agent skills`。"
+    error:
+      no_updates: "未请求任何更新"
+      json_sort_unsupported: "JSON 输出不支持 --sort-by 和 --sort-order"
+
+  api_key:
+    scope:
+      personal: "个人"
+      team: "团队"
+    table:
+      uid: "UID"
+      name: "名称"
+      key: "密钥"
+      scope: "范围"
+      created: "创建时间"
+      last_used: "上次使用"
+      expires_at: "过期时间"
+    value:
+      never: "永不"
+    prompt:
+      expire: "让 API 密钥“%{key}”过期？"
+      expire_help: "此操作会立即生效"
+      select_to_expire: "多个 API 密钥与“%{identifier}”匹配。请选择要让其过期的密钥："
+    status:
+      expiration_cancelled: "已取消过期操作"
+      multiple_matches: "多个 API 密钥与“%{identifier}”匹配："
+      created: "已创建 API 密钥“%{name}”。"
+      uid: "UID：%{uid}"
+      raw_key: "原始 API 密钥：%{key}"
+      security_warning: "此密钥只会显示一次，请妥善保管。"
+      expired: "API 密钥“%{uid}”已过期。"
+      not_expired: "未能让 API 密钥“%{uid}”过期。"
+    display:
+      created: "%{name}（%{uid}，创建于 %{created_at}）"
+    error:
+      create_failed: "创建 API 密钥失败"
+      expire_non_interactive: "非交互模式下无法在未经确认时让 API 密钥过期（可使用 --force 跳过确认）"
+      expire_failed: "让 API 密钥过期失败"
+      not_found: "未找到 API 密钥“%{identifier}”"
+      ambiguous: "多个 API 密钥与“%{identifier}”匹配；请使用 UID 指定密钥"
+      expiration_too_large: "过期时长过大"
+      expiration_required: "必须指定过期行为"
+
+  integration:
+    status:
+      creating_without_environment: "正在创建不使用环境的集成。"
+      creating_with_environment: "正在创建使用环境 %{id} 的集成。"
+      creation_cancelled: "已取消创建集成。"
+    info:
+      authorize_provider: "在此授权提供商：%{url}\n"
+      continue_creation: "授权后，请重新运行此命令以继续创建集成。"
+      continue_update: "授权后，请重新运行此命令以继续更新集成。"
+    error:
+      max_creation_attempts: "创建集成的尝试次数已超过上限（%{count} 次）。请重试。"
+      max_update_attempts: "更新集成的尝试次数已超过上限（%{count} 次）。请重试。"
+      oauth_failed: "OAuth 授权失败。"
+      oauth_expired: "OAuth 授权已过期。"
+      oauth_non_terminal_status: "返回了非终止状态的 OAuth 结果"
+      oauth_poll_failed: "轮询 OAuth 状态时出错：%{error}"
+      creation_auth_url_missing: "服务器未返回创建集成所需的 authURL。"
+      update_auth_url_missing: "服务器未返回更新集成所需的 authURL。"
+      creation_reported_failure: "创建集成失败：%{message}"
+      update_reported_failure: "更新集成失败：%{message}"
+
+  integration_output:
+    heading:
+      none: "未找到集成。"
+      one: "\n集成："
+      many: "\n集成："
+    label:
+      status: "状态"
+      environment: "环境"
+      model: "模型"
+      base_prompt: "基础提示词"
+      mcp_servers: "MCP 服务器"
+    timestamp:
+      created: "创建时间：%{time}"
+      updated: "更新时间：%{time}"
+    value:
+      none: "（无）"
+      unknown: "未知"
+    status:
+      not_connected: "此集成尚未连接。"
+      connection_error: "此提供商已连接，但当前存在错误。"
+      not_configured: "连接已生效，但尚未配置智能体集成。"
+      not_enabled: "集成已配置，但当前处于禁用状态。"
+      active: "集成已连接并启用。"
+    table:
+      provider: "提供商"
+      description: "说明"
+      status: "状态"
+      environment: "环境"
+      created: "创建时间"
+      updated: "更新时间"
+
+  provider:
+    scope:
+      personal: "个人"
+      team: "团队"
+    status:
+      not_connected: "❌ 未连接"
+    table:
+      name: "名称"
+      slug: "SLUG"
+      allowed_for: "适用范围"
+      status: "状态"
+    info:
+      authenticate: "要验证 %{provider}，请在浏览器中打开以下 URL：%{url}"
+    error:
+      scope_required: "必须为提供商“%{provider}”选择团队账户或个人账户"
+      not_on_team: "用户不属于任何团队"
+
+  profiles:
+    value:
+      unsynced: "未同步"
+    table:
+      id: "ID"
+      name: "名称"
+
+  mcp:
+    table:
+      uuid: "UUID"
+      name: "名称"
+
+  model:
+    table:
+      id: "模型 ID"
+    error:
+      metadata_refresh_timeout: "刷新工作区元数据超时"
+
+  oauth:
+    waiting: "正在等待授权完成... 如果授权后此状态未更新，请重新启动命令并重试。\n"
+    timeout: "等待 OAuth 授权超时"

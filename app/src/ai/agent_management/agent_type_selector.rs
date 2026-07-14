@@ -19,6 +19,7 @@ use warpui::ui_components::components::{Coords, UiComponent, UiComponentStyles};
 use warpui::{AppContext, Entity, SingletonEntity, TypedActionView, View, ViewContext};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::icons::Icon;
 
 // Modal dimensions based on Figma design.
@@ -127,7 +128,7 @@ impl AgentTypeSelector {
         let theme = appearance.theme();
 
         let title = Text::new(
-            "Choose your agent".to_string(),
+            t!("ai_ui.agent_management.agent_type.choose").to_string(),
             appearance.ui_font_family(),
             TITLE_FONT_SIZE,
         )
@@ -186,8 +187,8 @@ impl AgentTypeSelector {
         &self,
         index: usize,
         icon: Icon,
-        title: &'static str,
-        description: &'static str,
+        title: String,
+        description: String,
         is_suggested: bool,
         mouse_state: MouseStateHandle,
         action: AgentTypeSelectorAction,
@@ -247,7 +248,7 @@ impl AgentTypeSelector {
                 .with_border(Border::all(1.).with_border_color(avatar_border))
                 .finish();
 
-            let title_text = Text::new(title.to_string(), font_family, OPTION_TITLE_FONT_SIZE)
+            let title_text = Text::new(title.clone(), font_family, OPTION_TITLE_FONT_SIZE)
                 .with_style(Properties::default().weight(Weight::Semibold))
                 .with_color(active_text.into())
                 .finish();
@@ -258,11 +259,14 @@ impl AgentTypeSelector {
                 .with_child(title_text);
 
             if is_suggested {
-                let suggested_text =
-                    Text::new("Suggested".to_string(), font_family, OPTION_DESC_FONT_SIZE)
-                        .with_style(Properties::default().weight(Weight::Medium))
-                        .with_color(badge_text_color)
-                        .finish();
+                let suggested_text = Text::new(
+                    t!("common.suggested").to_string(),
+                    font_family,
+                    OPTION_DESC_FONT_SIZE,
+                )
+                .with_style(Properties::default().weight(Weight::Medium))
+                .with_color(badge_text_color)
+                .finish();
 
                 let suggested = Container::new(suggested_text)
                     .with_horizontal_padding(8.)
@@ -276,7 +280,7 @@ impl AgentTypeSelector {
             }
 
             let description_text =
-                Text::new(description.to_string(), font_family, OPTION_DESC_FONT_SIZE)
+                Text::new(description.clone(), font_family, OPTION_DESC_FONT_SIZE)
                     .with_style(Properties::default().weight(Weight::Normal))
                     .with_color(nonactive_text.into())
                     .soft_wrap(true)
@@ -334,8 +338,8 @@ impl AgentTypeSelector {
         let cloud_agent_option = self.render_option(
             0,
             Icon::OzCloud,
-            "Cloud agent",
-            "Runs autonomously in a cloud environment you choose. Best for parallel or long-running work.",
+            t!("ai_ui.agent_management.agent_type.cloud_title").to_string(),
+            t!("ai_ui.agent_management.agent_type.cloud_description").to_string(),
             true,
             self.cloud_agent_mouse_state.clone(),
             AgentTypeSelectorAction::SelectCloudAgent,
@@ -345,8 +349,8 @@ impl AgentTypeSelector {
         let local_agent_option = self.render_option(
             1,
             Icon::Oz,
-            "Local agent",
-            "Runs on your machine and requires supervision. Best for quick, interactive tasks.",
+            t!("ai_ui.agent_management.agent_type.local_title").to_string(),
+            t!("ai_ui.agent_management.agent_type.local_description").to_string(),
             false,
             self.local_agent_mouse_state.clone(),
             AgentTypeSelectorAction::SelectLocalAgent,

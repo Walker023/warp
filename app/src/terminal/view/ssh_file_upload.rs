@@ -303,7 +303,7 @@ impl FileUpload {
         if let FileUploadStatus::AwaitingPassword = file.status {
             session_action_row.add_child(
                 FormattedTextElement::from_str(
-                    String::from("Waiting for password input"),
+                    t!("terminal_ui.ssh.file_uploads.waiting_for_password").to_string(),
                     font_family,
                     font_size,
                 )
@@ -472,7 +472,9 @@ impl FileUpload {
             FormattedTextElement::new(
                 FormattedText::new(vec![FormattedTextLine::Heading(FormattedTextHeader {
                     heading_size: 3,
-                    text: vec![FormattedTextFragment::plain_text("File Uploads")],
+                    text: vec![FormattedTextFragment::plain_text(
+                        t!("terminal_ui.ssh.file_uploads.title").to_string(),
+                    )],
                 })]),
                 appearance.ui_font_size(),
                 appearance.ui_font_family(),

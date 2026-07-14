@@ -7,6 +7,7 @@ use warpui::{AppContext, ModelContext, SingletonEntity};
 use crate::ai::agent_sdk::output::{self, TableFormat};
 use crate::ai::execution_profiles::profiles::AIExecutionProfilesModel;
 use crate::cloud_object::model::generic_string_model::StringModel;
+use crate::i18n::t;
 use crate::server::cloud_objects::update_manager::UpdateManager;
 use crate::server::ids::SyncId;
 
@@ -43,11 +44,21 @@ impl ProfilesCommandRunner {
                 .flat_map(|id| profiles_model.get_profile_by_id(*id, ctx))
                 .map(|profile| {
                     let name = profile.data().display_name().to_string();
-                    let id = match profile.sync_id() {
-                        Some(SyncId::ServerId(server_id)) => server_id.to_string(),
-                        _ => "Unsynced".to_string(),
+                    let (id, id_formatted) = match profile.sync_id() {
+                        Some(SyncId::ServerId(server_id)) => {
+                            let id = server_id.to_string();
+                            (id.clone(), id)
+                        }
+                        _ => (
+                            "Unsynced".to_string(),
+                            t!("ai_sdk_management.profiles.value.unsynced").to_string(),
+                        ),
                     };
-                    ProfileInfo { id, name }
+                    ProfileInfo {
+                        id,
+                        id_formatted,
+                        name,
+                    }
                 })
                 .collect();
 
@@ -67,15 +78,20 @@ impl SingletonEntity for ProfilesCommandRunner {}
 #[derive(Serialize)]
 struct ProfileInfo {
     id: String,
+    #[serde(skip_serializing)]
+    id_formatted: String,
     name: String,
 }
 
 impl TableFormat for ProfileInfo {
     fn header() -> Vec<Cell> {
-        vec![Cell::new("ID"), Cell::new("Name")]
+        vec![
+            Cell::new(t!("ai_sdk_management.profiles.table.id").to_string()),
+            Cell::new(t!("ai_sdk_management.profiles.table.name").to_string()),
+        ]
     }
 
     fn row(&self) -> Vec<Cell> {
-        vec![Cell::new(&self.id), Cell::new(&self.name)]
+        vec![Cell::new(&self.id_formatted), Cell::new(&self.name)]
     }
 }

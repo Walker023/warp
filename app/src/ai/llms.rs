@@ -18,6 +18,7 @@ use super::custom_model_routers::{self, CustomModelRouter, ModelConfigError};
 use super::execution_profiles::profiles::AIExecutionProfilesModel;
 use crate::auth::auth_manager::{AuthManager, AuthManagerEvent};
 use crate::auth::AuthStateProvider;
+use crate::i18n::t;
 use crate::network::{NetworkStatus, NetworkStatusEvent, NetworkStatusKind};
 use crate::server::server_api::ServerApiProvider;
 use crate::settings::AISettings;
@@ -50,10 +51,10 @@ pub enum ByoKeySource {
 }
 
 impl ByoKeySource {
-    pub fn inference_label(self) -> &'static str {
+    pub fn inference_label(self) -> String {
         match self {
-            ByoKeySource::UserProvided => "Inference via User-provided API key",
-            ByoKeySource::TeamProvided => "Inference via Team-provided API key",
+            ByoKeySource::UserProvided => t!("ai_ui.llms.inference_user_api_key").to_string(),
+            ByoKeySource::TeamProvided => t!("ai_ui.llms.inference_team_api_key").to_string(),
         }
     }
 }
@@ -148,7 +149,6 @@ pub fn should_show_bedrock_icon_for_model(llm: &LLMInfo, app: &AppContext) -> bo
 /// Note: this key used to store a single [`AvailableLLMs`]
 /// but was migrated to store a full [`ModelsByFeature`].
 pub const MODELS_BY_FEATURE_CACHE_KEY: &str = "AvailableLLMs";
-const CUSTOM_ENDPOINT_USAGE_FALLBACK_LABEL: &str = "Custom endpoint";
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct LLMUsageMetadata {
@@ -167,15 +167,21 @@ pub enum DisableReason {
 
 impl DisableReason {
     /// Returns a user-facing tooltip explaining why the model is disabled.
-    pub fn tooltip_text(&self) -> &'static str {
+    pub fn tooltip_text(&self) -> String {
         match self {
-            DisableReason::AdminDisabled => "This model has been disabled by your team admin.",
-            DisableReason::OutOfRequests => "Please upgrade your plan to make more requests.",
-            DisableReason::ProviderOutage => {
-                "This model is temporarily unavailable due to a provider outage."
+            DisableReason::AdminDisabled => {
+                t!("ai_ui.llms.disable_reason.admin_disabled").to_string()
             }
-            DisableReason::RequiresUpgrade => "Please upgrade your plan to access this model.",
-            DisableReason::Unavailable => "This model is unavailable.",
+            DisableReason::OutOfRequests => {
+                t!("ai_ui.llms.disable_reason.out_of_requests").to_string()
+            }
+            DisableReason::ProviderOutage => {
+                t!("ai_ui.llms.disable_reason.provider_outage").to_string()
+            }
+            DisableReason::RequiresUpgrade => {
+                t!("ai_ui.llms.disable_reason.requires_upgrade").to_string()
+            }
+            DisableReason::Unavailable => t!("ai_ui.llms.disable_reason.unavailable").to_string(),
         }
     }
 
@@ -236,13 +242,13 @@ impl LLMProvider {
     }
 
     /// Human-readable provider name for user-facing copy.
-    pub fn display_name(&self) -> &'static str {
+    pub fn display_name(&self) -> String {
         match self {
-            LLMProvider::OpenAI => "OpenAI",
-            LLMProvider::Anthropic => "Anthropic",
-            LLMProvider::Google => "Google",
-            LLMProvider::Xai => "xAI",
-            LLMProvider::Unknown => "this provider",
+            LLMProvider::OpenAI => "OpenAI".to_string(),
+            LLMProvider::Anthropic => "Anthropic".to_string(),
+            LLMProvider::Google => "Google".to_string(),
+            LLMProvider::Xai => "xAI".to_string(),
+            LLMProvider::Unknown => t!("ai_ui.llms.unknown_provider").to_string(),
         }
     }
 }
@@ -393,22 +399,46 @@ pub fn dedupe_model_display_names<'a>(
     sorted
 }
 
+fn localized_llm_name(name: &str) -> String {
+    match name {
+        "auto" => t!("ai_models.display_name.auto").to_string(),
+        "auto (cost-efficient)" => t!("ai_models.display_name.auto_cost_efficient").to_string(),
+        "auto (responsive)" => t!("ai_models.display_name.auto_responsive").to_string(),
+        _ => name.to_owned(),
+    }
+}
+
 impl LLMInfo {
+    /// 返回仅供用户界面渲染使用的本地化展示名称。
+    ///
+    /// 存储值仍保持不变，供模型匹配、分组、缓存和持久化逻辑使用。
+    pub fn localized_display_name(&self) -> String {
+        localized_llm_name(&self.display_name)
+    }
+
+    /// 返回仅供用户界面渲染使用的本地化基础模型名称。
+    ///
+    /// 存储值仍作为分组和推理变体查找使用的规范值。
+    pub fn localized_base_model_name(&self) -> String {
+        localized_llm_name(&self.base_model_name)
+    }
+
     /// Returns the display name for the LLM, to be used in the LLM selector menu.
     pub fn menu_display_name(&self) -> String {
+        let display_name = self.localized_display_name();
         // Custom model routers carry a routing/source description that belongs in
         // the sidecar detail panel, not inline in the chip label. Appending it
         // here would produce a redundant "(Routes by … · …)" suffix.
         if custom_model_routers::is_custom_router_id(self.id.as_str()) {
-            return self.display_name.clone();
+            return display_name;
         }
         // Base label includes optional description in parentheses
         match &self.description {
             // This is a temporary implementation that won't scale well for longer
             // descriptions. We should implement a better approach for displaying
             // model descriptions, maybe through subtext.
-            Some(desc) => format!("{} ({})", self.display_name, desc),
-            None => self.display_name.clone(),
+            Some(desc) => format!("{display_name} ({desc})"),
+            None => display_name,
         }
     }
 
@@ -1124,7 +1154,7 @@ impl LLMPreferences {
         self.custom_llm_info_for_id(&config_key)
             .map(|info| info.display_name.as_str())
             .map(str::to_string)
-            .unwrap_or_else(|| CUSTOM_ENDPOINT_USAGE_FALLBACK_LABEL.to_string())
+            .unwrap_or_else(|| t!("ai_ui.llms.custom_endpoint").to_string())
     }
 
     fn custom_llm_info_for_id_if_enabled(&self, id: &LLMId, app: &AppContext) -> Option<&LLMInfo> {
@@ -1232,7 +1262,11 @@ impl LLMPreferences {
             if unknown.is_empty() {
                 return true;
             }
-            let error_message = format!("unknown target model(s): {}", unknown.join(", "));
+            let error_message = t!(
+                "ai_models.errors.unknown_target_models",
+                models = unknown.join(", ")
+            )
+            .to_string();
             log::warn!(
                 "Custom model router '{}': {} — excluding from picker",
                 router.info.display_name,
@@ -1866,7 +1900,7 @@ fn custom_llm_info_from(endpoint: &CustomEndpoint, model: &CustomEndpointModel) 
             request_multiplier: 1,
             credit_multiplier: None,
         },
-        description: Some(format!("Custom · {}", endpoint.name)),
+        description: Some(t!("ai_ui.llms.custom_source", name = endpoint.name).to_string()),
         disable_reason: None,
         vision_supported: true,
         spec: None,

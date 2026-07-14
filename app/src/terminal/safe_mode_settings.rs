@@ -2,6 +2,7 @@ use settings::macros::define_settings_group;
 use settings::{RespectUserSyncSetting, Setting, SupportedPlatforms, SyncToCloud};
 use warpui::{AppContext, SingletonEntity};
 
+use crate::i18n::t;
 use crate::terminal::model::ObfuscateSecrets;
 use crate::workspaces::user_workspaces::UserWorkspaces;
 
@@ -52,12 +53,19 @@ impl SecretDisplayMode {
     }
 
     /// Display name for UI
-    pub fn display_name(self) -> &'static str {
+    pub fn display_name(self) -> String {
         match self {
-            SecretDisplayMode::Asterisks => "Asterisks",
-            SecretDisplayMode::Strikethrough => "Strikethrough",
-            SecretDisplayMode::AlwaysShow => "Always show secrets",
+            SecretDisplayMode::Asterisks => {
+                t!("settings_extra.privacy.secret_display_mode.asterisks")
+            }
+            SecretDisplayMode::Strikethrough => {
+                t!("settings_extra.privacy.secret_display_mode.strikethrough")
+            }
+            SecretDisplayMode::AlwaysShow => {
+                t!("settings_extra.privacy.secret_display_mode.always_show")
+            }
         }
+        .to_string()
     }
 
     /// Get all available modes for dropdown

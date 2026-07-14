@@ -8,6 +8,7 @@ use super::search_results_common::{
 use crate::ai::agent::icons::{failed_icon, yellow_running_icon};
 use crate::ai::agent::WebFetchStatus;
 use crate::ai::blocklist::block::view_impl::WithContentItemSpacing;
+use crate::i18n::t;
 
 pub enum WebFetchViewEvent {}
 
@@ -37,7 +38,7 @@ impl WebFetchView {
         let appearance = Appearance::as_ref(app);
         let loading_icon = yellow_running_icon(appearance);
 
-        let text = format!("Fetching {} web pages...", urls.len());
+        let text = t!("ai_ui.inline_action.web_fetch.fetching", count = urls.len()).to_string();
 
         super::search_results_common::render_status_header(text, loading_icon, app)
     }
@@ -49,9 +50,18 @@ impl WebFetchView {
     ) -> Box<dyn Element> {
         let successful_count = pages.iter().filter(|(_, _, success)| *success).count();
         let title_text = if successful_count == pages.len() {
-            format!("Fetched {} web pages", pages.len())
+            t!(
+                "ai_ui.inline_action.web_fetch.fetched_all",
+                count = pages.len()
+            )
+            .to_string()
         } else {
-            format!("Fetched {} of {} web pages", successful_count, pages.len())
+            t!(
+                "ai_ui.inline_action.web_fetch.fetched_partial",
+                successful = successful_count,
+                total = pages.len()
+            )
+            .to_string()
         };
 
         let body = if self.collapsible.is_expanded {
@@ -63,7 +73,7 @@ impl WebFetchView {
         render_collapsible_search_results(
             title_text,
             pages.len(),
-            "URLs",
+            t!("ai_ui.inline_action.urls").as_ref(),
             &self.collapsible,
             body,
             |ctx| {
@@ -118,7 +128,7 @@ impl WebFetchView {
 
         if pages.is_empty() {
             let no_results = Text::new_inline(
-                "No URLs fetched".to_string(),
+                t!("ai_ui.inline_action.web_fetch.no_urls").to_string(),
                 appearance.ui_font_family(),
                 appearance.monospace_font_size(),
             )
@@ -171,7 +181,7 @@ impl View for WebFetchView {
             WebFetchStatus::Error => {
                 let appearance = Appearance::as_ref(app);
                 super::search_results_common::render_status_header(
-                    "Web page fetch failed".to_string(),
+                    t!("ai_ui.inline_action.web_fetch.failed").to_string(),
                     failed_icon(appearance),
                     app,
                 )

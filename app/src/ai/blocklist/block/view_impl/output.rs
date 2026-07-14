@@ -70,10 +70,7 @@ use crate::ai::agent_conversations_model::AgentConversationsModel;
 use crate::ai::ambient_agents::AmbientAgentTaskId;
 use crate::ai::blocklist::action_model::AIActionStatus;
 use crate::ai::blocklist::block::model::{AIBlockModel, AIBlockModelHelper, AIBlockOutputStatus};
-use crate::ai::blocklist::block::view_impl::common::{
-    MaybeShimmeringText, BLOCKED_ACTION_MESSAGE_FOR_GREP_OR_FILE_GLOB,
-    BLOCKED_ACTION_MESSAGE_FOR_READING_FILES, BLOCKED_ACTION_MESSAGE_FOR_SEARCHING_CODEBASE,
-};
+use crate::ai::blocklist::block::view_impl::common::MaybeShimmeringText;
 use crate::ai::blocklist::block::{
     AIBlock, AIBlockAction, AIBlockStateHandles, ActionButtons, AutonomySettingSpeedbump,
     CollapsibleElementState, CollapsibleExpansionState, EmbeddedCodeEditorView, FinishReason,
@@ -110,6 +107,7 @@ use crate::ai::skills::{
 use crate::appearance::Appearance;
 use crate::code::diff_viewer::DisplayMode;
 use crate::code::editor_management::CodeSource;
+use crate::i18n::t;
 use crate::settings_view::SettingsSection;
 #[cfg(not(target_family = "wasm"))]
 use crate::terminal::input::slash_commands::fork_button_action;
@@ -128,8 +126,6 @@ use crate::view_components::compactible_action_button::{
 };
 use crate::workspace::WorkspaceAction;
 use crate::{AIAgentTodoList, FeatureFlag};
-
-const BLOCKED_ACTION_MESSAGE_FOR_UPLOADING_ARTIFACT: &str = "Grant access to upload this artifact?";
 
 /// Data required to render the AI block output component.
 #[derive(Copy, Clone)]
@@ -388,9 +384,13 @@ pub(super) fn render(props: Props, app: &AppContext) -> Box<dyn Element> {
                             && props.thinking_display_mode.should_render() =>
                         {
                             let header_text = if let Some(dur) = finished_duration {
-                                format!("Thought for {}", format_elapsed_seconds(*dur))
+                                t!(
+                                    "ai_ui.block.output.thought_for",
+                                    duration = format_elapsed_seconds(*dur)
+                                )
+                                .to_string()
                             } else {
-                                "Thinking".to_string()
+                                t!("ai_ui.block.output.thinking").to_string()
                             };
                             if let Some(element) = render_collapsible_block(
                                 output_message,
@@ -488,7 +488,9 @@ pub(super) fn render(props: Props, app: &AppContext) -> Box<dyn Element> {
                                             // action so the user sees the error instead
                                             // of an empty box.
                                             let formatted_text = render_requested_action_body_text(
-                                                "Failed to read files".into(),
+                                                t!("ai_ui.block.output.read_files_failed")
+                                                    .to_string()
+                                                    .into(),
                                                 appearance.ui_font_family(),
                                                 app,
                                             );
@@ -918,7 +920,8 @@ pub(super) fn render(props: Props, app: &AppContext) -> Box<dyn Element> {
                             SummarizationType::ConversationSummary
                         ) && !are_all_text_sections_empty(&text.sections) =>
                         {
-                            let header_text = "Conversation summarized".to_string();
+                            let header_text =
+                                t!("ai_ui.block.output.conversation_summarized").to_string();
                             if let Some(element) = render_collapsible_block(
                                 output_message,
                                 header_text,
@@ -1046,7 +1049,8 @@ pub(super) fn render(props: Props, app: &AppContext) -> Box<dyn Element> {
                                         .and_then(|c| c.title())
                                         .map(|q| truncate_from_end(&q, 40));
                                     Some((
-                                        "conversation",
+                                        t!("ai_ui.block.output.conversation_search.conversation")
+                                            .to_string(),
                                         title.unwrap_or_else(|| target_id.clone()),
                                     ))
                                 })
@@ -1061,21 +1065,26 @@ pub(super) fn render(props: Props, app: &AppContext) -> Box<dyn Element> {
                                         })
                                         .map(|task| truncate_from_end(&task.title, 40));
                                     Some((
-                                        "agent run",
+                                        t!("ai_ui.block.output.conversation_search.agent_run")
+                                            .to_string(),
                                         title.unwrap_or_else(|| truncate_from_end(target_id, 40)),
                                     ))
                                 });
 
                             let done = is_finished || is_cancelled;
-                            let verb = if done { "Searched" } else { "Searching" };
+                            let verb = if done {
+                                t!("ai_ui.block.output.conversation_search.searched")
+                            } else {
+                                t!("ai_ui.block.output.conversation_search.searching")
+                            };
 
                             let mut fragments: Vec<FormattedTextFragment> =
-                                vec![FormattedTextFragment::plain_text(format!("{verb} "))];
+                                vec![FormattedTextFragment::plain_text(verb.to_string())];
                             match &target_label {
                                 Some((target_kind, name)) => {
-                                    fragments.push(FormattedTextFragment::plain_text(format!(
-                                        "{target_kind} "
-                                    )));
+                                    fragments.push(FormattedTextFragment::plain_text(
+                                        target_kind.clone(),
+                                    ));
                                     fragments.push(FormattedTextFragment::weighted(
                                         name.as_str(),
                                         Some(markdown_parser::weight::CustomWeight::Bold),
@@ -1083,14 +1092,22 @@ pub(super) fn render(props: Props, app: &AppContext) -> Box<dyn Element> {
                                 }
                                 None => {
                                     fragments.push(FormattedTextFragment::plain_text(
-                                        "this conversation",
+                                        t!(
+                                            "ai_ui.block.output.conversation_search.this_conversation"
+                                        )
+                                        .to_string(),
                                     ));
                                 }
                             };
                             match query {
                                 Some(q) => {
-                                    fragments
-                                        .push(FormattedTextFragment::plain_text(format!(": {q}")));
+                                    fragments.push(FormattedTextFragment::plain_text(
+                                        t!(
+                                            "ai_ui.block.output.conversation_search.query",
+                                            query = q
+                                        )
+                                        .to_string(),
+                                    ));
                                 }
                                 None if !done => {
                                     fragments.push(FormattedTextFragment::plain_text("..."));
@@ -1201,8 +1218,7 @@ pub(super) fn render(props: Props, app: &AppContext) -> Box<dyn Element> {
                             output_items.add_child(
                                 render_informational_footer(
                                     app,
-                                    "Sorry you had a bad experience with this interaction. We've refunded you 1 credit. We appreciate your feedback!"
-                                        .to_string(),
+                                    t!("ai_ui.block.output.refund_one").to_string(),
                                 )
                                 .with_agent_output_item_spacing(app)
                                 .finish(),
@@ -1212,9 +1228,11 @@ pub(super) fn render(props: Props, app: &AppContext) -> Box<dyn Element> {
                             output_items.add_child(
                                 render_informational_footer(
                                     app,
-                                    format!(
-                                        "Sorry you had a bad experience with this interaction. We've refunded you {request_refunded_count} credits. We appreciate your feedback!"
-                                    ),
+                                    t!(
+                                        "ai_ui.block.output.refund_many",
+                                        count = request_refunded_count
+                                    )
+                                    .to_string(),
                                 )
                                 .with_agent_output_item_spacing(app)
                                 .finish(),
@@ -1261,7 +1279,7 @@ pub(super) fn render(props: Props, app: &AppContext) -> Box<dyn Element> {
                     output_items.add_child(
                         render_informational_footer(
                             app,
-                            "This response won't count towards your usage.".to_string(),
+                            t!("ai_ui.block.output.response_not_counted").to_string(),
                         )
                         .with_agent_output_item_spacing(app)
                         .finish(),
@@ -1424,9 +1442,13 @@ fn render_search_codebase(
                                     .clone(),
                                 vec![
                                     RadioButtonItem::text(
-                                        "Always allow file access for coding tasks",
+                                        t!("ai_ui.block.output.always_allow_file_access")
+                                            .to_string(),
                                     ),
-                                    RadioButtonItem::text("Always allow file access for this repo"),
+                                    RadioButtonItem::text(
+                                        t!("ai_ui.block.output.always_allow_repo_access")
+                                            .to_string(),
+                                    ),
                                 ],
                                 props
                                     .state_handles
@@ -1468,7 +1490,8 @@ fn render_search_codebase(
                                 appearance
                                     .ui_builder()
                                     .link(
-                                        "Manage AI Autonomy permissions".into(),
+                                        t!("ai_ui.block.output.manage_autonomy_permissions")
+                                            .to_string(),
                                         None,
                                         Some(Box::new(move |ctx| {
                                             ctx.dispatch_typed_action(
@@ -1516,7 +1539,11 @@ fn render_search_codebase(
                         renderable_action(
                             props,
                             id,
-                            format!("Search in {}", root_repo_path.to_string_lossy()).as_str(),
+                            t!(
+                                "ai_ui.block.output.search_codebase.search",
+                                path = root_repo_path.to_string_lossy()
+                            )
+                            .as_ref(),
                             app,
                             footer,
                             appearance,
@@ -1546,7 +1573,7 @@ fn render_search_codebase(
                 )
                 .with_header(blocked_action_header(
                     id.clone(),
-                    BLOCKED_ACTION_MESSAGE_FOR_SEARCHING_CODEBASE,
+                    t!("ai_ui.block.permission.search_codebase").as_ref(),
                     buttons.run_button.clone(),
                     buttons.cancel_button.clone(),
                     props.action_model,
@@ -1566,7 +1593,11 @@ fn render_search_codebase(
                     renderable_action(
                         props,
                         id,
-                        format!("Searching in {}", root_repo_path.to_string_lossy()).as_str(),
+                        t!(
+                            "ai_ui.block.output.search_codebase.searching",
+                            path = root_repo_path.to_string_lossy()
+                        )
+                        .as_ref(),
                         app,
                         footer,
                         appearance,
@@ -1592,7 +1623,7 @@ fn render_search_codebase(
                                 renderable_action(
                                     props,
                                     id,
-                                    "No relevant files found.",
+                                    t!("ai_ui.block.output.search_codebase.no_files").as_ref(),
                                     app,
                                     footer,
                                     appearance,
@@ -1627,13 +1658,16 @@ fn render_search_codebase(
                         SearchCodebaseResult::Failed { reason, .. } => {
                             let root_repo_path = root_repo_path?;
                             let message = match reason {
-                                SearchCodebaseFailureReason::CodebaseNotIndexed => format!(
-                                    "Search in {} failed because the codebase isn't indexed",
-                                    root_repo_path.to_string_lossy(),
-                                ),
-                                _ => {
-                                    format!("Search in {} failed", root_repo_path.to_string_lossy())
-                                }
+                                SearchCodebaseFailureReason::CodebaseNotIndexed => t!(
+                                    "ai_ui.block.output.search_codebase.not_indexed",
+                                    path = root_repo_path.to_string_lossy()
+                                )
+                                .to_string(),
+                                _ => t!(
+                                    "ai_ui.block.output.search_codebase.failed",
+                                    path = root_repo_path.to_string_lossy()
+                                )
+                                .to_string(),
                             };
                             renderable_action(
                                 props,
@@ -1652,8 +1686,11 @@ fn render_search_codebase(
                             renderable_action(
                                 props,
                                 id,
-                                format!("Search in {} cancelled", root_repo_path.to_string_lossy())
-                                    .as_str(),
+                                t!(
+                                    "ai_ui.block.output.search_codebase.cancelled",
+                                    path = root_repo_path.to_string_lossy()
+                                )
+                                .as_ref(),
                                 app,
                                 footer,
                                 appearance,
@@ -1671,7 +1708,11 @@ fn render_search_codebase(
             renderable_action(
                 props,
                 id,
-                format!("Search in {}", root_repo_path.to_string_lossy()).as_str(),
+                t!(
+                    "ai_ui.block.output.search_codebase.search",
+                    path = root_repo_path.to_string_lossy()
+                )
+                .as_ref(),
                 app,
                 footer,
                 appearance,
@@ -1872,7 +1913,7 @@ fn render_read_skill(
 
                 let skill_icon_override = icon_override_for_skill_name(&skill.name);
                 let open_button = render_skill_button(
-                    "Open skill",
+                    t!("ai_ui.block.output.open_skill").as_ref(),
                     button_handle,
                     appearance,
                     skill.provider,
@@ -1897,7 +1938,7 @@ fn render_read_skill(
 fn render_inline_action_secondary_button(
     appearance: &Appearance,
     button: &ui_components::button::Button,
-    label: &'static str,
+    label: String,
     on_click: ui_components::MouseEventHandler,
 ) -> Box<dyn Element> {
     button.render(
@@ -1938,7 +1979,7 @@ fn render_read_files(
         renderable_action = renderable_action
             .with_header(blocked_action_header(
                 id.clone(),
-                BLOCKED_ACTION_MESSAGE_FOR_READING_FILES,
+                t!("ai_ui.block.permission.read_files").as_ref(),
                 buttons.run_button.clone(),
                 buttons.cancel_button.clone(),
                 props.action_model,
@@ -1970,7 +2011,7 @@ fn render_read_files(
             *shown.lock() = true;
             renderable_action =
                 renderable_action.with_footer(render_autonomy_checkbox_setting_speedbump_footer(
-                    "Always allow file access for coding tasks",
+                    t!("ai_ui.block.output.always_allow_file_access").to_string(),
                     *checked,
                     AIBlockAction::ToggleAutoreadFilesSpeedbumpCheckbox,
                     props
@@ -2129,20 +2170,23 @@ fn render_stopped_output(props: Props, app: &AppContext) -> Box<dyn Element> {
                         .get_item_index(&item.id)
                         .map(|index| (item, index))
                 }) {
-                    return Some(format!(
-                        "Stopped task {}/{}: \"{}\"",
-                        item_index + 1,
-                        todo_list.len(),
-                        item.title
-                    ));
+                    return Some(
+                        t!(
+                            "ai_ui.block.output.stopped_task_with_position",
+                            index = item_index + 1,
+                            total = todo_list.len(),
+                            title = item.title.as_str()
+                        )
+                        .to_string(),
+                    );
                 }
             }
 
-            conversation
-                .initial_query()
-                .map(|task_name| format!("Stopped task: \"{task_name}\""))
+            conversation.initial_query().map(|task_name| {
+                t!("ai_ui.block.output.stopped_named_task", title = task_name).to_string()
+            })
         })
-        .unwrap_or_else(|| "Stopped task".to_string());
+        .unwrap_or_else(|| t!("ai_ui.block.output.stopped_task").to_string());
 
     let stop_icon = Container::new(
         ConstrainedBox::new(gray_stop_icon(appearance).finish())
@@ -2237,7 +2281,7 @@ fn render_stopped_output(props: Props, app: &AppContext) -> Box<dyn Element> {
         .with_custom_label(button_content)
         .with_tooltip(move || {
             ui_builder
-                .tool_tip("Resume conversation".to_string())
+                .tool_tip(t!("ai_ui.block.output.resume_conversation").to_string())
                 .build()
                 .finish()
         })
@@ -2290,8 +2334,9 @@ fn render_requested_edits_output_message(
             .view
             .as_ref(app)
             .title()
-            .unwrap_or("Could not apply changes to file.");
-        RenderableAction::new(title, app)
+            .map(str::to_string)
+            .unwrap_or_else(|| t!("ai_ui.block.output.apply_changes_failed").to_string());
+        RenderableAction::new(&title, app)
             .with_icon(inline_action_icons::cancelled_icon(appearance).finish())
             .render(app)
             .finish()
@@ -2299,7 +2344,7 @@ fn render_requested_edits_output_message(
         match requested_edit.view.as_ref(app).display_mode() {
             DisplayMode::FullPane => Align::new(
                 Text::new_inline(
-                    "This suggestion is being edited in another tab.",
+                    t!("ai_ui.block.output.suggestion_edited_elsewhere").to_string(),
                     appearance.ui_font_family(),
                     appearance.monospace_font_size(),
                 )
@@ -2409,11 +2454,11 @@ fn render_suggest_new_conversation(
         };
         let (label, status_icon) = match result {
             SuggestNewConversationResult::Accepted { .. } => (
-                "New conversation started",
+                t!("ai_ui.block.output.new_conversation.started").to_string(),
                 inline_action_icons::green_check_icon(appearance).finish(),
             ),
             SuggestNewConversationResult::Rejected => (
-                "Continuing current conversation",
+                t!("ai_ui.block.output.new_conversation.continuing").to_string(),
                 warpui::elements::Icon::new(
                     Icon::FlipForward.into(),
                     internal_colors::neutral_6(theme),
@@ -2421,7 +2466,7 @@ fn render_suggest_new_conversation(
                 .finish(),
             ),
             SuggestNewConversationResult::Cancelled => (
-                "New conversation suggestion cancelled",
+                t!("ai_ui.block.output.new_conversation.cancelled").to_string(),
                 inline_action_icons::cancelled_icon(appearance).finish(),
             ),
         };
@@ -2443,9 +2488,10 @@ fn render_suggest_new_conversation(
     }
 
     if props.shared_session_status.is_viewer() {
-        let header_element = HeaderConfig::new("Start a new conversation", app)
-            .with_icon(gray_stop_icon(appearance))
-            .render(app);
+        let header_element =
+            HeaderConfig::new(t!("ai_ui.block.new_conversation.start").to_string(), app)
+                .with_icon(gray_stop_icon(appearance))
+                .render(app);
 
         return Some(
             header_element
@@ -2459,7 +2505,7 @@ fn render_suggest_new_conversation(
     let mut content = Flex::column().with_cross_axis_alignment(CrossAxisAlignment::Stretch);
 
     let new_conversation_header_text =
-        "It seems like the topic changed. Would you like to make a new conversation?";
+        t!("ai_ui.block.output.new_conversation.topic_changed").to_string();
     let new_conversation_header_element = HeaderConfig::new(new_conversation_header_text, app)
         .with_icon(yellow_stop_icon(appearance))
         .with_corner_radius_override(CornerRadius::with_top(Radius::Pixels(8.)))
@@ -2506,7 +2552,7 @@ fn create_formatted_text_for_grep(
         .is_some_and(|status| status.is_queued());
 
     let display_path = if path == "." {
-        "the current directory".to_string()
+        t!("ai_ui.block.cli.current_directory").to_string()
     } else {
         shell_native_absolute_path(
             path,
@@ -2521,19 +2567,31 @@ fn create_formatted_text_for_grep(
             .expect("Queries slice should have an element");
         let mut fragments = if is_cancelled || is_queued {
             vec![
-                FormattedTextFragment::plain_text("Grep for "),
+                FormattedTextFragment::plain_text(
+                    t!("ai_ui.block.output.grep.for_prefix").to_string(),
+                ),
                 FormattedTextFragment::inline_code(query),
             ]
         } else {
             vec![
-                FormattedTextFragment::plain_text("Grepping for "),
+                FormattedTextFragment::plain_text(
+                    t!("ai_ui.block.output.grep.running_prefix").to_string(),
+                ),
                 FormattedTextFragment::inline_code(query),
             ]
         };
         fragments.push(if is_cancelled {
-            FormattedTextFragment::plain_text(format!(" in {display_path} cancelled"))
+            FormattedTextFragment::plain_text(
+                t!(
+                    "ai_ui.block.output.grep.cancelled_suffix",
+                    path = &display_path
+                )
+                .to_string(),
+            )
         } else {
-            FormattedTextFragment::plain_text(format!(" in {display_path}"))
+            FormattedTextFragment::plain_text(
+                t!("ai_ui.block.output.grep.path_suffix", path = &display_path).to_string(),
+            )
         });
         FormattedText::new([FormattedTextLine::Line(fragments)])
     } else {
@@ -2541,19 +2599,23 @@ fn create_formatted_text_for_grep(
 
         if is_cancelled {
             lines.push(FormattedTextLine::Line(vec![
-                FormattedTextFragment::plain_text(format!(
-                    "Cancelled grep for the following patterns in {display_path}"
-                )),
+                FormattedTextFragment::plain_text(
+                    t!(
+                        "ai_ui.block.output.grep.cancelled_many",
+                        path = &display_path
+                    )
+                    .to_string(),
+                ),
             ]));
         } else {
             lines.push(FormattedTextLine::Line(vec![if is_queued {
-                FormattedTextFragment::plain_text(format!(
-                    "Grep for the following patterns in {display_path}"
-                ))
+                FormattedTextFragment::plain_text(
+                    t!("ai_ui.block.output.grep.queued_many", path = &display_path).to_string(),
+                )
             } else {
-                FormattedTextFragment::plain_text(format!(
-                    "Grepping for the following patterns in {display_path}"
-                ))
+                FormattedTextFragment::plain_text(
+                    t!("ai_ui.block.output.grep.running_many", path = &display_path).to_string(),
+                )
             }]));
         }
 
@@ -2617,7 +2679,7 @@ fn create_formatted_text_for_file_glob(
                 props.current_working_directory,
             )
         })
-        .unwrap_or_else(|| "the current directory".to_string());
+        .unwrap_or_else(|| t!("ai_ui.block.cli.current_directory").to_string());
 
     let formatted_text = if patterns.len() == 1 {
         let pattern = patterns
@@ -2626,19 +2688,31 @@ fn create_formatted_text_for_file_glob(
 
         let mut fragments = if is_cancelled || is_queued {
             vec![
-                FormattedTextFragment::plain_text("Search for files that match "),
+                FormattedTextFragment::plain_text(
+                    t!("ai_ui.block.output.file_search.for_prefix").to_string(),
+                ),
                 FormattedTextFragment::inline_code(pattern),
             ]
         } else {
             vec![
-                FormattedTextFragment::plain_text("Finding files that match "),
+                FormattedTextFragment::plain_text(
+                    t!("ai_ui.block.output.file_search.running_prefix").to_string(),
+                ),
                 FormattedTextFragment::inline_code(pattern),
             ]
         };
         fragments.push(if is_cancelled {
-            FormattedTextFragment::plain_text(format!(" in {path} cancelled"))
+            FormattedTextFragment::plain_text(
+                t!(
+                    "ai_ui.block.output.file_search.cancelled_suffix",
+                    path = &path
+                )
+                .to_string(),
+            )
         } else {
-            FormattedTextFragment::plain_text(format!(" in {path}"))
+            FormattedTextFragment::plain_text(
+                t!("ai_ui.block.output.file_search.path_suffix", path = &path).to_string(),
+            )
         });
         FormattedText::new([FormattedTextLine::Line(fragments)])
     } else {
@@ -2646,19 +2720,23 @@ fn create_formatted_text_for_file_glob(
 
         if is_cancelled {
             lines.push(FormattedTextLine::Line(vec![
-                FormattedTextFragment::plain_text(format!(
-                    "Cancelled search for files that match the following patterns in {path}"
-                )),
+                FormattedTextFragment::plain_text(
+                    t!(
+                        "ai_ui.block.output.file_search.cancelled_many",
+                        path = &path
+                    )
+                    .to_string(),
+                ),
             ]));
         } else {
             lines.push(FormattedTextLine::Line(vec![if is_queued {
-                FormattedTextFragment::plain_text(format!(
-                    "Find files that match the following patterns in {path}"
-                ))
+                FormattedTextFragment::plain_text(
+                    t!("ai_ui.block.output.file_search.queued_many", path = &path).to_string(),
+                )
             } else {
-                FormattedTextFragment::plain_text(format!(
-                    "Finding files that match the following patterns in {path}"
-                ))
+                FormattedTextFragment::plain_text(
+                    t!("ai_ui.block.output.file_search.running_many", path = &path).to_string(),
+                )
             }]));
         }
 
@@ -2715,7 +2793,7 @@ fn render_file_retrieval_tool(
         config = config
             .with_header(blocked_action_header(
                 action_id.clone(),
-                BLOCKED_ACTION_MESSAGE_FOR_GREP_OR_FILE_GLOB,
+                t!("ai_ui.block.permission.search_files").as_ref(),
                 buttons.run_button.clone(),
                 buttons.cancel_button.clone(),
                 props.action_model,
@@ -2746,7 +2824,7 @@ fn render_file_retrieval_tool(
         } if show_for_action_id == action_id => {
             *shown.lock() = true;
             config = config.with_footer(render_autonomy_checkbox_setting_speedbump_footer(
-                "Always allow file access for coding tasks",
+                t!("ai_ui.block.output.always_allow_file_access").to_string(),
                 *checked,
                 AIBlockAction::ToggleAutoreadFilesSpeedbumpCheckbox,
                 props
@@ -2786,7 +2864,7 @@ fn render_comment_addressed_header(comment: &ReviewComment, app: &AppContext) ->
         Shrinkable::new(
             1.,
             Text::new_inline(
-                format!("Comment addressed: \"{content}\""),
+                t!("ai_ui.block.output.comment_addressed", content = &content).to_string(),
                 appearance.ui_font_family(),
                 appearance.monospace_font_size(),
             )
@@ -2832,7 +2910,7 @@ fn render_read_mcp_resource(
         renderable_action = renderable_action
             .with_header(blocked_action_header(
                 action_id.clone(),
-                "OK if I read this MCP resource?",
+                t!("ai_ui.block.output.read_mcp_resource_permission").as_ref(),
                 buttons.run_button.clone(),
                 buttons.cancel_button.clone(),
                 props.action_model,
@@ -2862,10 +2940,20 @@ fn format_upload_artifact_text(
     request: &UploadArtifactRequest,
     result: Option<&UploadArtifactResult>,
 ) -> String {
-    let mut lines = vec![format!("Upload artifact: {}", request.file_path)];
+    let mut lines = vec![t!(
+        "ai_ui.block.output.upload_artifact.file",
+        path = request.file_path.as_str()
+    )
+    .to_string()];
 
     if let Some(description) = request.description.as_deref() {
-        lines.push(format!("Description: {description}"));
+        lines.push(
+            t!(
+                "ai_ui.block.output.upload_artifact.description",
+                description = description
+            )
+            .to_string(),
+        );
     }
 
     match result {
@@ -2874,13 +2962,25 @@ fn format_upload_artifact_text(
             filepath,
             ..
         }) => {
-            lines.push(format!("Status: uploaded artifact {artifact_uid}"));
+            lines.push(
+                t!(
+                    "ai_ui.block.output.upload_artifact.uploaded",
+                    id = artifact_uid.as_str()
+                )
+                .to_string(),
+            );
             if let Some(filepath) = filepath.as_deref() {
-                lines.push(format!("Uploaded file: {filepath}"));
+                lines.push(
+                    t!(
+                        "ai_ui.block.output.upload_artifact.uploaded_file",
+                        path = filepath
+                    )
+                    .to_string(),
+                );
             }
         }
         Some(UploadArtifactResult::Error(error)) => {
-            lines.push(format!("Status: upload failed: {error}"));
+            lines.push(t!("ai_ui.block.output.upload_artifact.failed", error = error).to_string());
         }
         Some(UploadArtifactResult::Cancelled) => {}
         None => {}
@@ -2918,7 +3018,7 @@ fn render_upload_artifact(
         renderable_action = renderable_action
             .with_header(blocked_action_header(
                 action_id.clone(),
-                BLOCKED_ACTION_MESSAGE_FOR_UPLOADING_ARTIFACT,
+                t!("ai_ui.block.permission.upload_artifact").as_ref(),
                 buttons.run_button.clone(),
                 buttons.cancel_button.clone(),
                 props.action_model,
@@ -2954,7 +3054,7 @@ fn recording_summary(props: Props, agent_summary: Option<&str>, app: &AppContext
         .filter(|s| !s.is_empty())
         .or_else(|| title.as_deref().map(str::trim).filter(|s| !s.is_empty()))
         .map(ToString::to_string)
-        .unwrap_or_else(|| "Recording computer-use session".to_string())
+        .unwrap_or_else(|| t!("ai_ui.block.output.recording.default_summary").to_string())
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -2969,19 +3069,19 @@ fn start_recording_card_text(
 ) -> RecordingCardText {
     match result {
         Some(StartRecordingResult::Success(_)) => RecordingCardText {
-            primary: "Recording started".to_string(),
+            primary: t!("ai_ui.block.output.recording.started").to_string(),
             subtext: Some(description.to_string()),
         },
         Some(StartRecordingResult::Error(error)) => RecordingCardText {
-            primary: "Recording failed to start".to_string(),
+            primary: t!("ai_ui.block.output.recording.start_failed").to_string(),
             subtext: Some(error.clone()),
         },
         Some(StartRecordingResult::Cancelled) => RecordingCardText {
-            primary: "Recording cancelled".to_string(),
+            primary: t!("ai_ui.block.output.recording.cancelled").to_string(),
             subtext: None,
         },
         None => RecordingCardText {
-            primary: "Starting recording".to_string(),
+            primary: t!("ai_ui.block.output.recording.starting").to_string(),
             subtext: Some(description.to_string()),
         },
     }
@@ -2998,21 +3098,21 @@ fn stop_recording_card_text(result: Option<&StopRecordingResult>) -> RecordingCa
                 duration
             } else {
                 // TODO(vkodithala): Switch to typed, user-facing termination copy once finalization emits structured reasons.
-                format!("Partial recording • {duration}")
+                t!("ai_ui.block.output.recording.partial", duration = &duration).to_string()
             };
             RecordingCardText {
-                primary: "Recording saved".to_string(),
+                primary: t!("ai_ui.block.output.recording.saved").to_string(),
                 subtext: Some(subtext),
             }
         }
         Some(StopRecordingResult::Error(_)) | Some(StopRecordingResult::Cancelled) => {
             RecordingCardText {
-                primary: "Recording could not be saved".to_string(),
+                primary: t!("ai_ui.block.output.recording.save_failed").to_string(),
                 subtext: None,
             }
         }
         None => RecordingCardText {
-            primary: "Saving recording".to_string(),
+            primary: t!("ai_ui.block.output.recording.saving").to_string(),
             subtext: None,
         },
     }
@@ -3092,17 +3192,13 @@ fn render_recording_footer(status: RecordingSpanStatus, app: &AppContext) -> Box
     let icon_offset =
         icon_size(app) + crate::ai::blocklist::inline_action::inline_action_header::ICON_MARGIN;
     let text = match status {
-        RecordingSpanStatus::Active => "Recording active",
-        RecordingSpanStatus::Captured => "Captured in recording",
+        RecordingSpanStatus::Active => t!("ai_ui.block.output.recording.active").to_string(),
+        RecordingSpanStatus::Captured => t!("ai_ui.block.output.recording.captured").to_string(),
     };
     Container::new(
-        Text::new(
-            text.to_string(),
-            appearance.ui_font_family(),
-            appearance.ui_font_size(),
-        )
-        .with_color(theme.sub_text_color(theme.surface_1()).into())
-        .finish(),
+        Text::new(text, appearance.ui_font_family(), appearance.ui_font_size())
+            .with_color(theme.sub_text_color(theme.surface_1()).into())
+            .finish(),
     )
     .with_margin_left(icon_offset)
     .finish()
@@ -3130,7 +3226,7 @@ fn render_stop_recording(
                 render_inline_action_secondary_button(
                     appearance,
                     btn,
-                    "Open recording",
+                    t!("ai_ui.block.output.recording.open").to_string(),
                     Box::new(move |ctx, _, _| {
                         ctx.dispatch_typed_action(AIBlockAction::OpenRecordingArtifact {
                             artifact_uid: artifact_uid.clone(),
@@ -3183,7 +3279,7 @@ fn render_use_computer(
             render_inline_action_secondary_button(
                 appearance,
                 btn,
-                "View screenshot",
+                t!("ai_ui.block.output.view_screenshot").to_string(),
                 Box::new(move |ctx, _, _| {
                     ctx.dispatch_typed_action(AIBlockAction::ViewScreenshot {
                         action_id: action_id_clone.clone(),
@@ -3220,7 +3316,7 @@ fn render_request_computer_use(
         renderable_action = renderable_action
             .with_header(blocked_action_header(
                 action_id.clone(),
-                "OK if I use computer control for this task?",
+                t!("ai_ui.block.output.computer_control_permission").as_ref(),
                 buttons.run_button.clone(),
                 buttons.cancel_button.clone(),
                 props.action_model,
@@ -3266,7 +3362,7 @@ fn render_references_footer(
     )?;
 
     let title = Text::new_inline(
-        "References",
+        t!("ai_ui.block.output.references").to_string(),
         appearance.ui_font_family(),
         appearance.monospace_font_size(),
     )
@@ -3351,7 +3447,7 @@ fn render_suggested_rules_and_prompts_footer(
     let theme = appearance.theme();
     let title_row_color = theme.sub_text_color(theme.background());
     let title_text = Text::new_inline(
-        "Suggestions:",
+        t!("ai_ui.block.output.suggestions").to_string(),
         appearance.ui_font_family(),
         appearance.monospace_font_size(),
     )
@@ -3456,7 +3552,7 @@ fn render_response_footer(props: Props, app: &AppContext) -> Option<Box<dyn Elem
         )
         .with_tooltip(move || {
             ui_builder
-                .tool_tip("Good response".to_string())
+                .tool_tip(t!("ai_ui.block.output.good_response").to_string())
                 .build()
                 .finish()
         })
@@ -3477,7 +3573,7 @@ fn render_response_footer(props: Props, app: &AppContext) -> Option<Box<dyn Elem
         .with_tooltip(move || {
             ui_builder
                 .clone()
-                .tool_tip("Bad response".to_string())
+                .tool_tip(t!("ai_ui.block.output.bad_response").to_string())
                 .build()
                 .finish()
         })
@@ -3549,7 +3645,7 @@ fn render_response_footer(props: Props, app: &AppContext) -> Option<Box<dyn Elem
         )
         .with_tooltip(move || {
             ui_builder
-                .tool_tip("Continue conversation".to_string())
+                .tool_tip(t!("ai_ui.block.output.continue_conversation").to_string())
                 .build()
                 .finish()
         })
@@ -3757,7 +3853,7 @@ fn render_usage_button(props: Props, app: &AppContext) -> Box<dyn Element> {
                 // Show tooltip on hover or while clicked
                 let mut stack = Stack::new().with_child(content.finish());
                 let tooltip = ui_builder
-                    .tool_tip("Show credit usage details".to_string())
+                    .tool_tip(t!("ai_ui.block.output.show_usage_details").to_string())
                     .build()
                     .finish();
                 stack.add_positioned_overlay_child(
@@ -4091,7 +4187,7 @@ fn render_collapsible_debug_output(
         // "Debug output" label
         row.add_child(
             Text::new(
-                "Debug output".to_string(),
+                t!("ai_ui.block.output.debug_output").to_string(),
                 appearance.ai_font_family(),
                 appearance.monospace_font_size(),
             )
@@ -4234,17 +4330,25 @@ fn conversation_search_phase(task: &crate::ai::agent::task::Task) -> Conversatio
 
 fn format_conversation_search_phase(phase: &ConversationSearchPhase) -> String {
     match phase {
-        ConversationSearchPhase::ListingMessages => "Listing messages".to_string(),
+        ConversationSearchPhase::ListingMessages => {
+            t!("ai_ui.block.output.conversation_search.listing_messages").to_string()
+        }
         ConversationSearchPhase::Grepping { patterns } => {
             if patterns.is_empty() {
-                return "Grepping for patterns".to_string();
+                return t!("ai_ui.block.output.conversation_search.grepping").to_string();
             }
             let joined = truncate_from_end(&patterns.join(", "), 60);
-            format!("Grepping for patterns: {joined}")
+            t!(
+                "ai_ui.block.output.conversation_search.grepping_patterns",
+                patterns = &joined
+            )
+            .to_string()
         }
-        ConversationSearchPhase::ReadingMessages { count } => {
-            format!("Reading {count} messages")
-        }
+        ConversationSearchPhase::ReadingMessages { count } => t!(
+            "ai_ui.block.output.conversation_search.reading_messages",
+            count = count
+        )
+        .to_string(),
     }
 }
 

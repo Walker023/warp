@@ -15,6 +15,7 @@ use warpui::ui_components::components::{UiComponent, UiComponentStyles};
 use warpui::ui_components::text::Span;
 use warpui::{AppContext, Element, EntityId, EventContext, SingletonEntity};
 
+use crate::i18n::t;
 use crate::themes::theme::{AnsiColorIdentifier, Fill, WarpTheme};
 use crate::ui_components::icons::Icon;
 
@@ -23,11 +24,22 @@ const PROVIDER_BUTTON_ICON_TEXT_GAP: f32 = 8.;
 
 /// Text to use as a label throughout the app for user interactions that will attach selected
 /// block(s) or text selections to a new AI query.
-pub static ATTACH_AS_AGENT_MODE_CONTEXT_TEXT: LazyLock<&'static str> =
-    LazyLock::new(|| "Attach as agent context");
+pub static ATTACH_AS_AGENT_MODE_CONTEXT_TEXT: LazyLock<&'static str> = LazyLock::new(|| {
+    Box::leak(
+        t!("ai_ui.view_util.attach_as_context")
+            .into_owned()
+            .into_boxed_str(),
+    )
+});
 
 /// Label we use for the the command palette action to create a new local Oz agent pane.
-pub static NEW_AGENT_PANE_LABEL: LazyLock<&'static str> = LazyLock::new(|| "New Agent Pane");
+pub static NEW_AGENT_PANE_LABEL: LazyLock<&'static str> = LazyLock::new(|| {
+    Box::leak(
+        t!("ai_ui.view_util.new_agent_pane")
+            .into_owned()
+            .into_boxed_str(),
+    )
+});
 
 /// Claude/Anthropic brand color (official brand orange #D97757).
 /// Reference: https://github.com/anthropics/skills/blob/main/skills/brand-guidelines/SKILL.md
@@ -78,7 +90,7 @@ pub fn render_ai_follow_up_icon(
             let tooltip_background = appearance.theme().tooltip_background();
             let tool_tip = appearance
                 .ui_builder()
-                .tool_tip("Follow up with existing conversation".to_owned())
+                .tool_tip(t!("ai_ui.view_util.follow_up").to_string())
                 .with_style(UiComponentStyles {
                     font_size: Some(12.),
                     background: Some(warpui::elements::Fill::Solid(tooltip_background)),
@@ -147,12 +159,12 @@ pub fn format_credits(credits: f32) -> String {
     if credits.fract() < 0.1 {
         let whole = credits.trunc() as i32;
         if whole == 1 {
-            format!("{whole} credit")
+            t!("ai_ui.view_util.credit", count = whole).to_string()
         } else {
-            format!("{whole} credits")
+            t!("ai_ui.view_util.credits", count = whole).to_string()
         }
     } else {
-        format!("{credits:.1} credits")
+        t!("ai_ui.view_util.credits", count = format!("{credits:.1}")).to_string()
     }
 }
 

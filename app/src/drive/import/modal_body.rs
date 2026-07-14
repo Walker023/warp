@@ -22,6 +22,7 @@ use super::nodes::{
 use super::queue::{ImportQueue, ImportQueueArgs, ImportQueueEvent, ParentId, RequestContent};
 use crate::appearance::Appearance;
 use crate::cloud_object::Owner;
+use crate::i18n::t;
 use crate::server::ids::{ClientId, SyncId};
 use crate::server::sync_queue::SyncQueue;
 use crate::ui_components::icons::Icon;
@@ -120,7 +121,9 @@ impl ImportModalBody {
                 ImportQueueEvent::FileCompleted { file_id, server_id } => {
                     let result = match server_id {
                         Some(id) => UploadResult::Success(id.clone()),
-                        None => UploadResult::Error("Failed to upload file to server".to_string()),
+                        None => UploadResult::Error(
+                            t!("drive_extra.import.upload_file_failed").to_string(),
+                        ),
                     };
 
                     // Update the upstream folder status with the upload success state.
@@ -134,9 +137,9 @@ impl ImportModalBody {
                 } => {
                     let result = match server_id {
                         Some(id) => UploadResult::Success(id.clone()),
-                        None => {
-                            UploadResult::Error("Failed to upload folder to server".to_string())
-                        }
+                        None => UploadResult::Error(
+                            t!("drive_extra.import.upload_folder_failed").to_string(),
+                        ),
                     };
 
                     state.mark_folder_synced(result, *folder_id);
@@ -381,13 +384,13 @@ impl ImportModalBody {
 
         let file_picker_button = if is_loading {
             base_button
-                .with_centered_text_label("Preparing...".to_string())
+                .with_centered_text_label(t!("drive_extra.import.preparing").to_string())
                 .disabled()
         } else {
             base_button.with_text_and_icon_label(
                 TextAndIcon::new(
                     TextAndIconAlignment::TextFirst,
-                    "Choose files...".to_string(),
+                    t!("drive_extra.import.choose_files").to_string(),
                     Icon::Import.to_warpui_icon(
                         appearance
                             .theme()
@@ -427,7 +430,7 @@ impl ImportModalBody {
         let link_to_document = appearance
             .ui_builder()
             .link(
-                "Learn about file support and formatting".to_string(),
+                t!("drive_extra.import.learn_file_support").to_string(),
                 Some(FILE_TYPE_DOCS_URL.to_string()),
                 None,
                 self.link_mouse_state.clone(),

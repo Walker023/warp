@@ -4,6 +4,8 @@ use std::str::FromStr;
 use serde::{Deserialize, Serialize};
 use settings::Setting;
 
+use crate::i18n::t;
+
 /// The source for a newly-created session.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum NewSessionSource {
@@ -41,12 +43,19 @@ pub enum WorkingDirectoryMode {
 impl WorkingDirectoryMode {
     /// Returns the label that should be used for this mode when configuring
     /// values in the settings view.
-    pub fn dropdown_item_label(&self) -> &'static str {
+    pub fn dropdown_item_label(&self) -> String {
         match self {
-            WorkingDirectoryMode::HomeDir => "Home directory",
-            WorkingDirectoryMode::PreviousDir => "Previous session's directory",
-            WorkingDirectoryMode::CustomDir => "Custom directory",
+            WorkingDirectoryMode::HomeDir => {
+                t!("settings_extra.features.working_directory.home")
+            }
+            WorkingDirectoryMode::PreviousDir => {
+                t!("settings_extra.features.working_directory.previous")
+            }
+            WorkingDirectoryMode::CustomDir => {
+                t!("settings_extra.features.working_directory.custom")
+            }
         }
+        .to_string()
     }
 }
 

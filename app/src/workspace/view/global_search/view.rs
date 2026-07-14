@@ -659,7 +659,7 @@ impl GlobalSearchView {
 
             let mut editor = EditorView::new(options, ctx);
             editor.set_placeholder_text(
-                &t!("workspace.global_search.search_in_files").to_string(),
+                t!("workspace.global_search.search_in_files").to_string(),
                 ctx,
             );
             editor
@@ -2189,7 +2189,8 @@ impl View for GlobalSearchView {
             font_color: Some(blended_colors::text_sub(theme, theme.background())),
             ..Default::default()
         };
-        let capped_message = "The result set only contains a subset of all matches. Be more specific in your search to narrow down results.".to_string();
+        let capped_message =
+            t!("workspace_search_ui.workspace.global_search.capped_results").to_string();
         let capped_text = Span::new(capped_message, capped_text_styles)
             .with_soft_wrap()
             .build()

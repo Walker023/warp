@@ -18,6 +18,7 @@ use warpui::{SingletonEntity, ViewContext};
 use super::{Event, InlineBannerItem, InlineBannerType, TerminalView};
 #[cfg(feature = "local_fs")]
 use crate::code::editor_management::CodeSource;
+use crate::i18n::t;
 use crate::terminal::event::UserBlockCompleted;
 use crate::terminal::general_settings::GeneralSettings;
 use crate::terminal::model::session::Session;
@@ -219,7 +220,11 @@ impl TerminalView {
                 match &self.inline_banners_state.open_in_warp_banner {
                     Some(banner_state) => {
                         ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
-                            format!("Open {} in Warp", banner_state.target.path.display()),
+                            t!(
+                                "terminal_ui.inline_banner.open_in_warp.a11y_open",
+                                name = banner_state.target.path.display()
+                            )
+                            .to_string(),
                             WarpA11yRole::UserAction,
                         ))
                     }
@@ -228,14 +233,14 @@ impl TerminalView {
             }
             OpenInWarpBannerAction::Close => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
-                    "Close View in Warp banner",
+                    t!("terminal_ui.inline_banner.open_in_warp.a11y_close").to_string(),
                     WarpA11yRole::UserAction,
                 ))
             }
             OpenInWarpBannerAction::LearnMore => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new(
-                    "Learn more",
-                    "Learn more about opening Markdown files in Warp",
+                    t!("common.learn_more").to_string(),
+                    t!("terminal_ui.inline_banner.open_in_warp.a11y_learn_more").to_string(),
                     WarpA11yRole::UserAction,
                 ))
             }

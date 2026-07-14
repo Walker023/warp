@@ -1,0 +1,35 @@
+env_vars_ui:
+  collection:
+    variables: "变量"
+    load: "加载"
+    education: "添加密钥或命令。Warp 永远不会存储外部密钥"
+    value_placeholder: "值"
+    description_placeholder: "说明"
+    variable_placeholder: "变量"
+    title_placeholder: "添加标题"
+    collection_description_placeholder: "添加说明"
+    untitled: "未命名"
+    enterprise_secret_conflict: "由于与你所在企业的密钥隐藏设置冲突，无法创建此环境变量。请联系团队管理员了解详情。"
+    user_secret_conflict: "由于与你的密钥隐藏设置冲突，无法创建此环境变量。请将密钥保存为环境变量（在 Shell 配置或 .env 文件中），或前往“设置 > 隐私”更新密钥隐藏设置。"
+    invoke_error: "加载环境变量时出错"
+  trash:
+    no_access: "你已无法访问这些环境变量"
+    moved: "环境变量已移至废纸篓"
+    restore_tooltip: "从废纸篓恢复环境变量"
+  menu:
+    command: "命令"
+    clear_secret: "清除密钥"
+  command_dialog:
+    title: "密钥命令"
+    name_placeholder: "名称"
+    command_placeholder: "命令"
+  metadata:
+    title: "标题"
+    description: "说明"
+  unsaved:
+    message: "你有尚未保存的更改。"
+    keep_editing: "继续编辑"
+    discard_changes: "放弃更改"
+  agent_block:
+    run: "运行"
+    confirmation: "可以运行此命令并读取输出吗？"

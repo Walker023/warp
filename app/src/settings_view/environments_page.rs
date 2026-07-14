@@ -304,10 +304,10 @@ impl EnvironmentsPageView {
     }
 
     fn create_single_line_editor(
-        placeholder: &'static str,
+        placeholder: String,
         ctx: &mut ViewContext<Self>,
     ) -> ViewHandle<EditorView> {
-        let editor = ctx.add_typed_action_view(|ctx| {
+        let editor = ctx.add_typed_action_view(move |ctx| {
             let appearance = Appearance::as_ref(ctx);
             let options = SingleLineEditorOptions {
                 text: TextOptions {
@@ -321,7 +321,7 @@ impl EnvironmentsPageView {
                 ..Default::default()
             };
             let mut editor = EditorView::single_line(options, ctx);
-            editor.set_placeholder_text(placeholder, ctx);
+            editor.set_placeholder_text(&placeholder, ctx);
             editor
         });
         editor
@@ -371,7 +371,10 @@ impl EnvironmentsPageView {
         });
 
         // Create search editor for list page
-        let search_editor = Self::create_single_line_editor("Search environments...", ctx);
+        let search_editor = Self::create_single_line_editor(
+            t!("settings_extra.environments.search_placeholder").to_string(),
+            ctx,
+        );
         ctx.subscribe_to_view(&search_editor, |me, _, event, ctx| match event {
             crate::editor::Event::Edited(_) => {
                 me.search_query = me.search_editor.as_ref(ctx).buffer_text(ctx);
@@ -1087,7 +1090,7 @@ impl EnvironmentsPageWidget {
 
         let description = appearance
             .ui_builder()
-            .paragraph(t!("settings.environments.description"))
+            .paragraph(t!("settings.environments.description_intro"))
             .with_style(UiComponentStyles {
                 font_color: Some(appearance.theme().nonactive_ui_text_color().into()),
                 font_size: Some(CONTENT_FONT_SIZE),

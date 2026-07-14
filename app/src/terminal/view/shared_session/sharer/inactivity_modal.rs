@@ -13,6 +13,7 @@ use warpui::{
     AppContext, Element, Entity, SingletonEntity, TypedActionView, View, ViewContext, ViewHandle,
 };
 
+use crate::i18n::t;
 use crate::modal::Modal;
 use crate::ui_components::blended_colors;
 
@@ -148,11 +149,16 @@ impl InactivityModalBody {
     }
 
     fn render_countdown(&self, appearance: &Appearance) -> Box<dyn Element> {
-        let text = format!(
-            "Sharing will end in {}:{:02} due to inactivity.",
+        let time = format!(
+            "{}:{:02}",
             self.duration.as_secs() / 60,
             self.duration.as_secs() % 60,
         );
+        let text = t!(
+            "terminal_ui.shared_session.inactivity.countdown",
+            time = time
+        )
+        .to_string();
 
         Container::new(
             Text::new_inline(text, appearance.ui_font_family(), TEXT_FONT_SIZE)
@@ -179,7 +185,9 @@ impl InactivityModalBody {
                     font_weight: Some(Weight::Bold),
                     ..Default::default()
                 })
-                .with_centered_text_label(String::from("Stop sharing"))
+                .with_centered_text_label(
+                    t!("terminal_ui.shared_session.inactivity.stop").to_string(),
+                )
                 .build()
                 .with_cursor(Cursor::PointingHand)
                 .on_click(move |ctx, _, _| {
@@ -205,7 +213,9 @@ impl InactivityModalBody {
                 font_weight: Some(Weight::Bold),
                 ..Default::default()
             })
-            .with_centered_text_label(String::from("Continue sharing"))
+            .with_centered_text_label(
+                t!("terminal_ui.shared_session.inactivity.continue").to_string(),
+            )
             .build()
             .with_cursor(Cursor::PointingHand)
             .on_click(move |ctx, _, _| {
@@ -232,7 +242,7 @@ impl View for InactivityModalBody {
 
         let header = Container::new(
             Text::new_inline(
-                "Are you still there?",
+                t!("terminal_ui.shared_session.inactivity.title").to_string(),
                 appearance.ui_font_family(),
                 HEADER_FONT_SIZE,
             )

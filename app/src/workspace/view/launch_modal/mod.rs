@@ -64,8 +64,8 @@ pub fn init<S: Slide>(app: &mut AppContext) {
 
 /// Configuration for an optional checkbox displayed in the modal's control panel.
 pub struct CheckboxConfig {
-    pub label: &'static str,
-    pub description: &'static str,
+    pub label: String,
+    pub description: String,
 }
 
 pub trait Slide:
@@ -78,11 +78,11 @@ where
     fn first() -> Self;
     fn next(&self) -> Option<Self>;
     fn prev(&self) -> Option<Self>;
-    fn display_text(&self) -> Option<&'static str>;
-    fn short_label(&self) -> &'static str;
-    fn title(&self) -> &'static str;
+    fn display_text(&self) -> Option<String>;
+    fn short_label(&self) -> String;
+    fn title(&self) -> String;
     fn title_icon(&self) -> Option<Icon>;
-    fn content(&self) -> &'static str;
+    fn content(&self) -> String;
     fn image(&self) -> AssetSource;
     fn all() -> Vec<Self>;
     fn cta_button(&self) -> CTAButton<Self>;
@@ -342,6 +342,7 @@ impl<S: Slide> LaunchModal<S> {
     fn render_current_slide(&self, app: &AppContext) -> Box<dyn Element> {
         let appearance = Appearance::as_ref(app);
         let theme = appearance.theme();
+        let content = self.slide.content();
 
         let text_container = Flex::column()
             .with_main_axis_size(MainAxisSize::Max)
@@ -403,7 +404,7 @@ impl<S: Slide> LaunchModal<S> {
                                 Shrinkable::new(
                                     1.,
                                     FormattedTextElement::new(
-                                        parse_markdown(self.slide.content()).unwrap(),
+                                        parse_markdown(&content).unwrap(),
                                         14.,
                                         appearance.ui_font_family(),
                                         appearance.ui_font_family(),

@@ -203,8 +203,8 @@ use crate::ai::blocklist::suggested_rule_modal::{
     SuggestedRuleAndId, SuggestedRuleModal, SuggestedRuleModalEvent,
 };
 use crate::ai::blocklist::{
-    BlocklistAIHistoryEvent, PendingAttachment, PendingQueryState, QueuedQueryOrigin,
-    SerializedBlockListItem, SlashCommandRequest, FORK_PREFIX,
+    fork_prefix, BlocklistAIHistoryEvent, PendingAttachment, PendingQueryState, QueuedQueryOrigin,
+    SerializedBlockListItem, SlashCommandRequest,
 };
 use crate::ai::cloud_agent_settings::CloudAgentSettings;
 #[cfg(target_family = "wasm")]
@@ -565,10 +565,6 @@ const TAB_BAR_ICON_PADDING: f32 = 4.;
 
 const TAB_BAR_PILL_WIDTH: f32 = 100.;
 const PILL_FONT_SIZE: f32 = 12.;
-// We use the word "Warp" in the Update Ready button to make it obvious that the terminal is Warp.
-// This can lead to free advertising when users screen-share Warp when an update is available.
-const UPDATE_READY_TEXT: &str = "Update Warp";
-
 const TAB_BAR_OVERFLOW_MENU_WIDTH: f32 = 300.;
 
 #[cfg(not(target_family = "wasm"))]
@@ -594,10 +590,6 @@ const ELLIPSE_SVG_PATH: &str = "bundled/svg/ellipse.svg";
 
 const AI_ASSISTANT_BUTTON_ID: &str = "workspace_view:ai_assistant_button";
 
-const VERSION_DEPRECATION_BANNER_TEXT: &str = "Your app is out of date and some features may not work as expected. Please update immediately.";
-
-const VERSION_DEPRECATION_WITHOUT_PERMISSIONS_BANNER_TEXT: &str = "Some Warp features may not work as expected without updating immediately, but Warp is unable to perform the update.";
-
 const ASK_AI_ASSISTANT_KEYBINDING_NAME: &str = "workspace:toggle_ai_assistant";
 const TOGGLE_RESOURCE_CENTER_KEYBINDING_NAME: &str = "workspace:toggle_resource_center";
 
@@ -616,7 +608,6 @@ const NEW_SESSION_SIDECAR_SEARCH_BOX_HORIZONTAL_PADDING: f32 = 12.;
 const NEW_SESSION_SIDECAR_SEARCH_BOX_VERTICAL_PADDING: f32 = 6.;
 const NEW_SESSION_SIDECAR_FOOTER_HORIZONTAL_PADDING: f32 = 16.;
 const NEW_SESSION_SIDECAR_FOOTER_VERTICAL_PADDING: f32 = 8.;
-const SESSION_CONFIG_TAB_CONFIG_CHIP_TEXT: &str = "Access your tab configs here.";
 const SESSION_CONFIG_TAB_CONFIG_CHIP_WIDTH: f32 = 206.;
 const SHOW_SETTINGS_KEYBINDING_NAME: &str = "workspace:show_settings";
 pub const TOGGLE_COMMAND_PALETTE_KEYBINDING_NAME: &str = "workspace:toggle_command_palette";
@@ -682,9 +673,6 @@ const MAX_WINDOW_TITLE_LENGTH: usize = 80;
 #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
 const AUTO_CLOUD_HANDOFF_PROMPT: &str =
     "Continue this local Warp Agent task in the cloud from the current conversation state.";
-
-/// The default display name used for the user if they have no associated display name.
-pub const DEFAULT_USER_DISPLAY_NAME: &str = "User";
 
 lazy_static! {
     static ref OPENING_WARP_DRIVE_ON_START_UP: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
@@ -2186,7 +2174,13 @@ impl Workspace {
                     log::warn!("Failed to remove tab config file: {e:?}");
                     self.toast_stack.update(ctx, |toast_stack, ctx| {
                         toast_stack.add_ephemeral_toast(
-                            DismissibleToast::error(format!("Failed to remove tab config: {e}")),
+                            DismissibleToast::error(
+                                t!(
+                                    "workspace_search_ui.workspace.config.remove_tab_failed",
+                                    error = e
+                                )
+                                .to_string(),
+                            ),
                             ctx,
                         );
                     });
@@ -2550,7 +2544,7 @@ impl Workspace {
         .finish();
 
         let text = Text::new_inline(
-            SESSION_CONFIG_TAB_CONFIG_CHIP_TEXT.to_string(),
+            t!("workspace_search_ui.workspace.tab_configs.access_here").to_string(),
             appearance.ui_font_family(),
             12.,
         )
@@ -2608,7 +2602,8 @@ impl Workspace {
                     me.shown_staging_banner_count += 1;
                     me.toast_stack.update(ctx, |toast_stack, ctx| {
                         let toast = DismissibleToast::error(
-                            "Staging API call failed. Did your IP address change?".to_string(),
+                            t!("workspace_search_ui.workspace.cli.staging_access_blocked")
+                                .to_string(),
                         )
                         .with_object_id("staging_access_blocked_toast".to_string());
                         toast_stack.add_ephemeral_toast(toast, ctx);
@@ -2687,20 +2682,21 @@ impl Workspace {
                             &raw_path,
                             home_dir.as_ref().and_then(|h| h.to_str()),
                         );
-                        let message = format!(
-                            "Failed to load tab config {friendly_path}: {}",
-                            error.error_message
-                        );
+                        let message = t!(
+                            "workspace_search_ui.workspace.config.tab_load_failed",
+                            path = friendly_path,
+                            error = error.error_message.as_str()
+                        )
+                        .to_string();
                         let path = error.file_path.clone();
                         let toast = DismissibleToast::error(message)
                             .with_object_id(object_id.clone())
                             .with_link(
-                                ToastLink::new("Open file".to_string()).with_onclick_action(
-                                    WorkspaceAction::OpenTabConfigErrorFile {
+                                ToastLink::new(t!("terminal.open_file").to_string())
+                                    .with_onclick_action(WorkspaceAction::OpenTabConfigErrorFile {
                                         path,
                                         toast_object_id: object_id,
-                                    },
-                                ),
+                                    }),
                             );
                         toast_stack.update(ctx, |toast_stack, ctx| {
                             toast_stack.add_persistent_toast(toast, ctx);
@@ -2721,20 +2717,21 @@ impl Workspace {
                             &raw_path,
                             home_dir.as_ref().and_then(|h| h.to_str()),
                         );
-                        let message = format!(
-                            "Failed to load model config {friendly_path}: {}",
-                            error.error_message
-                        );
+                        let message = t!(
+                            "workspace_search_ui.workspace.config.model_load_failed",
+                            path = friendly_path,
+                            error = error.error_message.as_str()
+                        )
+                        .to_string();
                         let path = error.file_path.clone();
                         let toast = DismissibleToast::error(message)
                             .with_object_id(object_id.clone())
                             .with_link(
-                                ToastLink::new("Open file".to_string()).with_onclick_action(
-                                    WorkspaceAction::OpenTabConfigErrorFile {
+                                ToastLink::new(t!("terminal.open_file").to_string())
+                                    .with_onclick_action(WorkspaceAction::OpenTabConfigErrorFile {
                                         path,
                                         toast_object_id: object_id,
-                                    },
-                                ),
+                                    }),
                             );
                         toast_stack.update(ctx, |toast_stack, ctx| {
                             toast_stack.add_persistent_toast(toast, ctx);
@@ -2790,13 +2787,29 @@ impl Workspace {
         let toast = match result {
             Ok(path) => {
                 ctx.open_file_path_in_explorer(&path);
-                DismissibleToast::success(format!("Wrote heap profile to {}", path.display()))
-                    .with_link(
-                        ToastLink::new("Show in file explorer".to_string())
-                            .with_onclick_action(WorkspaceAction::OpenInExplorer { path }),
+                let display_path = path.display().to_string();
+                DismissibleToast::success(
+                    t!(
+                        "workspace_search_ui.workspace.heap_profile.written",
+                        path = display_path
                     )
+                    .to_string(),
+                )
+                .with_link(
+                    ToastLink::new(
+                        t!("workspace_search_ui.workspace.heap_profile.show_in_file_explorer")
+                            .to_string(),
+                    )
+                    .with_onclick_action(WorkspaceAction::OpenInExplorer { path }),
+                )
             }
-            Err(err) => DismissibleToast::error(format!("Failed to write heap profile: {err:#}")),
+            Err(err) => DismissibleToast::error(
+                t!(
+                    "workspace_search_ui.workspace.heap_profile.write_failed",
+                    error = format!("{err:#}")
+                )
+                .to_string(),
+            ),
         };
 
         self.toast_stack.update(ctx, |toast_stack, ctx| {
@@ -4420,7 +4433,8 @@ impl Workspace {
                     report_error!("Failed to load conversation from server");
                     me.toast_stack.update(ctx, |view, ctx| {
                         let new_toast = DismissibleToast::error(
-                            "Failed to load conversation data.".to_string(),
+                            t!("workspace_search_ui.workspace.conversation.load_data_failed")
+                                .to_string(),
                         );
                         view.add_ephemeral_toast(new_toast, ctx);
                     });
@@ -4586,7 +4600,9 @@ impl Workspace {
         ));
 
         self.toast_stack.update(ctx, |toast_stack, ctx| {
-            let toast = DismissibleToast::default("Remote control link copied.".to_string());
+            let toast = DismissibleToast::default(
+                t!("workspace_search_ui.workspace.remote_control.link_copied").to_string(),
+            );
             toast_stack.add_ephemeral_toast(toast, ctx);
         });
     }
@@ -5734,7 +5750,7 @@ impl Workspace {
                     .unwrap_or_else(|| {
                         let title = configuration.title().trim();
                         if title.is_empty() {
-                            "Untitled pane".to_string()
+                            t!("workspace_search_ui.workspace.pane.untitled").to_string()
                         } else {
                             title.to_string()
                         }
@@ -6520,7 +6536,11 @@ impl Workspace {
                     ctx.open_file_path_in_explorer(&path);
                 }
                 Ok(Err(err)) => {
-                    let error_message = format!("Failed to create log bundle: {err}");
+                    let error_message = t!(
+                        "workspace_search_ui.workspace.logs.bundle_failed",
+                        error = err.to_string()
+                    )
+                    .to_string();
                     report_error!(err.context("Failed to create log bundle"));
                     me.toast_stack.update(ctx, |toast_stack, ctx| {
                         let toast = DismissibleToast::error(error_message);
@@ -6528,7 +6548,11 @@ impl Workspace {
                     });
                 }
                 Err(err) => {
-                    let error_message = format!("Failed to create log bundle: {err}");
+                    let error_message = t!(
+                        "workspace_search_ui.workspace.logs.bundle_failed",
+                        error = err.to_string()
+                    )
+                    .to_string();
                     report_error!(anyhow::Error::new(err).context("Failed to create log bundle"));
                     me.toast_stack.update(ctx, |toast_stack, ctx| {
                         let toast = DismissibleToast::error(error_message);
@@ -6927,7 +6951,11 @@ impl Workspace {
                 .and_then(|view| view.as_ref(ctx).pwd())
                 .map(PathBuf::from);
 
-            let modal_title = format!("Open: {}", tab_config.name);
+            let modal_title = t!(
+                "workspace_search_ui.workspace.tab_configs.open_named",
+                name = tab_config.name.as_str()
+            )
+            .to_string();
             self.tab_config_params_modal.view.update(ctx, |modal, ctx| {
                 modal.body().update(ctx, |body, ctx| {
                     body.set_title(modal_title);
@@ -7106,10 +7134,9 @@ impl Workspace {
         // Seed the editor with the existing name, or the "New Group" default
         // label when the group is unnamed. `insert_selected_text` selects the
         // seeded text so the user can type to replace it instantly.
-        let seed_text = group
-            .name
-            .clone()
-            .unwrap_or_else(|| "New Group".to_string());
+        let seed_text = group.name.clone().unwrap_or_else(|| {
+            t!("workspace_search_ui.workspace.vertical_tabs.new_group").to_string()
+        });
 
         self.current_workspace_state
             .set_tab_group_being_renamed(group_id);
@@ -7743,17 +7770,25 @@ impl Workspace {
             return;
         }
 
-        let pane_name_target = match target {
-            VerticalTabsPaneContextMenuTarget::ClickedPane(locator) => PaneNameMenuTarget {
-                locator,
-                rename_label: "Rename pane",
-                reset_label: "Reset pane name",
-            },
-            VerticalTabsPaneContextMenuTarget::ActivePane(locator) => PaneNameMenuTarget {
-                locator,
-                rename_label: "Rename active pane",
-                reset_label: "Reset active pane name",
-            },
+        let (pane_name_target, rename_label, reset_label) = match target {
+            VerticalTabsPaneContextMenuTarget::ClickedPane(locator) => (
+                PaneNameMenuTarget {
+                    locator,
+                    rename_label: "",
+                    reset_label: "",
+                },
+                t!("workspace_search_ui.workspace.pane.rename").to_string(),
+                t!("workspace_search_ui.workspace.pane.reset_name").to_string(),
+            ),
+            VerticalTabsPaneContextMenuTarget::ActivePane(locator) => (
+                PaneNameMenuTarget {
+                    locator,
+                    rename_label: "",
+                    reset_label: "",
+                },
+                t!("workspace_search_ui.workspace.pane.rename_active").to_string(),
+                t!("workspace_search_ui.workspace.pane.reset_active_name").to_string(),
+            ),
         };
         let can_move_left = self.can_move_tab(tab_index, TabMovement::Left);
         let can_move_right = self.can_move_tab(tab_index, TabMovement::Right);
@@ -7769,6 +7804,25 @@ impl Workspace {
             Some(pane_name_target),
             ctx,
         );
+        let menu_items: Vec<_> = menu_items
+            .into_iter()
+            .map(|item| match item {
+                MenuItem::Item(fields) => match fields.on_select_action().cloned() {
+                    Some(action @ WorkspaceAction::RenamePane(_)) => {
+                        MenuItemFields::new(rename_label.clone())
+                            .with_on_select_action(action)
+                            .into_item()
+                    }
+                    Some(action @ WorkspaceAction::ResetPaneName(_)) => {
+                        MenuItemFields::new(reset_label.clone())
+                            .with_on_select_action(action)
+                            .into_item()
+                    }
+                    _ => MenuItem::Item(fields),
+                },
+                _ => item,
+            })
+            .collect();
 
         ctx.update_view(&self.tab_right_click_menu, |context_menu, view_ctx| {
             context_menu.set_items(menu_items, view_ctx);
@@ -8908,7 +8962,7 @@ impl Workspace {
         &mut self,
         result: Result<()>,
         success_toast: DismissibleToast<WorkspaceAction>,
-        failure_message: &str,
+        failure_message: impl FnOnce(String) -> String,
         ctx: &mut ViewContext<Self>,
     ) {
         match result {
@@ -8918,7 +8972,7 @@ impl Workspace {
                 });
             }
             Err(error) => {
-                let error_message = format!("{failure_message}: {error}");
+                let error_message = failure_message(error.to_string());
                 log::warn!("{error_message}");
                 self.toast_stack.update(ctx, |toast_stack, ctx| {
                     let toast = DismissibleToast::error(error_message);
@@ -8933,12 +8987,27 @@ impl Workspace {
     fn install_oz(&mut self, ctx: &mut ViewContext<Self>) {
         ctx.spawn(async { cli_install::install_oz() }, |view, result, ctx| {
             let command_name = ChannelState::channel().cli_command_name();
-            let message = format!("Installed the Oz CLI globally. You can now run '{command_name}' from any terminal outside of Warp.");
+            let message = t!(
+                "workspace_search_ui.workspace.cli.oz_installed",
+                command = command_name
+            )
+            .to_string();
             let toast = DismissibleToast::success(message).with_link(
-                ToastLink::new("Learn more".to_string())
+                ToastLink::new(t!("common.learn_more").to_string())
                     .with_href("https://docs.warp.dev/reference/cli".to_string()),
             );
-            view.handle_cli_command_result(result, toast, "Failed to install Oz command", ctx);
+            view.handle_cli_command_result(
+                result,
+                toast,
+                |error| {
+                    t!(
+                        "workspace_search_ui.workspace.cli.oz_install_failed",
+                        error = error
+                    )
+                    .to_string()
+                },
+                ctx,
+            );
         });
     }
 
@@ -8949,13 +9018,18 @@ impl Workspace {
             async { cli_install::uninstall_oz() },
             |view, result, ctx| {
                 let toast = DismissibleToast::success(
-                    "Removed the global Oz CLI installation — it still works inside Warp."
-                        .to_string(),
+                    t!("workspace_search_ui.workspace.cli.oz_uninstalled").to_string(),
                 );
                 view.handle_cli_command_result(
                     result,
                     toast,
-                    "Failed to uninstall Oz command",
+                    |error| {
+                        t!(
+                            "workspace_search_ui.workspace.cli.oz_uninstall_failed",
+                            error = error
+                        )
+                        .to_string()
+                    },
                     ctx,
                 );
             },
@@ -8969,12 +9043,22 @@ impl Workspace {
             async { cli_install::install_warpctrl() },
             |view, result, ctx| {
                 let command_name = ChannelState::channel().warpctrl_command_name();
-                let message = format!("Installed the Warp Control CLI globally. You can now run '{command_name}' from any terminal outside of Warp.");
+                let message = t!(
+                    "workspace_search_ui.workspace.cli.warpctrl_installed",
+                    command = command_name
+                )
+                .to_string();
                 let toast = DismissibleToast::success(message);
                 view.handle_cli_command_result(
                     result,
                     toast,
-                    "Failed to install Warp Control command",
+                    |error| {
+                        t!(
+                            "workspace_search_ui.workspace.cli.warpctrl_install_failed",
+                            error = error
+                        )
+                        .to_string()
+                    },
                     ctx,
                 );
             },
@@ -8988,13 +9072,18 @@ impl Workspace {
             async { cli_install::uninstall_warpctrl() },
             |view, result, ctx| {
                 let toast = DismissibleToast::success(
-                    "Removed the global Warp Control CLI installation — it still works inside Warp."
-                        .to_string(),
+                    t!("workspace_search_ui.workspace.cli.warpctrl_uninstalled").to_string(),
                 );
                 view.handle_cli_command_result(
                     result,
                     toast,
-                    "Failed to uninstall Warp Control command",
+                    |error| {
+                        t!(
+                            "workspace_search_ui.workspace.cli.warpctrl_uninstall_failed",
+                            error = error
+                        )
+                        .to_string()
+                    },
                     ctx,
                 );
             },
@@ -10209,7 +10298,7 @@ impl Workspace {
                 .with_height(NEW_SESSION_SIDECAR_SEARCH_BOX_HEIGHT)
                 .finish()
             }),
-            Some("Search repos".to_string()),
+            Some(t!("workspace.search_repos").to_string()),
         )
         .with_no_interaction_on_hover()
         .no_highlight_on_hover()
@@ -10488,36 +10577,28 @@ impl Workspace {
             return;
         };
 
-        match label.as_str() {
-            "New worktree config" => {
-                self.tab_config_action_sidecar_item = None;
-                let auto_select_first_repo = self.new_session_dropdown_menu.read(ctx, |menu, _| {
-                    menu.last_selection_source() != Some(MenuSelectionSource::Pointer)
-                });
-                self.configure_worktree_new_session_sidecar(
-                    hovered_index,
-                    auto_select_first_repo,
-                    ctx,
-                );
-            }
-            // Items that don't get any sidecar.
-            "New tab config" => {
-                self.tab_config_action_sidecar_item = None;
-                if self.show_new_session_sidecar {
-                    self.show_new_session_sidecar = false;
-                    self.worktree_sidecar_active = false;
-                    self.new_session_dropdown_menu.update(ctx, |menu, _| {
-                        menu.set_safe_zone_target(None);
-                        menu.set_submenu_being_shown_for_item_index(None);
-                    });
-                }
-            }
-            // All other actionable items get the action sidecar.
-            _ => {
+        if label == t!("workspace.new_session_menu.new_worktree_config") {
+            self.tab_config_action_sidecar_item = None;
+            let auto_select_first_repo = self.new_session_dropdown_menu.read(ctx, |menu, _| {
+                menu.last_selection_source() != Some(MenuSelectionSource::Pointer)
+            });
+            self.configure_worktree_new_session_sidecar(hovered_index, auto_select_first_repo, ctx);
+        // Items that don't get any sidecar.
+        } else if label == t!("workspace.new_session_menu.new_tab_config") {
+            self.tab_config_action_sidecar_item = None;
+            if self.show_new_session_sidecar {
                 self.show_new_session_sidecar = false;
                 self.worktree_sidecar_active = false;
-                self.configure_action_sidecar_for_hovered_item(&label, hovered_index, ctx);
+                self.new_session_dropdown_menu.update(ctx, |menu, _| {
+                    menu.set_safe_zone_target(None);
+                    menu.set_submenu_being_shown_for_item_index(None);
+                });
             }
+        // All other actionable items get the action sidecar.
+        } else {
+            self.show_new_session_sidecar = false;
+            self.worktree_sidecar_active = false;
+            self.configure_action_sidecar_for_hovered_item(&label, hovered_index, ctx);
         }
 
         ctx.notify();
@@ -10807,13 +10888,23 @@ impl Workspace {
             .map(|n| n.to_string_lossy().to_string())
             .unwrap_or_else(|| repo.to_string());
         let config_name = match worktree_branch_name {
-            Some(name) if !name.is_empty() => {
-                format!("New worktree: {repo_display_name}, {name}")
-            }
-            _ if !base_branch.is_empty() => {
-                format!("New worktree: {repo_display_name}, {base_branch}")
-            }
-            _ => format!("New worktree: {repo_display_name}"),
+            Some(name) if !name.is_empty() => t!(
+                "workspace_search_ui.workspace.worktree.new_config_name_with_branch",
+                repo = repo_display_name.as_str(),
+                branch = name
+            )
+            .to_string(),
+            _ if !base_branch.is_empty() => t!(
+                "workspace_search_ui.workspace.worktree.new_config_name_with_branch",
+                repo = repo_display_name.as_str(),
+                branch = base_branch
+            )
+            .to_string(),
+            _ => t!(
+                "workspace_search_ui.workspace.worktree.new_config_name",
+                repo = repo_display_name.as_str()
+            )
+            .to_string(),
         };
 
         let filename_hint = if let Some(name) = worktree_branch_name {
@@ -10933,7 +11024,11 @@ impl Workspace {
             .file_name()
             .map(|name| name.to_string_lossy().to_string())
             .unwrap_or_else(|| repo_path.clone());
-        let config_name = format!("Worktree: {repo_display_name}");
+        let config_name = t!(
+            "tab_configs_ui.session.worktree_config_name",
+            repo = repo_display_name.as_str()
+        )
+        .to_string();
         // Use the user's default session mode to decide pane type.
         let pane_type = if AISettings::as_ref(ctx).is_any_ai_enabled(ctx)
             && AISettings::as_ref(ctx).default_session_mode(ctx) == DefaultSessionMode::Agent
@@ -11078,12 +11173,16 @@ impl Workspace {
                     .unwrap_or_else(|| UserWorkspaces::upgrade_link(*user_id));
 
                 self.toast_stack.update(ctx, |view, ctx| {
-                    let new_toast =
-                        DismissibleToast::error("Looks like you're out of AI credits.".into())
-                            .with_link(
-                                ToastLink::new("Upgrade for more credits.".into())
-                                    .with_href(upgrade_link),
-                            );
+                    let new_toast = DismissibleToast::error(
+                        t!("workspace_search_ui.workspace.ai.out_of_credits").to_string(),
+                    )
+                    .with_link(
+                        ToastLink::new(
+                            t!("workspace_search_ui.workspace.ai.upgrade_for_more_credits")
+                                .to_string(),
+                        )
+                        .with_href(upgrade_link),
+                    );
                     view.add_ephemeral_toast(new_toast, ctx);
                 });
             }
@@ -12782,7 +12881,7 @@ impl Workspace {
         self.add_tab_with_pane_layout(
             Default::default(),
             Arc::new(HashMap::new()),
-            Some("Install Update".to_owned()),
+            Some(t!("workspace_search_ui.workspace.update.install_update").to_string()),
             ctx,
         );
 
@@ -13167,7 +13266,9 @@ impl Workspace {
                     ctx.notify();
                 });
                 WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                    let toast = DismissibleToast::error("Failed to load conversation.".to_owned());
+                    let toast = DismissibleToast::error(
+                        t!("workspace_search_ui.workspace.conversation.load_failed").to_string(),
+                    );
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
                 return;
@@ -13228,7 +13329,9 @@ impl Workspace {
             let Some(conversation) = conversation else {
                 log::warn!("Failed to load conversation {conversation_id}");
                 WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                    let toast = DismissibleToast::error("Failed to load conversation.".to_owned());
+                    let toast = DismissibleToast::error(
+                        t!("workspace_search_ui.workspace.conversation.load_failed").to_string(),
+                    );
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
                 // Close the loading pane
@@ -13297,7 +13400,9 @@ impl Workspace {
             let Some(conversation) = conversation else {
                 log::warn!("Failed to load conversation {conversation_id}");
                 WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                    let toast = DismissibleToast::error("Failed to load conversation.".to_owned());
+                    let toast = DismissibleToast::error(
+                        t!("workspace_search_ui.workspace.conversation.load_failed").to_string(),
+                    );
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
                 // Close the loading tab
@@ -13414,8 +13519,10 @@ impl Workspace {
                         );
                         WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                             let toast = DismissibleToast::error(
-                                "Couldn't continue this conversation locally. Check the logs for details."
-                                    .to_owned(),
+                                t!(
+                                    "workspace_search_ui.workspace.conversation.continue_locally_failed"
+                                )
+                                .to_string(),
                             );
                             toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                         });
@@ -13508,7 +13615,8 @@ impl Workspace {
                 );
                 WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     let toast = DismissibleToast::error(
-                        "Failed to load conversation for forking.".to_owned(),
+                        t!("workspace_search_ui.workspace.conversation.load_for_fork_failed")
+                            .to_string(),
                     );
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
@@ -13601,20 +13709,21 @@ impl Workspace {
         ctx: &mut ViewContext<Self>,
     ) {
         let history_model = BlocklistAIHistoryModel::handle(ctx);
+        let fork_prefix = fork_prefix();
         let fork_result = history_model.update(ctx, |history_model, ctx| {
             if let Some(fork_from) = fork_from_exchange {
                 history_model.fork_conversation_at_exchange(
                     &source_conversation,
                     fork_from.exchange_id,
                     fork_from.fork_from_exact_exchange,
-                    FORK_PREFIX,
+                    &fork_prefix,
                     None,
                     ctx,
                 )
             } else {
                 history_model.fork_conversation(
                     &source_conversation,
-                    FORK_PREFIX,
+                    &fork_prefix,
                     true, /* preserve_task_ids */
                     None,
                     ctx,
@@ -13627,7 +13736,9 @@ impl Workspace {
             Err(e) => {
                 report_error!(e.context("Conversation forking failed"));
                 WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                    let toast = DismissibleToast::error("Conversation forking failed.".to_owned());
+                    let toast = DismissibleToast::error(
+                        t!("workspace_search_ui.workspace.conversation.fork_failed").to_string(),
+                    );
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
                 return;
@@ -13871,7 +13982,9 @@ impl Workspace {
             .conversation(&conversation_id)
             .and_then(|c| c.title())
             .map(|s| s.to_string())
-            .unwrap_or_else(|| "Conversation".to_string());
+            .unwrap_or_else(|| {
+                t!("workspace_search_ui.workspace.conversation.default_title").to_string()
+            });
 
         let title = if source_title.chars().count() > MAX_FORK_TOAST_TITLE_LENGTH {
             let truncated: String = source_title
@@ -13884,7 +13997,13 @@ impl Workspace {
         };
 
         WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-            let toast = DismissibleToast::default(format!("Forked \"{title}\""));
+            let toast = DismissibleToast::default(
+                t!(
+                    "workspace_search_ui.workspace.conversation.forked",
+                    name = title
+                )
+                .to_string(),
+            );
             toast_stack.add_ephemeral_toast(toast, window_id, ctx);
         });
     }
@@ -14145,12 +14264,15 @@ impl Workspace {
                         let url = NOTIFICATIONS_TROUBLESHOOT_URL.to_string();
                         view.toast_stack.update(ctx, |toast_stack, ctx| {
                             let toast = DismissibleToast::error(
-                                "Warp doesn't have permission to send desktop notifications."
+                                t!("workspace_search_ui.workspace.notifications.permission_denied")
                                     .to_string(),
                             )
                             .with_link(
-                                ToastLink::new("Troubleshoot notifications".to_string())
-                                    .with_href(url),
+                                ToastLink::new(
+                                    t!("workspace_search_ui.workspace.notifications.troubleshoot")
+                                        .to_string(),
+                                )
+                                .with_href(url),
                             );
                             toast_stack.add_persistent_toast(toast, ctx);
                         });
@@ -14808,14 +14930,19 @@ impl Workspace {
                                 .find(|binding| binding.name == "workspace:view_changelog")
                                 .and_then(|binding| trigger_to_keystroke(binding.trigger));
 
-                            let mut link = ToastLink::new("View changelog".to_owned())
-                                .with_onclick_action(WorkspaceAction::ViewLatestChangelog);
+                            let mut link = ToastLink::new(
+                                t!("workspace_search_ui.workspace.update.view_changelog")
+                                    .to_string(),
+                            )
+                            .with_onclick_action(WorkspaceAction::ViewLatestChangelog);
                             if let Some(keystroke) = keystroke {
                                 link = link.with_keystroke(keystroke);
                             }
 
-                            let toast = DismissibleToast::default(String::from("Warp updated!"))
-                                .with_link(link);
+                            let toast = DismissibleToast::default(
+                                t!("workspace_search_ui.workspace.update.updated").to_string(),
+                            )
+                            .with_link(link);
 
                             stack.add_ephemeral_toast(toast, ctx);
                         });
@@ -15131,9 +15258,13 @@ impl Workspace {
                 me.handoff_environment_creation_modal = None;
                 me.toast_stack.update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
-                        DismissibleToast::error(format!(
-                            "Failed to create environment: {error_message}"
-                        )),
+                        DismissibleToast::error(
+                            t!(
+                                "workspace_search_ui.workspace.handoff.environment_creation_failed",
+                                error = error_message
+                            )
+                            .to_string(),
+                        ),
                         ctx,
                     );
                 });
@@ -15175,7 +15306,7 @@ impl Workspace {
             AuthSecretFtuxViewEvent::Failed { .. } => {}
         });
 
-        let title = "New API key".to_string();
+        let title = t!("settings.platform.new_api_key").to_string();
         let modal = ctx.add_typed_action_view(|ctx| {
             Modal::new(Some(title), body, ctx).with_modal_style(UiComponentStyles {
                 width: Some(520.),
@@ -15259,9 +15390,13 @@ impl Workspace {
                 me.handoff_environment_creation_modal = None;
                 me.toast_stack.update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
-                        DismissibleToast::error(format!(
-                            "Failed to create environment: {error_message}"
-                        )),
+                        DismissibleToast::error(
+                            t!(
+                                "workspace_search_ui.workspace.handoff.environment_creation_failed",
+                                error = error_message
+                            )
+                            .to_string(),
+                        ),
                         ctx,
                     );
                 });
@@ -15298,7 +15433,7 @@ impl Workspace {
         WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
             toast_stack.add_ephemeral_toast(
                 DismissibleToast::default(
-                    "Starting cloud environment for this session...".to_owned(),
+                    t!("workspace_search_ui.workspace.handoff.starting_environment").to_string(),
                 ),
                 window_id,
                 ctx,
@@ -15381,8 +15516,8 @@ impl Workspace {
             WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                 toast_stack.add_ephemeral_toast(
                     DismissibleToast::error(
-                        "Couldn't open a cloud pane for handoff. Try again, or restart Warp if this keeps happening."
-                            .to_owned(),
+                        t!("workspace_search_ui.workspace.handoff.open_cloud_pane_failed")
+                            .to_string(),
                     ),
                     window_id,
                     ctx,
@@ -15460,8 +15595,7 @@ impl Workspace {
             WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                 toast_stack.add_ephemeral_toast(
                     DismissibleToast::error(
-                        "No active terminal session to hand off. Focus a pane and try again."
-                            .to_owned(),
+                        t!("workspace_search_ui.workspace.handoff.no_active_terminal").to_string(),
                     ),
                     window_id,
                     ctx,
@@ -15629,8 +15763,8 @@ impl Workspace {
                     WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                         toast_stack.add_ephemeral_toast(
                             DismissibleToast::error(
-                                "Can't hand off while a command is running. Cancel the command or wait for it to finish."
-                                    .to_owned(),
+                                t!("workspace_search_ui.workspace.handoff.command_running")
+                                    .to_string(),
                             ),
                             window_id,
                             ctx,
@@ -15666,8 +15800,7 @@ impl Workspace {
                 WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
                         DismissibleToast::error(
-                            "Your conversation hasn't synced to the cloud yet. Try sending another message, then hand off again."
-                                .to_owned(),
+                            t!("workspace_search_ui.workspace.handoff.not_synced").to_string(),
                         ),
                         window_id,
                         ctx,
@@ -15681,9 +15814,13 @@ impl Workspace {
 
         let ai_client = ServerApiProvider::as_ref(ctx).get_ai_client();
         let source_conversation_id = source_token.as_str().to_string();
-        let title_for_fork = source_conversation
-            .title()
-            .map(|t| format!("{t} (Moved to cloud)"));
+        let title_for_fork = source_conversation.title().map(|title| {
+            t!(
+                "workspace_search_ui.workspace.handoff.moved_to_cloud",
+                title = title
+            )
+            .to_string()
+        });
         ctx.spawn(
             async move {
                 ai_client
@@ -15720,8 +15857,8 @@ impl Workspace {
                         WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                             toast_stack.add_ephemeral_toast(
                                 DismissibleToast::error(
-                                    "Couldn't start the handoff. Check your network connection and try again."
-                                        .to_owned(),
+                                    t!("workspace_search_ui.workspace.handoff.start_failed")
+                                        .to_string(),
                                 ),
                                 window_id,
                                 ctx,
@@ -15755,13 +15892,18 @@ impl Workspace {
         let show_user_feedback = intent.shows_user_feedback();
         let history_model = BlocklistAIHistoryModel::handle(ctx);
         // Materialize the fork locally so the new pane can restore it.
-        let title_override = source_conversation
-            .title()
-            .map(|t| format!("{t} (Moved to cloud)"));
+        let title_override = source_conversation.title().map(|title| {
+            t!(
+                "workspace_search_ui.workspace.handoff.moved_to_cloud",
+                title = title
+            )
+            .to_string()
+        });
+        let fork_prefix = fork_prefix();
         let local_fork = match history_model.update(ctx, |history_model, ctx| {
             history_model.fork_conversation(
                 &source_conversation,
-                FORK_PREFIX,
+                &fork_prefix,
                 true,
                 title_override.as_deref(),
                 ctx,
@@ -15778,8 +15920,8 @@ impl Workspace {
                     WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                         toast_stack.add_ephemeral_toast(
                             DismissibleToast::error(
-                                "Couldn't save your conversation locally. Try sending another message, then hand off again."
-                                    .to_owned(),
+                                t!("workspace_search_ui.workspace.handoff.save_locally_failed")
+                                    .to_string(),
                             ),
                             window_id,
                             ctx,
@@ -15804,8 +15946,8 @@ impl Workspace {
                 WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
                         DismissibleToast::error(
-                            "Couldn't open a cloud pane for handoff. Try again, or restart Warp if this keeps happening."
-                                .to_owned(),
+                            t!("workspace_search_ui.workspace.handoff.open_cloud_pane_failed")
+                                .to_string(),
                         ),
                         window_id,
                         ctx,
@@ -16135,9 +16277,9 @@ impl Workspace {
 
                 if !object_found {
                     self.toast_stack.update(ctx, |toast_stack, ctx| {
-                        let toast = DismissibleToast::error(String::from(
-                            "Resource not found or access denied",
-                        ));
+                        let toast = DismissibleToast::error(
+                            t!("workspace_search_ui.workspace.resource_not_found").to_string(),
+                        );
                         toast_stack.add_ephemeral_toast(toast, ctx);
                     });
                     ctx.notify();
@@ -17566,7 +17708,7 @@ impl Workspace {
             let window_id = ctx.window_id();
             WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                 let toast = DismissibleToast::default(
-                    "No terminal pane open. Open a new pane to attach as context.".to_owned(),
+                    t!("workspace_search_ui.workspace.plan.no_terminal_pane").to_string(),
                 );
                 toast_stack.add_ephemeral_toast(toast, window_id, ctx);
             });
@@ -17585,8 +17727,9 @@ impl Workspace {
             {
                 let window_id = ctx.window_id();
                 WorkspaceToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
-                    let toast =
-                        DismissibleToast::default("This plan is already in context.".to_owned());
+                    let toast = DismissibleToast::default(
+                        t!("workspace_search_ui.workspace.plan.already_in_context").to_string(),
+                    );
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
                 return;
@@ -17668,7 +17811,7 @@ impl Workspace {
             // RequireExisting or OpenIfNone. In those cases, show a toast and no-op.
             self.toast_stack.update(ctx, |toast_stack, ctx| {
                 let mut toast = DismissibleToast::error(
-                    "A command in this session is still running.".to_string(),
+                    t!("workspace_search_ui.workspace.terminal.command_running").to_string(),
                 );
                 if let Some(id) = object_id {
                     toast = toast.with_object_id(id.uid());
@@ -17690,8 +17833,9 @@ impl Workspace {
 
         if !ContextFlag::CreateNewSession.is_enabled() {
             self.toast_stack.update(ctx, |toast_stack, ctx| {
-                let toast =
-                    DismissibleToast::error("Cannot open a new terminal session".to_string());
+                let toast = DismissibleToast::error(
+                    t!("workspace_search_ui.workspace.terminal.cannot_open_session").to_string(),
+                );
                 toast_stack.add_ephemeral_toast(toast, ctx);
             });
             return None;
@@ -17955,7 +18099,10 @@ impl Workspace {
                                     self.toast_stack.update(ctx, |view, ctx| {
                                         view.add_ephemeral_toast(
                                             DismissibleToast::error(
-                                                "This workflow is no longer available.".to_string(),
+                                                t!(
+                                                    "workspace_search_ui.workspace.workflow.unavailable"
+                                                )
+                                                .to_string(),
                                             ),
                                             ctx,
                                         );
@@ -18140,11 +18287,14 @@ impl Workspace {
                                             },
                                         ) {
                                             new_toast = DismissibleToast::success(
-                                                "Plan synced to your Warp Drive".to_string(),
+                                                t!(
+                                                    "workspace_search_ui.workspace.plan.synced"
+                                                )
+                                                .to_string(),
                                             )
                                             .with_object_id(object_id_clone)
                                             .with_link(
-                                                ToastLink::new("View".to_string())
+                                                ToastLink::new(t!("terminal.view").to_string())
                                                     .with_onclick_action(
                                                         WorkspaceAction::ViewObjectInWarpDrive(
                                                             WarpDriveItemId::Object(
@@ -18166,20 +18316,23 @@ impl Workspace {
                                         || result.operation == ObjectOperation::Update
                                     {
                                         new_toast = new_toast.with_link(
-                                            ToastLink::new("View".to_string()).with_onclick_action(
-                                                WorkspaceAction::ViewObjectInWarpDrive(
-                                                    WarpDriveItemId::Object(
-                                                        CloudObjectTypeAndId::Workflow(workflow.id),
+                                            ToastLink::new(t!("terminal.view").to_string())
+                                                .with_onclick_action(
+                                                    WorkspaceAction::ViewObjectInWarpDrive(
+                                                        WarpDriveItemId::Object(
+                                                            CloudObjectTypeAndId::Workflow(
+                                                                workflow.id,
+                                                            ),
+                                                        ),
                                                     ),
                                                 ),
-                                            ),
                                         )
                                     }
                                 }
 
                                 if result.operation == ObjectOperation::Trash {
                                     new_toast = new_toast.with_link(
-                                        ToastLink::new("Undo".to_string()).with_onclick_action(
+                                        ToastLink::new(t!("menu.undo").to_string()).with_onclick_action(
                                             WorkspaceAction::UndoTrash(cloud_object_type_and_id),
                                         ),
                                     )
@@ -18217,8 +18370,10 @@ impl Workspace {
                                     DismissibleToast::error(message)
                                         .with_link(
                                             ToastLink::new(
-                                                "Check out the latest version and try again."
-                                                    .to_string(),
+                                                t!(
+                                                    "workspace_search_ui.workspace.workflow.view_latest_and_retry"
+                                                )
+                                                .to_string(),
                                             )
                                             .with_onclick_action(
                                                 WorkspaceAction::HandleConflictingWorkflow(
@@ -18231,8 +18386,10 @@ impl Workspace {
                                     DismissibleToast::error(message)
                                         .with_link(
                                             ToastLink::new(
-                                                "Check out the latest version and try again."
-                                                    .to_string(),
+                                                t!(
+                                                    "workspace_search_ui.workspace.workflow.view_latest_and_retry"
+                                                )
+                                                .to_string(),
                                             )
                                             .with_onclick_action(
                                                 WorkspaceAction::HandleConflictingEnvVarCollection(
@@ -18739,16 +18896,21 @@ impl Workspace {
                 prev_mouse_reporting_enabled
             });
 
-        let verb = if prev_mouse_reporting_enabled {
-            "disabled"
+        let mut message = if prev_mouse_reporting_enabled {
+            t!("workspace_search_ui.workspace.mouse_reporting.disabled").to_string()
         } else {
-            "enabled"
+            t!("workspace_search_ui.workspace.mouse_reporting.enabled").to_string()
         };
-        let mut message = format!("You {verb} mouse reporting.");
         if let Some(keystroke) =
             keybinding_name_to_keystroke("workspace:toggle_mouse_reporting", ctx)
         {
-            let _ = write!(message, " Press {} to undo.", keystroke.displayed());
+            let undo = t!(
+                "workspace_search_ui.workspace.mouse_reporting.undo",
+                binding = keystroke.displayed().to_string()
+            )
+            .to_string();
+            message.push(' ');
+            message.push_str(&undo);
         }
 
         self.toast_stack.update(ctx, |view, ctx| {
@@ -18886,8 +19048,11 @@ impl Workspace {
                 let command = code.trim().to_string();
                 let args_state =
                     ArgumentsState::for_command_workflow(&Default::default(), command.clone());
-                let workflow = Workflow::new("Command from Warp AI", command)
-                    .with_arguments(args_state.arguments);
+                let workflow = Workflow::new(
+                    t!("workspace_search_ui.workspace.workflow.command_from_warp_ai").to_string(),
+                    command,
+                )
+                .with_arguments(args_state.arguments);
                 self.run_workflow_in_active_input(
                     &WorkflowType::AIGenerated {
                         workflow,
@@ -19298,7 +19463,9 @@ impl Workspace {
         {
             BlocklistAIHistoryModel::handle(ctx).update(ctx, |history, _ctx| {
                 if let Some(conversation) = history.conversation_mut(&conversation_id) {
-                    conversation.set_fallback_display_title("Linear Issue".to_string());
+                    conversation.set_fallback_display_title(
+                        t!("workspace_search_ui.workspace.linear.issue_title").to_string(),
+                    );
                 }
             });
         }
@@ -19657,7 +19824,7 @@ impl Workspace {
         let body = appearance
             .ui_builder()
             .wrappable_text(
-                "Ask Warp AI to explain errors, suggest commands or write scripts.".to_owned(),
+                t!("workspace_search_ui.workspace.ai.warm_welcome_description").to_string(),
                 true,
             )
             .with_style(UiComponentStyles {
@@ -19993,10 +20160,9 @@ impl Workspace {
         let is_being_renamed = self
             .current_workspace_state
             .is_tab_group_being_renamed(group_id);
-        let title = group
-            .name
-            .clone()
-            .unwrap_or_else(|| "New Group".to_string());
+        let title = group.name.clone().unwrap_or_else(|| {
+            t!("workspace_search_ui.workspace.vertical_tabs.new_group").to_string()
+        });
         let show_header_pin = FeatureFlag::PinnedTabs.is_enabled() && group.pinned;
         let normal_right_pad = if is_collapsed { 8. } else { 9. };
 
@@ -20288,7 +20454,8 @@ impl Workspace {
                         icons::Icon::Grid,
                         &self.mouse_states.agent_management_view_button,
                         WorkspaceAction::ToggleAgentManagementView,
-                        "Agent management panel".to_string(),
+                        t!("workspace_search_ui.workspace.header_toolbar.agent_management")
+                            .to_string(),
                         keybinding_name_to_display_string(
                             "workspace:toggle_agent_management_view",
                             ctx,
@@ -20560,7 +20727,7 @@ impl Workspace {
             button
                 .with_tooltip(self.render_tab_bar_icon_button_tooltip(
                     appearance,
-                    "Code review panel".to_string(),
+                    t!("workspace_search_ui.workspace.header_toolbar.code_review").to_string(),
                     keybinding_name_to_display_string("workspace:toggle_right_panel", ctx),
                 ))
                 .build()
@@ -21361,10 +21528,10 @@ impl Workspace {
         const BUTTON_WIDTH: f32 = 24. + SIDE_MENU_WIDTH;
         const BUTTON_LEFT_MARGIN: f32 = 4.;
 
-        let new_tab_tool_tip_label_text = "New Tab".to_string();
+        let new_tab_tool_tip_label_text = t!("menu.new_tab").to_string();
         let new_tab_tool_tip_sublabel_text =
             keybinding_name_to_display_string(NEW_TAB_BINDING_NAME, ctx);
-        let tab_configs_tool_tip_label_text = "Tab configs".to_string();
+        let tab_configs_tool_tip_label_text = t!("workspace.tabs.tab_configs").to_string();
         let tab_configs_tool_tip_sublabel_text =
             keybinding_name_to_display_string(TOGGLE_TAB_CONFIGS_MENU_BINDING_NAME, ctx);
         let appearance = Appearance::as_ref(ctx);
@@ -21497,10 +21664,9 @@ impl Workspace {
 
     fn render_avatar_button(&self, appearance: &Appearance, ctx: &AppContext) -> Box<dyn Element> {
         let is_anonymous = self.auth_state.is_anonymous_or_logged_out();
-        let display_name = self
-            .auth_state
-            .username_for_display()
-            .unwrap_or(DEFAULT_USER_DISPLAY_NAME.to_owned());
+        let display_name = self.auth_state.username_for_display().unwrap_or_else(|| {
+            t!("workspace_search_ui.workspace.user.default_display_name").to_string()
+        });
 
         let avatar_content = if self.auth_state.is_anonymous_or_logged_out() {
             AvatarContent::Icon(icons::Icon::Gear)
@@ -21603,7 +21769,7 @@ impl Workspace {
                 icons::Icon::Lightbulb,
                 &self.mouse_states.resource_center_icon,
                 WorkspaceAction::ToggleResourceCenter,
-                "Warp Essentials".to_string(),
+                t!("resource_center.warp_essentials").to_string(),
                 self.cached_keybindings[TOGGLE_RESOURCE_CENTER_KEYBINDING_NAME].clone(),
                 false,
                 false,
@@ -21744,7 +21910,8 @@ impl Workspace {
     fn render_offline_button(&self, appearance: &Appearance) -> Box<dyn Element> {
         let ui_builder = appearance.ui_builder().clone();
 
-        let tool_tip_label_text = "Some features may be unavailable offline".to_string();
+        let tool_tip_label_text =
+            t!("workspace_search_ui.workspace.offline.unavailable_features").to_string();
         let icon = ConstrainedBox::new(
             Container::new(
                 icons::Icon::CloudOffline
@@ -21908,7 +22075,7 @@ impl Workspace {
                     Flex::row()
                         .with_child(
                             Text::new_inline(
-                                UPDATE_READY_TEXT,
+                                t!("workspace_search_ui.workspace.update.update_warp").to_string(),
                                 appearance.ui_font_family(),
                                 PILL_FONT_SIZE,
                             )
@@ -22101,7 +22268,7 @@ impl Workspace {
             AISettings::as_ref(app)
                 .is_any_ai_enabled(app)
                 .then(|| WorkspaceBannerButtonDetails {
-                    text: "Fix with Oz".to_owned(),
+                    text: t!("workspace_search_ui.workspace.settings.fix_with_oz").to_string(),
                     action: WorkspaceAction::FixSettingsWithOz {
                         error_description: error.to_string(),
                     },
@@ -22116,7 +22283,7 @@ impl Workspace {
             description,
             secondary_button,
             button: Some(WorkspaceBannerButtonDetails {
-                text: "Open file".to_owned(),
+                text: t!("terminal.open_file").to_string(),
                 action: WorkspaceAction::OpenSettingsFile,
                 variant: BannerButtonVariant::Outlined,
                 icon: None,
@@ -22142,11 +22309,11 @@ impl Workspace {
         Some(WorkspaceBannerFields {
             banner_type: WorkspaceBanner::Reauth,
             severity: BannerSeverity::Warning,
-            heading: Some("Your login has expired.".into()),
-            description: "Please sign in again to restore access to cloud-based features.".into(),
+            heading: Some(t!("workspace_search_ui.workspace.reauth.expired_heading").to_string()),
+            description: t!("workspace_search_ui.workspace.reauth.expired_description").to_string(),
             secondary_button: None,
             button: Some(WorkspaceBannerButtonDetails {
-                text: "Sign in".into(),
+                text: t!("auth.login_slide.skip_dialog.sign_in").to_string(),
                 action: WorkspaceAction::Reauth,
                 variant: BannerButtonVariant::Outlined,
                 icon: None,
@@ -22163,10 +22330,10 @@ impl Workspace {
                 {
                     let description =
                         if is_incoming_version_past_current(new_version.soft_cutoff.as_deref()) {
-                            VERSION_DEPRECATION_WITHOUT_PERMISSIONS_BANNER_TEXT.to_owned()
+                            t!("workspace_search_ui.workspace.update.deprecated_no_permissions")
+                                .to_string()
                         } else {
-                            "A new version is available but Warp is unable to perform the update."
-                                .to_owned()
+                            t!("workspace_search_ui.workspace.update.unable_to_update").to_string()
                         };
 
                     Some(WorkspaceBannerFields {
@@ -22176,7 +22343,7 @@ impl Workspace {
                         description,
                         secondary_button: None,
                         button: Some(WorkspaceBannerButtonDetails {
-                            text: "Update Warp manually".to_string(),
+                            text: t!("workspace.user_menu.update_manually").to_string(),
                             action: WorkspaceAction::DownloadNewVersion,
                             variant: BannerButtonVariant::Outlined,
                             icon: None,
@@ -22189,9 +22356,10 @@ impl Workspace {
                 {
                     let description =
                         if is_incoming_version_past_current(new_version.soft_cutoff.as_deref()) {
-                            VERSION_DEPRECATION_WITHOUT_PERMISSIONS_BANNER_TEXT.to_owned()
+                            t!("workspace_search_ui.workspace.update.deprecated_no_permissions")
+                                .to_string()
                         } else {
-                            "Warp was unable to launch the new installed version.".to_owned()
+                            t!("workspace_search_ui.workspace.update.unable_to_launch").to_string()
                         };
 
                     Some(WorkspaceBannerFields {
@@ -22201,7 +22369,7 @@ impl Workspace {
                         description,
                         secondary_button: None,
                         button: Some(WorkspaceBannerButtonDetails {
-                            text: "Update Warp manually".to_string(),
+                            text: t!("workspace.user_menu.update_manually").to_string(),
                             action: WorkspaceAction::DownloadNewVersion,
                             variant: BannerButtonVariant::Outlined,
                             icon: None,
@@ -22216,10 +22384,12 @@ impl Workspace {
                             banner_type: WorkspaceBanner::VersionDeprecated,
                             severity: BannerSeverity::Error,
                             heading: None,
-                            description: VERSION_DEPRECATION_BANNER_TEXT.to_string(),
+                            description: t!("workspace_search_ui.workspace.update.deprecated")
+                                .to_string(),
                             secondary_button: None,
                             button: Some(WorkspaceBannerButtonDetails {
-                                text: "Update now".to_string(),
+                                text: t!("workspace_search_ui.workspace.update.update_now")
+                                    .to_string(),
                                 action: WorkspaceAction::ApplyUpdate,
                                 variant: BannerButtonVariant::Outlined,
                                 icon: None,
@@ -22233,11 +22403,16 @@ impl Workspace {
                                     banner_type: WorkspaceBanner::VersionDeprecated,
                                     severity: BannerSeverity::Warning,
                                     heading: None,
-                                    description: "Your app is out of date and needs to update."
-                                        .to_string(),
+                                    description: t!(
+                                        "workspace_search_ui.workspace.update.needs_update"
+                                    )
+                                    .to_string(),
                                     secondary_button: None,
                                     button: Some(WorkspaceBannerButtonDetails {
-                                        text: "Restart app and update now".to_string(),
+                                        text: t!(
+                                            "workspace_search_ui.workspace.update.restart_and_update"
+                                        )
+                                        .to_string(),
                                         action: WorkspaceAction::ApplyUpdate,
                                         variant: BannerButtonVariant::Outlined,
                                         icon: None,
@@ -22345,7 +22520,7 @@ impl Workspace {
 
             if let Some(more_info_button_action) = more_info_button_action {
                 let more_info_details = WorkspaceBannerButtonDetails {
-                    text: "More info".to_owned(),
+                    text: t!("workspace_search_ui.workspace.update.more_info").to_string(),
                     action: more_info_button_action,
                     variant: BannerButtonVariant::Outlined,
                     icon: None,
@@ -23621,7 +23796,7 @@ impl Workspace {
                 ..Default::default()
             })),
             Arc::new(HashMap::new()),
-            Some("Introducing Oz".to_string()),
+            Some(t!("workspace_search_ui.workspace.oz_launch.modal_title").to_string()),
             ctx,
         );
         self.oz_launch_modal.tab_pane_group_id = self
@@ -23727,10 +23902,11 @@ impl Workspace {
             // the browser intentionally obscures the error root cause for privacy reasons.
             // Many users' browser settings will block Local Network Access so this will end up redirecting to download page,
             // even if they have the app installed.
-            let toast_message = format!(
-                "Have Warp installed but redirecting to download page?\nEnable Local Network Access for {} in your browser.",
-                ChannelState::server_root_url()
-            );
+            let toast_message = t!(
+                "workspace_search_ui.workspace.browser.local_network_access",
+                url = ChannelState::server_root_url().to_string()
+            )
+            .to_string();
             self.toast_stack.update(ctx, |toast_stack, ctx| {
                 toast_stack.add_persistent_toast(DismissibleToast::default(toast_message), ctx)
             });
@@ -23757,7 +23933,14 @@ impl TypedActionView for Workspace {
         match action {
             WorkspaceAction::SetA11yVerbosityLevel(verbosity) => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
-                    format!("{verbosity:?} accessibility announcements set"),
+                    t!(
+                        "workspace_search_ui.search.a11y.accessibility_announcements_set",
+                        verbosity = match verbosity {
+                            AccessibilityVerbosity::Verbose => t!("common.verbose"),
+                            AccessibilityVerbosity::Concise => t!("common.concise"),
+                        }
+                    )
+                    .to_string(),
                     WarpA11yRole::UserAction,
                 ))
             }
@@ -24997,13 +25180,20 @@ impl TypedActionView for Workspace {
 
                     status.is_syncing_all_inputs(window_id)
                 });
-                let verb = if enabled { "enabled" } else { "disabled" };
-                let mut message = format!("You {verb} synchronized inputs in all tabs.");
+                let mut message = if enabled {
+                    t!("workspace_search_ui.workspace.sync_inputs.enabled_all_tabs").to_string()
+                } else {
+                    t!("workspace_search_ui.workspace.sync_inputs.disabled_all_tabs").to_string()
+                };
                 if let Some(keystroke) = keybinding_name_to_keystroke(
                     "workspace:toggle_sync_all_terminal_inputs_in_all_tabs",
                     ctx,
                 ) {
-                    let _ = write!(message, " Press {} to undo.", keystroke.displayed());
+                    let undo = t!(
+                        "workspace_search_ui.workspace.sync_inputs.undo",
+                        binding = keystroke.displayed()
+                    );
+                    let _ = write!(message, " {undo}");
                 }
                 self.toast_stack.update(ctx, |view, ctx| {
                     let new_toast = DismissibleToast::default(message);
@@ -25030,13 +25220,20 @@ impl TypedActionView for Workspace {
 
                     status.should_sync_this_pane_group(current_pane_group_id, window_id)
                 });
-                let verb = if enabled { "enabled" } else { "disabled" };
-                let mut message = format!("You {verb} synchronized inputs in this tab.");
+                let mut message = if enabled {
+                    t!("workspace_search_ui.workspace.sync_inputs.enabled_this_tab").to_string()
+                } else {
+                    t!("workspace_search_ui.workspace.sync_inputs.disabled_this_tab").to_string()
+                };
                 if let Some(keystroke) = keybinding_name_to_keystroke(
                     "workspace:toggle_sync_terminal_inputs_in_tab",
                     ctx,
                 ) {
-                    let _ = write!(message, " Press {} to undo.", keystroke.displayed());
+                    let undo = t!(
+                        "workspace_search_ui.workspace.sync_inputs.undo",
+                        binding = keystroke.displayed()
+                    );
+                    let _ = write!(message, " {undo}");
                 }
                 self.toast_stack.update(ctx, |view, ctx| {
                     let new_toast = DismissibleToast::default(message);
@@ -25055,8 +25252,9 @@ impl TypedActionView for Workspace {
                 self.process_updated_sync_state(ctx);
 
                 self.toast_stack.update(ctx, |view, ctx| {
-                    let new_toast =
-                        DismissibleToast::success("Disabled all synchronized inputs.".to_string());
+                    let new_toast = DismissibleToast::success(
+                        t!("workspace_search_ui.workspace.sync_inputs.disabled_all").to_string(),
+                    );
                     view.add_ephemeral_toast(new_toast, ctx);
                 });
                 send_telemetry_from_ctx!(TelemetryEvent::DisableInputSync, ctx);
@@ -25175,7 +25373,10 @@ impl TypedActionView for Workspace {
             }
             RunAISuggestedCommand(code) => {
                 let command = code.trim().to_string();
-                let workflow = Workflow::new("Command from Oz", command);
+                let workflow = Workflow::new(
+                    t!("workspace_search_ui.workspace.workflow.command_from_oz").to_string(),
+                    command,
+                );
                 self.run_workflow_in_active_input(
                     &WorkflowType::AIGenerated {
                         workflow,
@@ -25844,7 +26045,10 @@ impl TypedActionView for Workspace {
 
                 self.toast_stack.update(ctx, |view, ctx| {
                     view.add_ephemeral_toast(
-                        DismissibleToast::default("Sampling process for 3 seconds...".to_string()),
+                        DismissibleToast::default(
+                            t!("workspace_search_ui.workspace.process_sampling.in_progress")
+                                .to_string(),
+                        ),
                         ctx,
                     );
                 });
@@ -25905,7 +26109,11 @@ impl TypedActionView for Workspace {
                                     }
                                 }
 
-                                format!("Process sample saved to {output_path}")
+                                t!(
+                                    "workspace_search_ui.workspace.process_sampling.saved",
+                                    path = output_path.as_str()
+                                )
+                                .to_string()
                             }
                             Ok(Ok(output)) => {
                                 let stderr = String::from_utf8_lossy(&output.stderr);
@@ -25914,19 +26122,22 @@ impl TypedActionView for Workspace {
                                     "sample command failed",
                                     extra: { "status" => %output.status }
                                 );
-                                "Failed to sample process (check logs)".to_string()
+                                t!("workspace_search_ui.workspace.process_sampling.failed")
+                                    .to_string()
                             }
                             Ok(Err(io_err)) => {
                                 report_error!(
                                     anyhow::Error::new(io_err).context("Failed to run sample command")
                                 );
-                                "Failed to sample process (check logs)".to_string()
+                                t!("workspace_search_ui.workspace.process_sampling.failed")
+                                    .to_string()
                             }
                             Err(join_err) => {
                                 report_error!(
                                     anyhow::Error::new(join_err).context("Sample task panicked")
                                 );
-                                "Failed to sample process (check logs)".to_string()
+                                t!("workspace_search_ui.workspace.process_sampling.failed")
+                                    .to_string()
                             }
                         };
                         me.toast_stack.update(ctx, |view, ctx| {
@@ -26085,7 +26296,8 @@ impl TypedActionView for Workspace {
                         ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                             toast_stack.add_ephemeral_toast(
                                 DismissibleToast::error(
-                                    "Failed to delete conversation. Please exit the agent view and try again.".to_string(),
+                                    t!("workspace_search_ui.workspace.conversation.delete_failed")
+                                        .to_string(),
                                 ),
                                 window_id,
                                 ctx,
@@ -26100,7 +26312,9 @@ impl TypedActionView for Workspace {
                 send_telemetry_from_ctx!(TelemetryEvent::ConversationListItemDeleted, ctx);
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
-                        DismissibleToast::success("Conversation deleted".to_string()),
+                        DismissibleToast::success(
+                            t!("workspace_search_ui.workspace.conversation.deleted").to_string(),
+                        ),
                         window_id,
                         ctx,
                     );

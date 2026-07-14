@@ -16,6 +16,7 @@ use warpui::{
     AppContext, Element, Entity, ModelHandle, SingletonEntity, TypedActionView, View, ViewContext,
 };
 
+use crate::i18n::t;
 use crate::search::data_source::QueryFilter;
 use crate::search::item::SearchItemDetail;
 use crate::search::mixer::{AddAsyncSourceOptions, SearchMixer, SearchMixerEvent};
@@ -109,11 +110,11 @@ pub enum Section {
 impl Section {
     const RENDER_ORDER: [Self; 3] = [Self::Commands, Self::Skills, Self::Prompts];
 
-    fn header(self) -> &'static str {
+    fn header(self) -> String {
         match self {
-            Self::Commands => "Commands",
-            Self::Skills => "Skills",
-            Self::Prompts => "Prompts",
+            Self::Commands => t!("terminal_ui.input.slash_menu.commands").to_string(),
+            Self::Skills => t!("terminal_ui.input.slash_menu.skills").to_string(),
+            Self::Prompts => t!("terminal_ui.input.slash_menu.prompts").to_string(),
         }
     }
 
@@ -893,13 +894,13 @@ impl CloudModeV2SlashCommandView {
         let theme = appearance.theme();
         let menu_bg = inline_styles::menu_background_color(app);
         let label = if self.mixer.as_ref(app).is_loading() {
-            "Loading..."
+            t!("terminal_ui.input.inline_menu.loading")
         } else {
-            "No results"
+            t!("terminal_ui.input.inline_menu.no_results")
         };
         Container::new(
             Text::new(
-                label.to_owned(),
+                label.to_string(),
                 appearance.ui_font_family(),
                 ITEM_FONT_SIZE,
             )
@@ -1159,7 +1160,7 @@ fn render_section_header(section: Section, app: &AppContext) -> Box<dyn Element>
 
     Container::new(
         Text::new(
-            section.header().to_owned(),
+            section.header(),
             appearance.ui_font_family(),
             SECTION_HEADER_FONT_SIZE,
         )
@@ -1184,7 +1185,11 @@ fn render_show_more_row(
     let menu_bg = inline_styles::menu_background_color(app);
     let secondary_color = theme.sub_text_color(Fill::Solid(menu_bg)).into_solid();
 
-    let label = format!("Show {hidden_count} more");
+    let label = t!(
+        "terminal_ui.input.slash_menu.show_more",
+        count = hidden_count
+    )
+    .to_string();
 
     let row = Hoverable::new(mouse_state, move |mouse_state| {
         let bg = if is_selected || mouse_state.is_hovered() {

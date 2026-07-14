@@ -7,6 +7,7 @@ use crate::appearance::Appearance;
 use crate::cloud_object::CloudObject;
 use crate::drive::cloud_object_styling::warp_drive_icon_color;
 use crate::drive::{CloudObjectTypeAndId, DriveObjectType};
+use crate::i18n::t;
 use crate::notebooks::CloudNotebook;
 use crate::search::command_palette::mixer::CommandPaletteItemAction;
 use crate::search::command_palette::render_util::render_search_item_icon;
@@ -62,7 +63,7 @@ impl SearchItem for NotebookSearchItem {
     ) -> Box<dyn Element> {
         let appearance = Appearance::as_ref(app);
         let title = if self.cloud_notebook.model().title.is_empty() {
-            "Untitled".to_string()
+            t!("workspace_search_ui.search.untitled").to_string()
         } else {
             self.cloud_notebook.model().title.clone()
         };
@@ -142,6 +143,10 @@ impl SearchItem for NotebookSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Notebook: {}", self.cloud_notebook.model().title)
+        t!(
+            "workspace_search_ui.search.a11y.notebook",
+            name = self.cloud_notebook.model().title
+        )
+        .to_string()
     }
 }

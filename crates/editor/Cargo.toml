@@ -39,6 +39,7 @@ rand.workspace = true
 rangemap.workspace = true
 regex-automata = "0.4.3"
 regex-syntax = "0.8.2"
+rust-i18n.workspace = true
 urlocator.workspace = true
 serde.workspace = true
 serde_yaml.workspace = true

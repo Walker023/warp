@@ -1,5 +1,6 @@
 //! Small presentation helpers for the `warp-tui` front-end's TUI views.
 
+use rust_i18n::t;
 use warpui_core::elements::tui::{Modifier, TuiElement, TuiFlex, TuiStyle, TuiText};
 
 /// Abbreviates a leading home-directory prefix of `path` to `~`.
@@ -31,19 +32,22 @@ pub(crate) fn login_placeholder(
     user_code: Option<&str>,
 ) -> Box<dyn TuiElement> {
     let dim = TuiStyle::default().add_modifier(Modifier::DIM);
-    let mut content =
-        TuiFlex::column().child(TuiText::new("Sign in to continue").truncate().finish());
+    let mut content = TuiFlex::column().child(
+        TuiText::new(t!("warp_tui.login.sign_in_to_continue").to_string())
+            .truncate()
+            .finish(),
+    );
     match (verification_uri, user_code) {
         (Some(uri), Some(code)) => {
             content = content
                 .child(
-                    TuiText::new(format!("Open {uri} in your browser"))
+                    TuiText::new(t!("warp_tui.login.open_in_browser", uri = uri).to_string())
                         .with_style(dim)
                         .truncate()
                         .finish(),
                 )
                 .child(
-                    TuiText::new(format!("and enter code: {code}"))
+                    TuiText::new(t!("warp_tui.login.enter_code", code = code).to_string())
                         .with_style(dim)
                         .truncate()
                         .finish(),
@@ -51,7 +55,7 @@ pub(crate) fn login_placeholder(
         }
         (Some(uri), None) => {
             content = content.child(
-                TuiText::new(format!("Open {uri} in your browser"))
+                TuiText::new(t!("warp_tui.login.open_in_browser", uri = uri).to_string())
                     .with_style(dim)
                     .truncate()
                     .finish(),
@@ -59,7 +63,7 @@ pub(crate) fn login_placeholder(
         }
         _ => {
             content = content.child(
-                TuiText::new("Opening your browser…")
+                TuiText::new(t!("warp_tui.login.opening_browser").to_string())
                     .with_style(dim)
                     .truncate()
                     .finish(),
@@ -74,7 +78,7 @@ pub(crate) fn terminal_starting() -> Box<dyn TuiElement> {
     let dim = TuiStyle::default().add_modifier(Modifier::DIM);
     centered(
         TuiFlex::column().child(
-            TuiText::new("Starting terminal…")
+            TuiText::new(t!("warp_tui.terminal.starting").to_string())
                 .with_style(dim)
                 .truncate()
                 .finish(),
@@ -87,12 +91,12 @@ pub(crate) fn login_failed(message: &str) -> Box<dyn TuiElement> {
     let dim = TuiStyle::default().add_modifier(Modifier::DIM);
     let content = TuiFlex::column()
         .child(
-            TuiText::new(format!("Login failed: {message}"))
+            TuiText::new(t!("warp_tui.login.failed", message = message).to_string())
                 .truncate()
                 .finish(),
         )
         .child(
-            TuiText::new("Press Ctrl-C to exit.")
+            TuiText::new(t!("warp_tui.login.press_ctrl_c_to_exit").to_string())
                 .with_style(dim)
                 .truncate()
                 .finish(),

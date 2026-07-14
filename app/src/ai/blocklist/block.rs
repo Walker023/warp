@@ -99,7 +99,7 @@ use crate::ai::agent::{
     SummarizationType, TodoOperation,
 };
 use crate::ai::agent_conversations_model::{AgentConversationsModel, AgentConversationsModelEvent};
-use crate::ai::ai_document_view::DEFAULT_PLANNING_DOCUMENT_TITLE;
+use crate::ai::ai_document_view::default_planning_document_title;
 use crate::ai::ambient_agents::AmbientAgentTaskId;
 use crate::ai::blocklist::action_model::NewConversationDecision;
 use crate::ai::blocklist::agent_view::{AgentViewController, AgentViewEntryOrigin};
@@ -163,6 +163,7 @@ use crate::code_review::comments::{
 use crate::code_review::telemetry_event::CodeReviewPaneEntrypoint;
 use crate::code_review::CodeReviewTelemetryEvent;
 use crate::editor::InteractionState;
+use crate::i18n::t;
 use crate::notebooks::editor::model::FileLinkResolutionContext;
 use crate::notebooks::editor::view::{EditorViewEvent, RichTextEditorView};
 use crate::server::ids::SyncId;
@@ -208,9 +209,6 @@ use crate::{
     PrivacySettings, ToastStack,
 };
 
-/// The default display name used for the user if they have no associated display name.
-const DEFAULT_USER_DISPLAY_NAME: &str = "User";
-
 const HAS_PENDING_ACTION: &str = "HasPendingAction";
 const DISPATCHED_REQUESTED_EDIT_KEYMAP_CONTEXT: &str = "PendingAIRequestedEdits";
 
@@ -239,7 +237,7 @@ fn current_user_avatar_info(app: &AppContext) -> UserAvatarInfo {
     UserAvatarInfo {
         display_name: auth_state
             .username_for_display()
-            .unwrap_or_else(|| DEFAULT_USER_DISPLAY_NAME.to_owned()),
+            .unwrap_or_else(|| t!("ai_ui.block.user").to_string()),
         profile_image_path: auth_state.user_photo_url(),
     }
 }
@@ -610,7 +608,7 @@ impl ImportedCommentElementState {
                 ActionButton::new("", NakedTheme)
                     .with_icon(Icon::Github)
                     .with_size(ButtonSize::Small)
-                    .with_tooltip("Open in GitHub")
+                    .with_tooltip(t!("ai_ui.conversation_details.open_in_github").to_string())
                     .on_click({
                         let url = url.clone();
                         move |ctx| {
@@ -624,14 +622,17 @@ impl ImportedCommentElementState {
 
         let action_id_for_open_button = action_id.clone();
         let open_in_code_review_button = ctx.add_typed_action_view(move |_| {
-            ActionButton::new("Open in code review", SecondaryTheme)
-                .with_size(ButtonSize::Small)
-                .on_click(move |ctx| {
-                    ctx.dispatch_typed_action(AIBlockAction::OpenImportedCommentInCodeReview {
-                        action_id: action_id_for_open_button.clone(),
-                        comment_index,
-                    });
-                })
+            ActionButton::new(
+                t!("ai_ui.block.code_review.open").to_string(),
+                SecondaryTheme,
+            )
+            .with_size(ButtonSize::Small)
+            .on_click(move |ctx| {
+                ctx.dispatch_typed_action(AIBlockAction::OpenImportedCommentInCodeReview {
+                    action_id: action_id_for_open_button.clone(),
+                    comment_index,
+                });
+            })
         });
 
         let chevron_button = ctx.add_view(|_| {
@@ -1257,8 +1258,11 @@ impl AIBlock {
         });
 
         let manage_rules_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Manage rules", NakedTheme)
-                .on_click(|ctx| ctx.dispatch_typed_action(AIBlockAction::OpenAIFactCollection))
+            ActionButton::new(
+                t!("settings.ai.knowledge.manage_rules").to_string(),
+                NakedTheme,
+            )
+            .on_click(|ctx| ctx.dispatch_typed_action(AIBlockAction::OpenAIFactCollection))
         });
 
         ctx.subscribe_to_model(&AIRequestUsageModel::handle(ctx), |me, _, event, ctx| {
@@ -1388,46 +1392,58 @@ impl AIBlock {
         });
 
         let review_changes_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Review changes", SecondaryTheme)
-                .with_icon(Icon::Diff)
-                .with_size(ButtonSize::Small)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(AIBlockAction::ToggleCodeReviewPane);
-                })
+            ActionButton::new(
+                t!("ai_ui.inline_action.code_diff.review_changes").to_string(),
+                SecondaryTheme,
+            )
+            .with_icon(Icon::Diff)
+            .with_size(ButtonSize::Small)
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(AIBlockAction::ToggleCodeReviewPane);
+            })
         });
 
         let open_all_comments_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Open all in code review", SecondaryTheme)
-                .with_size(ButtonSize::Small)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(AIBlockAction::OpenAllImportedCommentsInCodeReview);
-                })
+            ActionButton::new(
+                t!("ai_ui.block.code_review.open_all").to_string(),
+                SecondaryTheme,
+            )
+            .with_size(ButtonSize::Small)
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(AIBlockAction::OpenAllImportedCommentsInCodeReview);
+            })
         });
 
         let dismiss_suggestion_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Dismiss", SuggestionDismissButtonTheme)
-                .with_icon(Icon::X)
-                .with_size(ButtonSize::Small)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(AIBlockAction::DismissSuggestionsSection);
-                })
+            ActionButton::new(
+                t!("common.dismiss").to_string(),
+                SuggestionDismissButtonTheme,
+            )
+            .with_icon(Icon::X)
+            .with_size(ButtonSize::Small)
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(AIBlockAction::DismissSuggestionsSection);
+            })
         });
 
         let disable_rule_suggestions_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Don't show again", SuggestionDismissButtonTheme)
-                .with_size(ButtonSize::Small)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(AIBlockAction::DisableRuleSuggestions);
-                })
+            ActionButton::new(
+                t!("ai_ui.codebase_index_banner.dont_show_again").to_string(),
+                SuggestionDismissButtonTheme,
+            )
+            .with_size(ButtonSize::Small)
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(AIBlockAction::DisableRuleSuggestions);
+            })
         });
 
         let ai_block_view_id = ctx.view_id();
         let exchange_id = client_ids.client_exchange_id;
         let conversation_id = client_ids.conversation_id;
         let rewind_button = ctx.add_typed_action_view(|_| {
-            ActionButton::new("Rewind", RewindButtonTheme)
+            ActionButton::new(t!("workspace.rewind.rewind").to_string(), RewindButtonTheme)
                 .with_size(ButtonSize::XSmall)
-                .with_tooltip("Rewind to before this block")
+                .with_tooltip(t!("ai_ui.block.rewind_tooltip").to_string())
                 .on_click(move |ctx| {
                     ctx.dispatch_typed_action(TerminalAction::RewindAIConversation {
                         ai_block_view_id,
@@ -2007,7 +2023,7 @@ impl AIBlock {
 
             if !self.action_buttons.contains_key(&action.id) {
                 let run_button = CompactibleActionButton::new(
-                    "Run".to_string(),
+                    t!("ai_ui.inline_action.requested_command.run").to_string(),
                     Some(KeystrokeSource::Fixed(ENTER_KEYSTROKE.clone())),
                     ButtonSize::InlineActionHeader,
                     AIBlockAction::ExecuteRequestedAction {
@@ -2019,7 +2035,7 @@ impl AIBlock {
                 );
 
                 let cancel_button = CompactibleActionButton::new(
-                    "Cancel".to_string(),
+                    t!("common.cancel").to_string(),
                     Some(KeystrokeSource::Fixed(CTRL_C_KEYSTROKE.clone())),
                     ButtonSize::InlineActionHeader,
                     AIBlockAction::CancelRequestedAction {
@@ -2115,9 +2131,14 @@ impl AIBlock {
                         other => other.clone(),
                     };
                     let command_text = if display_input.is_null() {
-                        format!("MCP Tool: {name}")
+                        t!("ai_ui.block.mcp_tool", name = name).to_string()
                     } else {
-                        format!("MCP Tool: {name} ({display_input})")
+                        t!(
+                            "ai_ui.block.mcp_tool_with_input",
+                            name = name,
+                            input = &display_input
+                        )
+                        .to_string()
                     };
                     self.handle_mcp_tool_stream_update(
                         action_id,
@@ -2145,9 +2166,10 @@ impl AIBlock {
                     action: AIAgentActionType::SuggestNewConversation { .. },
                     ..
                 } => {
-                    let start_new_conversation_button_text = "Start a new conversation".to_owned();
+                    let start_new_conversation_button_text =
+                        t!("ai_ui.block.new_conversation.start").to_string();
                     let continue_current_conversation_button_text =
-                        "Continue current conversation".to_owned();
+                        t!("ai_ui.block.new_conversation.continue_current").to_string();
 
                     let server_output_id = self.model.server_output_id(ctx);
                     let accept_action = AIBlockAction::StartNewConversationButtonClicked {
@@ -3851,7 +3873,7 @@ impl AIBlock {
 
         for (index, document) in documents.iter().enumerate() {
             let title = if document.title.is_empty() {
-                DEFAULT_PLANNING_DOCUMENT_TITLE.to_string()
+                default_planning_document_title()
             } else {
                 document.title.clone()
             };
@@ -5936,8 +5958,13 @@ fn set_imported_comment_button_disabled(
     handle.update(ctx, |button, ctx| {
         button.set_disabled(should_disable, ctx);
         if should_disable {
-            let tooltip = repo_path
-                .map(|path| format!("Navigate to {} to open these comments", path.display_path()));
+            let tooltip = repo_path.map(|path| {
+                t!(
+                    "ai_ui.block.code_review.navigate_to_repo",
+                    path = path.display_path()
+                )
+                .to_string()
+            });
             button.set_tooltip(tooltip, ctx);
         } else {
             button.set_tooltip(None::<String>, ctx);
@@ -6378,7 +6405,9 @@ impl TypedActionView for AIBlock {
                 let window_id = ctx.window_id();
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
-                        DismissibleToast::success(String::from("Copied to clipboard")),
+                        DismissibleToast::success(
+                            t!("ai_ui.block.cli.copied_to_clipboard").to_string(),
+                        ),
                         window_id,
                         ctx,
                     );
@@ -6685,7 +6714,7 @@ impl TypedActionView for AIBlock {
                 let window_id = ctx.window_id();
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     let toast =
-                        DismissibleToast::default(String::from("Thank you for the feedback!"));
+                        DismissibleToast::default(t!("ai_ui.block.feedback_received").to_string());
                     toast_stack.add_ephemeral_toast(toast, window_id, ctx);
                 });
 
@@ -6890,7 +6919,7 @@ impl TypedActionView for AIBlock {
                             ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                                 toast_stack.add_ephemeral_toast(
                                     DismissibleToast::error(
-                                        "Failed to open recording.".to_string(),
+                                        t!("ai_ui.block.recording_open_failed").to_string(),
                                     ),
                                     window_id,
                                     ctx,

@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "remote_tty", allow(dead_code))]
+
 use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -38,6 +40,7 @@ use crate::context_chips::prompt_snapshot::PromptSnapshot;
 use crate::context_chips::prompt_type::PromptType;
 use crate::editor::CrdtOperation;
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::network::{NetworkStatusEvent, NetworkStatusKind};
 use crate::pane_group::TerminalViewResources;
 use crate::persistence::ModelEvent;
@@ -70,8 +73,6 @@ use crate::terminal::writeable_pty::terminal_manager_util::wire_up_remote_server
 use crate::terminal::{TerminalManager as TerminalManagerTrait, TerminalModel, TerminalView};
 use crate::view_components::ToastFlavor;
 use crate::NetworkStatus;
-
-const ACL_UPDATE_FAILURE_RESPONSE: &str = "Something went wrong. Please try again.";
 
 /// Whether the given CRDT operation should be dropped when broadcasting
 /// sharer input to viewers. In ambient agent sessions the sharer is a
@@ -1031,7 +1032,7 @@ impl TerminalManager<TerminalView> {
 
                 terminal_view.update(ctx, |view, ctx| {
                     view.show_persistent_toast(
-                        "Something went wrong. Please try sharing again.".to_string(),
+                        t!("terminal_ui.shared_session.errors.reshare_failed").to_string(),
                         ToastFlavor::Error,
                         ctx,
                     );
@@ -1411,8 +1412,10 @@ impl TerminalManager<TerminalView> {
                         );
                     }
                     LinkAccessLevelUpdateResponse::Error => {
-                        let reason_string =
-                            "Failed to update permissions for shared session".to_owned();
+                        let reason_string = t!(
+                            "terminal_ui.shared_session.errors.update_permissions_failed"
+                        )
+                        .to_string();
                         view.show_persistent_toast(reason_string, ToastFlavor::Error, ctx);
                     }
                 });
@@ -1436,7 +1439,7 @@ impl TerminalManager<TerminalView> {
                     }
                     TeamAccessLevelUpdateResponse::Error(_) => {
                         view.show_persistent_toast(
-                            ACL_UPDATE_FAILURE_RESPONSE.to_owned(),
+                            t!("terminal_ui.shared_session.errors.generic").to_string(),
                             crate::view_components::ToastFlavor::Error,
                             ctx,
                         );
@@ -1455,7 +1458,7 @@ impl TerminalManager<TerminalView> {
                 if let RemoveGuestResponse::Error(_) = response {
                     terminal_view.update(ctx, |view, ctx| {
                         view.show_persistent_toast(
-                            ACL_UPDATE_FAILURE_RESPONSE.to_owned(),
+                            t!("terminal_ui.shared_session.errors.generic").to_string(),
                             crate::view_components::ToastFlavor::Error,
                             ctx,
                         );
@@ -1466,7 +1469,7 @@ impl TerminalManager<TerminalView> {
                 if let UpdatePendingUserRoleResponse::Error(_) = response {
                     terminal_view.update(ctx, |view, ctx| {
                         view.show_persistent_toast(
-                            ACL_UPDATE_FAILURE_RESPONSE.to_owned(),
+                            t!("terminal_ui.shared_session.errors.generic").to_string(),
                             crate::view_components::ToastFlavor::Error,
                             ctx,
                         );

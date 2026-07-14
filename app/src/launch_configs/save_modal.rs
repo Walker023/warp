@@ -24,6 +24,7 @@ use crate::appearance::Appearance;
 use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, SingleLineEditorOptions,
 };
+use crate::i18n::t;
 use crate::launch_configs::launch_config::LaunchConfig;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::TelemetryEvent;
@@ -38,9 +39,6 @@ const MODAL_WIDTH: f32 = 660.;
 const SIDE_PADDING: f32 = 16.;
 const BUTTON_SIZE: f32 = 24.;
 const DOC_LINK_WIDTH: f32 = 120.;
-const SAVE_CONFIG_BUTTON_LABEL: &str = "Save Configuration";
-const OPEN_FILE_BUTTON_LABEL: &str = "Open YAML File";
-
 pub fn init(app: &mut AppContext) {
     use warpui::keymap::macros::*;
 
@@ -343,7 +341,7 @@ impl LaunchConfigSaveModal {
     ) -> Box<dyn Element> {
         self.save_modal_button(
             appearance,
-            SAVE_CONFIG_BUTTON_LABEL.to_owned(),
+            t!("launch_configs_ui.save_modal.save_configuration").to_string(),
             self.mouse_states.save_button_state.clone(),
             disabled,
         )
@@ -357,7 +355,7 @@ impl LaunchConfigSaveModal {
     fn render_open_file_button(&self, appearance: &Appearance) -> Box<dyn Element> {
         self.save_modal_button(
             appearance,
-            OPEN_FILE_BUTTON_LABEL.to_owned(),
+            t!("launch_configs_ui.save_modal.open_yaml_file").to_string(),
             self.mouse_states.open_file_button_state.clone(),
             false,
         )
@@ -440,7 +438,7 @@ impl LaunchConfigSaveModal {
                     1.0,
                     Align::new(
                         Text::new_inline(
-                            "Save Current Configuration",
+                            t!("launch_configs_ui.save_modal.title").to_string(),
                             appearance.header_font_family(),
                             appearance.header_font_size(),
                         )
@@ -529,7 +527,7 @@ impl LaunchConfigSaveModal {
                 appearance
                     .ui_builder()
                     .link(
-                        "Link to Documentation".to_string(),
+                        t!("launch_configs_ui.save_modal.documentation").to_string(),
                         Some(
                             "https://docs.warp.dev/terminal/sessions/launch-configurations"
                                 .to_string(),
@@ -550,11 +548,20 @@ impl LaunchConfigSaveModal {
         let info = match &self.save_state {
             SaveState::Success => header
                 .with_child(
-                    self.render_formatted_text_line(appearance, vec![
-                        FormattedTextFragment::plain_text("Saved successfully to "),
-                        FormattedTextFragment::inline_code(self.file_name.clone().unwrap_or_default()),
-                        FormattedTextFragment::plain_text(".")
-                    ])
+                    self.render_formatted_text_line(
+                        appearance,
+                        vec![
+                            FormattedTextFragment::plain_text(t!(
+                                "launch_configs_ui.save_modal.saved_prefix"
+                            )),
+                            FormattedTextFragment::inline_code(
+                                self.file_name.clone().unwrap_or_default(),
+                            ),
+                            FormattedTextFragment::plain_text(t!(
+                                "launch_configs_ui.save_modal.sentence_end"
+                            )),
+                        ],
+                    )
                     .with_padding_bottom(24.)
                     .finish(),
                 )
@@ -564,34 +571,49 @@ impl LaunchConfigSaveModal {
                     appearance,
                     match failure_type {
                         FailureType::FileAlreadyExists => {
-                            "Failed to save. A launch configuration with the same name already exists.".to_string()
+                            t!("launch_configs_ui.save_modal.file_exists").to_string()
                         }
-                        FailureType::Other => "An issue was encountered while saving.".to_string(),
+                        FailureType::Other => {
+                            t!("launch_configs_ui.save_modal.save_failed").to_string()
+                        }
                     },
                 )
                 .with_padding_bottom(24.)
                 .finish(),
             ),
             SaveState::NotSaved => {
-                let mut text = "This will save your current configuration of windows, tabs \
-                and panes to a file so you can easily open it again".to_string();
-                if self.open_modal_keybinding_str.is_empty() {
-                    text.push('.');
+                let text = if self.open_modal_keybinding_str.is_empty() {
+                    t!("launch_configs_ui.save_modal.description").to_string()
                 } else {
-                    text.push_str(&format!(" with {}.", self.open_modal_keybinding_str));
-                }
+                    t!(
+                        "launch_configs_ui.save_modal.description_with_keybinding",
+                        keybinding = self.open_modal_keybinding_str.as_str()
+                    )
+                    .to_string()
+                };
                 header
                     .with_child(
-                        self.render_formatted_text_line(appearance, vec![
-                            FormattedTextFragment::plain_text(text)
-                        ]).finish()
+                        self.render_formatted_text_line(
+                            appearance,
+                            vec![FormattedTextFragment::plain_text(text)],
+                        )
+                        .finish(),
                     )
                     .with_child(
-                        self.render_formatted_text_line(appearance, vec![
-                            FormattedTextFragment::plain_text("\nThe YAML file is saved to "),
-                            FormattedTextFragment::inline_code(home_relative_path(&launch_configs_dir())),
-                            FormattedTextFragment::plain_text("."),
-                        ])
+                        self.render_formatted_text_line(
+                            appearance,
+                            vec![
+                                FormattedTextFragment::plain_text(t!(
+                                    "launch_configs_ui.save_modal.yaml_location_prefix"
+                                )),
+                                FormattedTextFragment::inline_code(home_relative_path(
+                                    &launch_configs_dir(),
+                                )),
+                                FormattedTextFragment::plain_text(t!(
+                                    "launch_configs_ui.save_modal.sentence_end"
+                                )),
+                            ],
+                        )
                         .with_padding_bottom(24.)
                         .finish(),
                     )
@@ -658,10 +680,8 @@ impl View for LaunchConfigSaveModal {
 
     fn accessibility_contents(&self, _ctx: &AppContext) -> Option<AccessibilityContent> {
         Some(AccessibilityContent::new(
-            "Save Config Modal",
-            "Type the name of the file to which you want to save your
-            current configuration of windows, tabs, and panes. Use enter to save the
-            launch configuration, esc to quit the save configuration modal.",
+            t!("launch_configs_ui.save_modal.accessibility_title"),
+            t!("launch_configs_ui.save_modal.accessibility_description"),
             WarpA11yRole::PopoverRole,
         ))
     }

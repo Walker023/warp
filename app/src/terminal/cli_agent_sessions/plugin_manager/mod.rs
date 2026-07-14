@@ -15,6 +15,7 @@ use gemini::GeminiPluginManager;
 use opencode::OpenCodePluginManager;
 
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::terminal::model::session::LocalCommandExecutor;
 use crate::terminal::shell::ShellType;
 use crate::terminal::CLIAgent;
@@ -123,14 +124,22 @@ pub(crate) async fn run_cli_command_logged(
                 return Ok(());
             }
             Err(PluginInstallError {
-                message: format!("'{display_cmd}' failed"),
+                message: t!(
+                    "terminal_ui.plugin_instructions.command_failed",
+                    command = display_cmd
+                )
+                .to_string(),
                 log: log.to_owned(),
             })
         }
         Err(err) => {
             log.push_str(&format!("error: {err}\n"));
             Err(PluginInstallError {
-                message: format!("failed to run '{display_cmd}'"),
+                message: t!(
+                    "terminal_ui.plugin_instructions.command_run_failed",
+                    command = display_cmd
+                )
+                .to_string(),
                 log: log.clone(),
             })
         }
@@ -184,7 +193,7 @@ pub(crate) trait CliAgentPluginManager: Send + Sync {
     /// Default returns an error — only agents with `can_auto_install() == true` should override.
     async fn install(&self) -> Result<(), PluginInstallError> {
         Err(PluginInstallError {
-            message: "Auto-install not supported for this agent".to_owned(),
+            message: t!("terminal_ui.plugin_instructions.auto_install_unsupported").to_string(),
             log: String::new(),
         })
     }
@@ -193,19 +202,19 @@ pub(crate) trait CliAgentPluginManager: Send + Sync {
     /// Default returns an error — only agents with `can_auto_install() == true` should override.
     async fn update(&self) -> Result<(), PluginInstallError> {
         Err(PluginInstallError {
-            message: "Auto-update not supported for this agent".to_owned(),
+            message: t!("terminal_ui.plugin_instructions.auto_update_unsupported").to_string(),
             log: String::new(),
         })
     }
 
     /// Toast message shown after a successful auto-install.
-    fn install_success_message(&self) -> &'static str {
-        "Warp plugin installed. Please restart the session to activate."
+    fn install_success_message(&self) -> String {
+        t!("terminal_ui.plugin_instructions.success.install_restart_session").to_string()
     }
 
     /// Toast message shown after a successful auto-update.
-    fn update_success_message(&self) -> &'static str {
-        "Warp plugin updated. Please restart the session to activate."
+    fn update_success_message(&self) -> String {
+        t!("terminal_ui.plugin_instructions.success.update_restart_session").to_string()
     }
 
     /// Manual installation instructions for the modal UI.

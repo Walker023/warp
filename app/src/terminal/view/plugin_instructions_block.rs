@@ -17,6 +17,7 @@ use crate::ai::blocklist::code_block::{
     render_code_block_plain, CodeBlockOptions, CodeSnippetButtonHandles,
 };
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::terminal::cli_agent_sessions::plugin_manager::PluginInstructions;
 use crate::terminal::CLIAgent;
 use crate::ui_components::icons::Icon;
@@ -86,7 +87,7 @@ impl PluginInstructionsBlock {
     fn render_step(
         &self,
         index: usize,
-        description: &str,
+        description_key: &str,
         command: &str,
         executable: bool,
         link: Option<&str>,
@@ -97,11 +98,12 @@ impl PluginInstructionsBlock {
         let theme = appearance.theme();
 
         let step_number = render_step_number(index + 1, appearance);
+        let description = t!(description_key).to_string();
 
         let desc_element: Box<dyn Element> = if let Some(url) = link {
             let fragments = vec![
                 FormattedTextFragment::plain_text(format!("{description} ")),
-                FormattedTextFragment::hyperlink("Learn more", url),
+                FormattedTextFragment::hyperlink(t!("common.learn_more").to_string(), url),
             ];
             let formatted = FormattedText::new(vec![FormattedTextLine::Line(fragments)]);
             FormattedTextElement::new(
@@ -187,7 +189,7 @@ impl View for PluginInstructionsBlock {
         let theme = appearance.theme();
 
         let title = Text::new(
-            self.instructions.title.to_owned(),
+            t!(self.instructions.title).to_string(),
             appearance.ui_font_family(),
             20.,
         )
@@ -195,13 +197,15 @@ impl View for PluginInstructionsBlock {
         .with_color(theme.main_text_color(theme.background()).into_solid())
         .finish();
 
+        let subtitle = t!(self.instructions.subtitle).to_string();
         let subtitle_text = if self.is_remote_session {
-            format!(
-                "{} Be sure to run these commands on your remote machine.",
-                self.instructions.subtitle
+            t!(
+                "terminal_ui.plugin_instructions.remote_subtitle",
+                subtitle = subtitle
             )
+            .to_string()
         } else {
-            self.instructions.subtitle.to_owned()
+            subtitle
         };
 
         let subtitle = Text::new(subtitle_text, appearance.ui_font_family(), 14.)
@@ -238,7 +242,7 @@ impl View for PluginInstructionsBlock {
         }
 
         for note in self.instructions.post_install_notes {
-            let post_note = Text::new((*note).to_owned(), appearance.ui_font_family(), 14.)
+            let post_note = Text::new(t!(*note).to_string(), appearance.ui_font_family(), 14.)
                 .with_color(theme.nonactive_ui_text_color().into_solid())
                 .finish();
             content.add_child(post_note);
@@ -293,7 +297,9 @@ impl TypedActionView for PluginInstructionsBlock {
                     let window_id = ctx.window_id();
                     ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                         toast_stack.add_ephemeral_toast(
-                            DismissibleToast::success("Copied to clipboard".to_owned()),
+                            DismissibleToast::success(
+                                t!("terminal_ui.plugin_instructions.copied").to_string(),
+                            ),
                             window_id,
                             ctx,
                         );

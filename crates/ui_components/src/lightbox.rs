@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use pathfinder_geometry::vector::{Vector2F, vec2f};
+use rust_i18n::t;
 use warp_core::ui::Icon;
 use warp_core::ui::appearance::Appearance;
 use warpui_core::assets::asset_cache::AssetSource;
@@ -166,11 +167,13 @@ impl Component for Lightbox {
                         .finish()
                 }
                 // No images provided at all.
-                _ if image_count == 0 => {
-                    Text::new("No images", appearance.ui_font_family(), text_size)
-                        .with_color(ColorU::white())
-                        .finish()
-                }
+                _ if image_count == 0 => Text::new(
+                    t!("ui_components.lightbox.no_images").to_string(),
+                    appearance.ui_font_family(),
+                    text_size,
+                )
+                .with_color(ColorU::white())
+                .finish(),
                 // Still loading (either metadata or image bytes).
                 _ => loading_element(appearance),
             };
@@ -286,7 +289,7 @@ impl Component for Lightbox {
 /// and as the `before_load` fallback while the `AssetCache` fetches image bytes.
 fn loading_element(appearance: &Appearance) -> Box<dyn Element> {
     Text::new(
-        "Loading...",
+        t!("ui_components.lightbox.loading").to_string(),
         appearance.ui_font_family(),
         lightbox_text_size(appearance),
     )

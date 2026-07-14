@@ -78,6 +78,7 @@ use crate::ai::skills::{
 };
 use crate::auth::AuthStateProvider;
 use crate::cloud_object::{CloudObject, CloudObjectLookup as _};
+use crate::i18n::t;
 use crate::send_telemetry_from_app_ctx;
 use crate::server::ids::{ServerId, SyncId};
 use crate::server::server_api::ai::{AIClient, TaskStatusUpdate};
@@ -582,6 +583,12 @@ pub enum AgentDriverError {
         /// Matching row(s) from the harness block, trimmed and capped.
         excerpt: String,
     },
+}
+
+impl AgentDriverError {
+    pub(super) fn user_facing_message(&self) -> String {
+        error_classification::classify_driver_error(self).1.message
+    }
 }
 
 impl ErrorExt for AgentDriverError {
@@ -1403,9 +1410,11 @@ impl AgentDriver {
             })
             .await?;
         if let Some(task_id) = task_id {
-            let message = format!(
-                "Warning: some MCP servers were unavailable during startup ({details}); continuing without their tools."
-            );
+            let message = t!(
+                "ai_driver.warnings.mcp_startup_degraded",
+                details = &details
+            )
+            .to_string();
             if let Err(err) = ai_client
                 .update_agent_task(
                     task_id,
@@ -2362,9 +2371,11 @@ impl AgentDriver {
             }
             HarnessKind::Unsupported(harness) => Err(AgentDriverError::HarnessSetupFailed {
                 harness: harness.to_string(),
-                reason: format!(
-                    "The {harness} harness is only supported for local child agent launches."
-                ),
+                reason: t!(
+                    "ai_sdk_driver.cli.error.harness_local_child_only",
+                    harness = harness
+                )
+                .to_string(),
             }),
         }
     }
@@ -3496,9 +3507,8 @@ impl AgentDriver {
                     tags.cloud_agent = true,
                     "slow bootstrap"
                 );
-                eprintln!(
-                    "Warning: Terminal session is slow to bootstrap. See https://docs.warp.dev/support-and-community/troubleshooting-and-support/known-issues#shells to troubleshoot."
-                );
+                let warning = t!("ai_driver.warnings.slow_bootstrap");
+                eprintln!("{warning}");
             }
             TerminalDriverEvent::EstablishedSharedSession {
                 session_id,

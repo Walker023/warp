@@ -1,5 +1,6 @@
 use crate::code::buffer_location::LocalOrRemotePath;
 use crate::code_review::comments::CommentId;
+use crate::i18n::t;
 
 /// The current state of a code review.
 #[derive(Debug, Clone, Default)]
@@ -32,20 +33,25 @@ impl ReviewComment {
         match (&self.diff.file_path, self.diff.line_number) {
             (Some(file_path), Some(line_number)) => {
                 let path_component = file_path.path_component();
-                let file_name = path_component.file_name().unwrap_or("Invalid File Name");
+                let file_name = path_component
+                    .file_name()
+                    .map(str::to_string)
+                    .unwrap_or_else(|| t!("ai_ui.review.invalid_file_name").to_string());
                 let display_line = line_number + 1;
                 format!("{file_name}:{display_line}")
             }
             (Some(file_path), None) => {
                 let path_component = file_path.path_component();
-                let file_name = path_component.file_name().unwrap_or("Invalid File Name");
-                file_name.to_string()
+                path_component
+                    .file_name()
+                    .map(str::to_string)
+                    .unwrap_or_else(|| t!("ai_ui.review.invalid_file_name").to_string())
             }
             (None, _) => self
                 .head_title
                 .as_ref()
                 .cloned()
-                .unwrap_or_else(|| "Review Comment".to_string()),
+                .unwrap_or_else(|| t!("ai_ui.review.comment").to_string()),
         }
     }
 }

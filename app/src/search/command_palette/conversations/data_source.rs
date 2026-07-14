@@ -5,6 +5,7 @@ use warpui::{AppContext, Entity};
 
 use crate::ai::agent::conversation::{AIConversation, AIConversationId};
 use crate::ai::conversation_navigation::ConversationNavigationData;
+use crate::i18n::t;
 use crate::search::command_palette::conversations::search::{
     ConversationMatchResult, ConversationSearcher, FuzzyConversationSearcher, MatchedConversation,
 };
@@ -27,11 +28,17 @@ enum ConversationSection {
 }
 
 impl ConversationSection {
-    fn title(&self) -> &'static str {
+    fn title(&self) -> String {
         match self {
-            ConversationSection::ActivePane => "Active pane conversations",
-            ConversationSection::OtherActive => "Other active conversations",
-            ConversationSection::Past => "Past conversations",
+            ConversationSection::ActivePane => {
+                t!("workspace_search_ui.search.conversation_sections.active_pane").to_string()
+            }
+            ConversationSection::OtherActive => {
+                t!("workspace_search_ui.search.conversation_sections.other_active").to_string()
+            }
+            ConversationSection::Past => {
+                t!("workspace_search_ui.search.conversation_sections.past").to_string()
+            }
         }
     }
 
@@ -185,7 +192,7 @@ impl SyncDataSource for DataSource {
                                 .into(),
                             );
                         }
-                        results.push(SeparatorSearchItem::new(section.title().to_string()).into());
+                        results.push(SeparatorSearchItem::new(section.title()).into());
                     }
                 }
             }

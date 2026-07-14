@@ -14,6 +14,7 @@ use crate::ai::blocklist::agent_view::{
 use crate::ai::blocklist::history_model::CloudConversationData;
 use crate::ai::blocklist::BlocklistAIHistoryModel;
 use crate::global_resource_handles::GlobalResourceHandlesProvider;
+use crate::i18n::t;
 use crate::persistence::ModelEvent;
 use crate::server::telemetry::TelemetryAgentViewEntryOrigin;
 use crate::terminal::input::message_bar::{Message, MessageItem};
@@ -65,8 +66,7 @@ impl TerminalView {
             ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                 toast_stack.add_ephemeral_toast(
                     DismissibleToast::error(
-                        "Cannot start a new conversation while agent is monitoring a command."
-                            .to_string(),
+                        t!("terminal_ui.input.toast.agent_monitoring_command").to_string(),
                     ),
                     window_id,
                     ctx,
@@ -178,7 +178,11 @@ impl TerminalView {
             ctx.spawn(future, move |me, conversation, ctx| {
                 let Some(conversation) = conversation else {
                     me.show_error_toast(
-                        format!("Failed to load conversation with id: {conversation_id}"),
+                        t!(
+                            "terminal_ui.agent_view.load_conversation_failed",
+                            name = conversation_id
+                        )
+                        .to_string(),
                         ctx,
                     );
                     return;
@@ -314,7 +318,7 @@ impl TerminalView {
                         key: "enter".to_owned(),
                         ..Default::default()
                     }),
-                    MessageItem::text("again to send to agent"),
+                    MessageItem::text(t!("terminal_ui.agent_view.enter_again_to_send")),
                 ])
                 .with_text_color(appearance.theme().ansi_fg_magenta());
                 self.ephemeral_message_model.update(ctx, |model, ctx| {

@@ -10,6 +10,7 @@ pub use view::{UserQueryMenuEvent, UserQueryMenuView};
 use warpui::keymap::Keystroke;
 use warpui::platform::OperatingSystem;
 
+use crate::i18n::t;
 use crate::terminal::input::inline_menu::{
     default_navigation_message_items, InlineMenuAction, InlineMenuMessageArgs, InlineMenuRowAction,
     InlineMenuType,
@@ -34,7 +35,7 @@ impl InlineMenuAction for SelectUserQuery {
                         key: "enter".to_owned(),
                         ..Default::default()
                     }),
-                    MessageItem::text(" new pane"),
+                    MessageItem::text(t!("terminal_ui.input.menu_actions.new_pane")),
                 ],
                 move |ctx| {
                     ctx.dispatch_typed_action(InlineMenuRowAction::Accept {
@@ -63,7 +64,7 @@ impl InlineMenuAction for SelectUserQuery {
             items.push(MessageItem::clickable(
                 vec![
                     MessageItem::keystroke(modifier_keystroke),
-                    MessageItem::text(" new tab"),
+                    MessageItem::text(t!("terminal_ui.input.menu_actions.new_tab")),
                 ],
                 move |ctx| {
                     ctx.dispatch_typed_action(InlineMenuRowAction::Accept {

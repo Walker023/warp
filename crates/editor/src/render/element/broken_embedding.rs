@@ -1,3 +1,4 @@
+use rust_i18n::t;
 use warpui_core::elements::{
     Align, ConstrainedBox, Container, CornerRadius, CrossAxisAlignment, Empty, Flex, Icon,
     ParentElement, Radius, Shrinkable, Text,
@@ -38,7 +39,7 @@ impl RenderableBrokenEmbedding {
 
         let text = Container::new(
             Text::new_inline(
-                "Embed not found",
+                t!("editor.broken_embedding.not_found").to_string(),
                 styles.base_text.font_family,
                 styles.base_text.font_size,
             )

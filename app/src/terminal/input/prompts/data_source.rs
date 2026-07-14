@@ -8,6 +8,7 @@ use warpui::{AppContext, Element, Entity, ModelContext, ModelHandle, SingletonEn
 
 use crate::appearance::Appearance;
 use crate::cloud_object::model::persistence::CloudModel;
+use crate::i18n::t;
 use crate::search::command_palette::warp_drive;
 use crate::search::data_source::{DataSourceSearchError, Query, QueryResult};
 use crate::search::mixer::DataSourceRunErrorWrapper;
@@ -224,6 +225,6 @@ impl SearchItem for PromptSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Prompt: {}", self.name)
+        t!("terminal_ui.input.a11y.prompt", name = self.name).to_string()
     }
 }

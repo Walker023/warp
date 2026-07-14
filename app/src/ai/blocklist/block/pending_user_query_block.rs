@@ -18,6 +18,7 @@ use crate::ai::blocklist::block::view_impl::{
     CONTENT_HORIZONTAL_PADDING, CONTENT_ITEM_VERTICAL_MARGIN,
 };
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::terminal::block_list_element::BlockListMenuSource;
 use crate::terminal::view::TerminalAction;
 use crate::ui_components::blended_colors;
@@ -52,17 +53,20 @@ impl PendingUserQueryBlock {
     ) -> Self {
         let close_button = show_close_button.then(|| {
             ctx.add_typed_action_view(|_| {
-                ActionButton::new("Remove queued prompt", NakedTheme)
-                    .with_icon(Icon::X)
-                    .with_size(ButtonSize::XSmall)
-                    .on_click(|ctx| {
-                        ctx.dispatch_typed_action(PendingUserQueryBlockAction::Dismiss);
-                    })
+                ActionButton::new(
+                    t!("ai_ui.block.pending_query.remove").to_string(),
+                    NakedTheme,
+                )
+                .with_icon(Icon::X)
+                .with_size(ButtonSize::XSmall)
+                .on_click(|ctx| {
+                    ctx.dispatch_typed_action(PendingUserQueryBlockAction::Dismiss);
+                })
             })
         });
         let send_now_button = show_send_now_button.then(|| {
             ctx.add_typed_action_view(|_| {
-                ActionButton::new("Send now", NakedTheme)
+                ActionButton::new(t!("terminal.send_now").to_string(), NakedTheme)
                     .with_icon(Icon::Play)
                     .with_size(ButtonSize::XSmall)
                     .on_click(|ctx| {
@@ -169,7 +173,7 @@ impl View for PendingUserQueryBlock {
         .finish();
 
         let queued_badge = Text::new(
-            "Queued",
+            t!("ai_ui.ambient_task.status.queued").to_string(),
             appearance.ui_font_family(),
             appearance.monospace_font_size().max(4.) - 2.,
         )

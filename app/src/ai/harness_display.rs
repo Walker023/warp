@@ -11,18 +11,19 @@ use warp_core::ui::theme::{Fill as WarpThemeFill, WarpTheme};
 
 use crate::ai::agent::conversation::AIAgentHarness;
 use crate::ai::blocklist::CLAUDE_ORANGE;
+use crate::i18n::t;
 use crate::terminal::cli_agent::{GEMINI_BLUE, OPENAI_COLOR, OPENCODE_COLOR};
 use crate::ui_components::icons::Icon;
 
 /// User-visible display name for a [`Harness`].
-pub fn display_name(harness: Harness) -> &'static str {
+pub fn display_name(harness: Harness) -> String {
     match harness {
-        Harness::Oz => "Warp",
-        Harness::Claude => "Claude Code",
-        Harness::OpenCode => "OpenCode",
-        Harness::Gemini => "Gemini CLI",
-        Harness::Codex => "Codex",
-        Harness::Unknown => "Unknown",
+        Harness::Oz => "Warp".to_string(),
+        Harness::Claude => "Claude Code".to_string(),
+        Harness::OpenCode => "OpenCode".to_string(),
+        Harness::Gemini => "Gemini CLI".to_string(),
+        Harness::Codex => "Codex".to_string(),
+        Harness::Unknown => t!("ai_ui.harness.unknown").to_string(),
     }
 }
 

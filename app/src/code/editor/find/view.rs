@@ -28,6 +28,7 @@ use crate::editor::{
     SingleLineEditorOptions, TextOptions,
 };
 use crate::features::FeatureFlag;
+use crate::i18n::t;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::{FindOption, TelemetryEvent};
 use crate::settings::AppEditorSettings;
@@ -47,12 +48,6 @@ pub const FIND_EDITOR_BORDER_RADIUS: f32 = 6.;
 const FIND_EDITOR_BORDER_WIDTH: f32 = 1.;
 const FIND_EDITOR_FONT_SIZE: f32 = 12.;
 const FIND_EDITOR_ROW_SPACING: f32 = 4.;
-
-pub const REGEX_TOGGLE_TOOLTIP: &str = "Regex toggle";
-pub const CASE_SENSITIVE_TOOLTIP: &str = "Case sensitive search";
-pub const PRESERVE_CASE_TOOLTIP: &str = "Preserve case";
-pub const FIND_PLACEHOLDER_TEXT: &str = "Find";
-pub const REPLACE_PLACEHOLDER_TEXT: &str = "Replace";
 
 #[derive(Default)]
 struct ButtonMouseStates {
@@ -142,7 +137,10 @@ impl CodeEditorFind {
                 },
                 ctx,
             );
-            editor.set_placeholder_text(FIND_PLACEHOLDER_TEXT, ctx);
+            editor.set_placeholder_text(
+                t!("code_editor_extra.code_editor.find.find_placeholder").to_string(),
+                ctx,
+            );
             editor
         });
 
@@ -159,7 +157,10 @@ impl CodeEditorFind {
                 },
                 ctx,
             );
-            replace_editor.set_placeholder_text(REPLACE_PLACEHOLDER_TEXT, ctx);
+            replace_editor.set_placeholder_text(
+                t!("code_editor_extra.code_editor.find.replace_placeholder").to_string(),
+                ctx,
+            );
             replace_editor
         });
 
@@ -174,23 +175,29 @@ impl CodeEditorFind {
         let editor_height = line_height + (2. * FIND_EDITOR_PADDING) + 5.;
 
         let select_all_button = ctx.add_typed_action_view(|_ctx| {
-            ActionButton::new("Select all", SecondaryTheme)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(FindAction::SelectAll);
-                })
-                .with_width(72.)
-                .with_height(editor_height)
-                .with_disabled_theme(DisabledSecondaryTheme)
+            ActionButton::new(
+                t!("code_editor_extra.code_editor.find.select_all").to_string(),
+                SecondaryTheme,
+            )
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(FindAction::SelectAll);
+            })
+            .with_width(72.)
+            .with_height(editor_height)
+            .with_disabled_theme(DisabledSecondaryTheme)
         });
 
         let replace_all_button = ctx.add_typed_action_view(|ctx| {
-            let mut button = ActionButton::new("Replace all", SecondaryTheme)
-                .on_click(|ctx| {
-                    ctx.dispatch_typed_action(FindAction::ReplaceAll);
-                })
-                .with_width(72.)
-                .with_height(editor_height)
-                .with_disabled_theme(DisabledSecondaryTheme);
+            let mut button = ActionButton::new(
+                t!("code_editor_extra.code_editor.find.replace_all").to_string(),
+                SecondaryTheme,
+            )
+            .on_click(|ctx| {
+                ctx.dispatch_typed_action(FindAction::ReplaceAll);
+            })
+            .with_width(72.)
+            .with_height(editor_height)
+            .with_disabled_theme(DisabledSecondaryTheme);
             button.set_disabled(true, ctx);
             button
         });
@@ -372,16 +379,20 @@ impl CodeEditorFind {
     pub fn emit_result_a11y_content(&mut self, ctx: &mut ViewContext<Self>) {
         let content = if let Some(match_index) = self.searcher.as_ref(ctx).selected_match() {
             AccessibilityContent::new(
-                format!(
-                    "Result {} of {}.",
-                    match_index + 1,
-                    self.searcher.as_ref(ctx).match_count()
-                ),
-                "Use enter and shift-enter to navigate between matches. Escape to quit.",
+                t!(
+                    "code_editor_extra.code_editor.find.result",
+                    current = match_index + 1,
+                    total = self.searcher.as_ref(ctx).match_count()
+                )
+                .to_string(),
+                t!("code_editor_extra.code_editor.find.navigation_help").to_string(),
                 WarpA11yRole::UserAction,
             )
         } else {
-            AccessibilityContent::new_without_help("No results.", WarpA11yRole::UserAction)
+            AccessibilityContent::new_without_help(
+                t!("code_editor_extra.code_editor.find.no_results").to_string(),
+                WarpA11yRole::UserAction,
+            )
         };
         ctx.emit_a11y_content(content);
     }
@@ -392,15 +403,18 @@ impl CodeEditorFind {
         let content = if let Some(match_index) = self.searcher.as_ref(ctx).selected_match() {
             let remaining_matches = self.searcher.as_ref(ctx).match_count();
             AccessibilityContent::new(
-                format!(
-                    "Successfully replaced match. Selected match is {match_index} of {remaining_matches}"
-                ),
-                "Continue pressing Enter to replace more matches, or use up/down arrows to navigate.",
+                t!(
+                    "code_editor_extra.code_editor.find.replaced_match",
+                    match_index = match_index,
+                    remaining_matches = remaining_matches
+                )
+                .to_string(),
+                t!("code_editor_extra.code_editor.find.replace_help").to_string(),
                 WarpA11yRole::UserAction,
             )
         } else {
             AccessibilityContent::new_without_help(
-                "Successfully replaced the last match.",
+                t!("code_editor_extra.code_editor.find.replaced_last_match").to_string(),
                 WarpA11yRole::UserAction,
             )
         };
@@ -472,7 +486,7 @@ impl CodeEditorFind {
         mouse_state_handle: MouseStateHandle,
         on_click_action: FindAction,
         size: f32,
-        tooltip_text: Option<&str>,
+        tooltip_text: Option<String>,
         right_margin: f32,
     ) -> Box<dyn Element> {
         Hoverable::new(mouse_state_handle, |state| {
@@ -508,10 +522,10 @@ impl CodeEditorFind {
             .finish();
 
             let mut stack = Stack::new().with_child(icon);
-            if let (Some(tooltip_text), true) = (tooltip_text, state.is_hovered()) {
+            if let (Some(tooltip_text), true) = (&tooltip_text, state.is_hovered()) {
                 let tooltip = appearance
                     .ui_builder()
-                    .tool_tip(tooltip_text.to_string())
+                    .tool_tip(tooltip_text.clone())
                     .build()
                     .finish();
 
@@ -744,7 +758,7 @@ impl CodeEditorFind {
             self.button_mouse_states.toggle_regex_search.clone(),
             FindAction::ToggleRegexSearch,
             editor_height,
-            Some(REGEX_TOGGLE_TOOLTIP),
+            Some(t!("code_editor_extra.code_editor.find.regex_toggle").to_string()),
             ICON_PADDING,
         );
         let case_sensitive_icon = Container::new(
@@ -756,7 +770,7 @@ impl CodeEditorFind {
                     self.button_mouse_states.toggle_case_sensitivity.clone(),
                     FindAction::ToggleCaseSensitivity,
                     editor_height,
-                    Some(CASE_SENSITIVE_TOOLTIP),
+                    Some(t!("code_editor_extra.code_editor.find.case_sensitive").to_string()),
                     ICON_PADDING,
                 ),
                 "case_sensitive_button",
@@ -857,7 +871,7 @@ impl CodeEditorFind {
             self.button_mouse_states.toggle_preserve_case.clone(),
             FindAction::TogglePreserveCase,
             editor_height,
-            Some(PRESERVE_CASE_TOOLTIP),
+            Some(t!("code_editor_extra.code_editor.find.preserve_case").to_string()),
             ICON_PADDING,
         );
         replace_editor_row.add_child(preserve_case_icon);
@@ -927,20 +941,23 @@ impl View for CodeEditorFind {
         let match_count = self.searcher.as_ref(app).match_count();
         let selected_match = self.searcher.as_ref(app).selected_match();
         let description = match (match_count, selected_match) {
-            (0, _) | (_, None) => "Find bar for searching text in the editor.".to_string(),
-            (count, Some(current)) => format!(
-                "Find bar with {} matches found. Currently on match {} of {}.",
-                count,
-                current + 1,
-                count
-            ),
+            (0, _) | (_, None) => {
+                t!("code_editor_extra.code_editor.find.bar_without_matches").to_string()
+            }
+            (count, Some(current)) => t!(
+                "code_editor_extra.code_editor.find.bar_with_matches",
+                count = count,
+                current = current + 1,
+                total = count
+            )
+            .to_string(),
         };
 
         let is_replace_focused = self.is_replace_open && self.replace_editor.is_focused(app);
         let help_text = if is_replace_focused {
-            "Replace field focused. Type replacement text, press Enter to replace current match, Tab to return to find field. Use up/down arrows to navigate matches, Escape to close."
+            t!("code_editor_extra.code_editor.find.replace_field_help").to_string()
         } else {
-            "Find field focused. Type to search text. Use Enter and Shift-Enter or up/down arrows to navigate between matches. Press Escape to close find bar."
+            t!("code_editor_extra.code_editor.find.find_field_help").to_string()
         };
 
         Some(AccessibilityContent::new(

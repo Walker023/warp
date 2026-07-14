@@ -41,6 +41,7 @@ use crate::cloud_object::{
     CloudObjectUuidLookup as _, GenericStringObjectFormat, JsonObjectType, Space,
 };
 use crate::drive::CloudObjectTypeAndId;
+use crate::i18n::t;
 use crate::persistence::{
     database_file_path_for_current_scope, establish_ro_connection, ModelEvent,
 };
@@ -796,10 +797,7 @@ impl TemplatableMCPServerManager {
                 if let Some(window_id) = WindowManager::as_ref(ctx).active_window() {
                     ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                         toast_stack.add_ephemeral_toast(
-                            DismissibleToast::error(
-                                "PATH required to launch MCP server. Please open a new terminal session to autopopulate PATH."
-                                    .to_string(),
-                            ),
+                            DismissibleToast::error(t!("ai_ui.mcp.path_required").to_string()),
                             window_id,
                             ctx,
                         );
@@ -921,7 +919,11 @@ impl TemplatableMCPServerManager {
                                     manager.pending_oauth_csrf.insert(csrf_state, uuid);
                                 }
                                 ctx.open_url(&auth_url);
-                                manager.change_server_state(uuid, MCPServerState::Authenticating, ctx);
+                                manager.change_server_state(
+                                    uuid,
+                                    MCPServerState::Authenticating,
+                                    ctx,
+                                );
                             })
                             .await
                             .map_err(|err| {
@@ -940,9 +942,10 @@ impl TemplatableMCPServerManager {
                                 if let Some(active_window_id) = ctx.windows().active_window() {
                                     ToastStack::handle(ctx).update(ctx, |stack, ctx| {
                                         stack.add_ephemeral_toast(
-                                            DismissibleToast::default(format!(
-                                                "Successfully authenticated {server_name} MCP server"
-                                            )),
+                                            DismissibleToast::default(
+                                                t!("ai_ui.mcp.authenticated", name = &server_name)
+                                                    .to_string(),
+                                            ),
                                             active_window_id,
                                             ctx,
                                         );

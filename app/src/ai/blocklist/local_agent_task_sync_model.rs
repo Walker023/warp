@@ -14,6 +14,7 @@ use super::history_model::{
 use crate::ai::agent::conversation::{AIConversation, AIConversationId, ConversationStatus};
 use crate::ai::agent::{AIAgentOutputStatus, FinishedAIAgentOutput, RenderableAIError};
 use crate::ai::ambient_agents::AmbientAgentTaskId;
+use crate::i18n::t;
 use crate::server::server_api::ai::{AIClient, TaskStatusUpdate};
 use crate::server::server_api::ServerApiProvider;
 use crate::terminal::cli_agent_sessions::{
@@ -417,13 +418,19 @@ fn map_conversation_status(
         }
         ConversationStatus::Cancelled => (
             AgentTaskState::Cancelled,
-            Some(TaskStatusUpdate::message("Cancelled by user")),
+            Some(TaskStatusUpdate::message(
+                t!("ai_ui.task_status.cancelled_by_user").to_string(),
+            )),
         ),
         ConversationStatus::Blocked { blocked_action } => (
             AgentTaskState::Blocked,
-            Some(TaskStatusUpdate::message(format!(
-                "The agent got stuck waiting for user confirmation on the action: {blocked_action}"
-            ))),
+            Some(TaskStatusUpdate::message(
+                t!(
+                    "ai_ui.task_status.blocked_waiting_confirmation",
+                    action = blocked_action
+                )
+                .to_string(),
+            )),
         ),
     }
 }
@@ -443,7 +450,7 @@ fn task_update_for_conversation_error(
         None => (
             AgentTaskState::Error,
             Some(TaskStatusUpdate::message(
-                "Agent encountered an error".to_string(),
+                t!("ai_ui.task_status.agent_error").to_string(),
             )),
         ),
     }
@@ -460,44 +467,48 @@ pub(crate) fn classify_renderable_error(
         } => (
             AgentTaskState::Failed,
             Some(TaskStatusUpdate::with_error_code(
-                user_display_message.as_deref().unwrap_or(
-                    "Your team has run out of credits. Purchase more credits to continue.",
-                ),
+                user_display_message
+                    .clone()
+                    .unwrap_or_else(|| t!("ai_ui.task_status.team_out_of_credits").to_string()),
                 PlatformErrorCode::InsufficientCredits,
             )),
         ),
         RenderableAIError::ServerOverloaded => (
             AgentTaskState::Error,
             Some(TaskStatusUpdate::with_error_code(
-                "Warp is temporarily overloaded. Please try again shortly.",
+                t!("ai_ui.task_status.server_overloaded").to_string(),
                 PlatformErrorCode::ResourceUnavailable,
             )),
         ),
         RenderableAIError::InternalWarpError => (
             AgentTaskState::Error,
             Some(TaskStatusUpdate::with_error_code(
-                "An internal error occurred during the conversation. Please try again.",
+                t!("ai_ui.task_status.internal_conversation_error").to_string(),
                 PlatformErrorCode::InternalError,
             )),
         ),
         RenderableAIError::ContextWindowExceeded(msg) => (
             AgentTaskState::Failed,
             Some(TaskStatusUpdate::with_error_code(
-                format!("Context window exceeded: {msg}"),
+                t!("ai_ui.task_status.context_window_exceeded", message = msg).to_string(),
                 PlatformErrorCode::InternalError,
             )),
         ),
         RenderableAIError::InvalidApiKey { provider, .. } => (
             AgentTaskState::Failed,
             Some(TaskStatusUpdate::with_error_code(
-                format!("Invalid API key for {provider}. Update your API key in settings."),
+                t!("ai_ui.task_status.invalid_api_key", provider = provider).to_string(),
                 PlatformErrorCode::AuthenticationRequired,
             )),
         ),
         RenderableAIError::AwsBedrockCredentialsExpiredOrInvalid { model_name } => (
             AgentTaskState::Failed,
             Some(TaskStatusUpdate::with_error_code(
-                format!("AWS Bedrock credentials expired or invalid for {model_name}."),
+                t!(
+                    "ai_ui.task_status.aws_credentials_invalid",
+                    model = model_name
+                )
+                .to_string(),
                 PlatformErrorCode::AuthenticationRequired,
             )),
         ),

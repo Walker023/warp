@@ -85,19 +85,23 @@ impl AtContextMenuDisabledReason {
         match self {
             #[cfg(not(target_family = "wasm"))]
             AtContextMenuDisabledReason::NoObjectsAvailable => {
-                "No available objects in the current context.".to_string()
+                t!("terminal_ui.input.context.no_objects").to_string()
             }
             #[cfg(not(target_family = "wasm"))]
             AtContextMenuDisabledReason::SshWithoutRemoteServer => {
-                "Not supported in SSH sessions without remote server".to_string()
+                t!("terminal_ui.input.context.ssh_without_server").to_string()
             }
             #[cfg(not(target_family = "wasm"))]
-            AtContextMenuDisabledReason::Subshell => "Not supported in subshells".to_string(),
+            AtContextMenuDisabledReason::Subshell => {
+                t!("terminal_ui.input.context.subshell").to_string()
+            }
             #[cfg(target_family = "wasm")]
-            AtContextMenuDisabledReason::Wasm => "Requires a filesystem".to_string(),
+            AtContextMenuDisabledReason::Wasm => {
+                t!("terminal_ui.input.context.requires_filesystem").to_string()
+            }
             #[cfg(not(target_family = "wasm"))]
             AtContextMenuDisabledReason::DisabledInTerminalMode => {
-                "Disabled in terminal mode, re-enable in settings".to_string()
+                t!("terminal_ui.input.context.disabled_terminal_mode").to_string()
             }
         }
     }
@@ -186,8 +190,6 @@ impl AtContextMenuDisabledReason {
         None
     }
 }
-
-const AT_CONTEXT_TOOLTIP: &str = "Attach context";
 
 const BLURRED_OPACITY: Opacity = 50;
 
@@ -361,7 +363,7 @@ impl UniversalDeveloperInputButtonBar {
         let at_button_view = ctx.add_typed_action_view(|_ctx| {
             ActionButton::new("", PromptIconButtonTheme::new(false))
                 .with_icon(Icon::AtSign)
-                .with_tooltip(AT_CONTEXT_TOOLTIP)
+                .with_tooltip(t!("terminal_ui.input.context.attach").to_string())
                 .with_size(button_size)
                 .with_disabled_theme(UDIDisabledButtonTheme)
                 .with_tooltip_alignment(TooltipAlignment::Left)
@@ -678,9 +680,9 @@ impl UniversalDeveloperInputButtonBar {
         };
 
         let tooltip = if is_reader {
-            Some("Request edit access to change input mode".to_string())
+            Some(t!("terminal_ui.input.mode.request_edit_access").to_string())
         } else if is_agent_in_control {
-            Some("Input mode locked while agent is monitoring a command".to_string())
+            Some(t!("terminal_ui.input.mode.locked_monitoring_command").to_string())
         } else {
             None
         };
@@ -702,7 +704,7 @@ impl UniversalDeveloperInputButtonBar {
             button.set_tooltip(
                 disable_reason
                     .map(|reason| reason.tooltip_text())
-                    .or(Some(AT_CONTEXT_TOOLTIP.to_string())),
+                    .or_else(|| Some(t!("terminal_ui.input.context.attach").to_string())),
                 ctx,
             );
             ctx.notify();
@@ -986,7 +988,7 @@ fn build_renderable_option_config(
                 icon_color: fg_color,
                 label: None,
                 tooltip: Some(tooltip_config(
-                    "Terminal",
+                    t!("terminal_ui.input.mode.terminal"),
                     Some(terminal_mode_tooltip_subtext(terminal_keybindings)),
                     app,
                 )),
@@ -1002,7 +1004,7 @@ fn build_renderable_option_config(
                 icon_color: fg_color,
                 label: None,
                 tooltip: Some(tooltip_config(
-                    "Agent Mode",
+                    t!("terminal_ui.input.mode.agent"),
                     Some(agent_mode_tooltip_subtext(terminal_keybindings)),
                     app,
                 )),
@@ -1049,7 +1051,12 @@ fn agent_mode_tooltip_subtext(terminal_keybindings: &TerminalKeybindings) -> Str
         return AGENT_MODE_TOOLTIP_PREFIX.into();
     };
 
-    format!("{keybinding} or {AGENT_MODE_TOOLTIP_PREFIX}")
+    t!(
+        "terminal_ui.input.mode.keybinding_or_prefix",
+        key = keybinding,
+        prefix = AGENT_MODE_TOOLTIP_PREFIX
+    )
+    .to_string()
 }
 
 fn terminal_mode_tooltip_subtext(terminal_keybindings: &TerminalKeybindings) -> String {
@@ -1058,7 +1065,12 @@ fn terminal_mode_tooltip_subtext(terminal_keybindings: &TerminalKeybindings) -> 
         return TERMINAL_MODE_TOOLTIP_PREFIX.into();
     };
 
-    format!("{keybinding} or {TERMINAL_MODE_TOOLTIP_PREFIX}")
+    t!(
+        "terminal_ui.input.mode.keybinding_or_prefix",
+        key = keybinding,
+        prefix = TERMINAL_MODE_TOOLTIP_PREFIX
+    )
+    .to_string()
 }
 
 fn tooltip_config(

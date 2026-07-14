@@ -116,22 +116,24 @@ impl ExternalEditorView {
         dropdown: &mut Dropdown<ExternalEditorAction>,
         ctx: &mut ViewContext<Dropdown<ExternalEditorAction>>,
     ) {
-        let default_option_text = "Split Pane";
+        let default_option_text = t!("settings_extra.features.split_pane").to_string();
         let default_app = DropdownItem::new(
-            default_option_text,
+            default_option_text.clone(),
             ExternalEditorAction::SetLayout(EditorLayout::SplitPane),
         );
 
         let mut items = vec![default_app];
         items.push(DropdownItem::new(
-            "New Tab",
+            t!("settings_extra.features.new_tab").to_string(),
             ExternalEditorAction::SetLayout(EditorLayout::NewTab),
         ));
 
         dropdown.set_items(items, ctx);
         match layout_to_open_files {
-            EditorLayout::SplitPane => dropdown.set_selected_by_name(default_option_text, ctx),
-            EditorLayout::NewTab => dropdown.set_selected_by_name("New Tab", ctx),
+            EditorLayout::SplitPane => dropdown.set_selected_by_name(&default_option_text, ctx),
+            EditorLayout::NewTab => {
+                dropdown.set_selected_by_name(t!("settings_extra.features.new_tab"), ctx)
+            }
         };
     }
 
@@ -141,9 +143,9 @@ impl ExternalEditorView {
         mut make_action: impl FnMut(EditorChoice) -> ExternalEditorAction,
         ctx: &mut ViewContext<Dropdown<ExternalEditorAction>>,
     ) {
-        let default_option_text = "Default App";
+        let default_option_text = t!("settings_extra.features.default_app").to_string();
         let default_app = DropdownItem::new(
-            default_option_text,
+            default_option_text.clone(),
             make_action(EditorChoice::SystemDefault),
         );
 
@@ -173,7 +175,7 @@ impl ExternalEditorView {
             }
             EditorChoice::Warp => dropdown.set_selected_by_name("Warp", ctx),
             EditorChoice::EnvEditor => dropdown.set_selected_by_name("$EDITOR", ctx),
-            EditorChoice::SystemDefault => dropdown.set_selected_by_name(default_option_text, ctx),
+            EditorChoice::SystemDefault => dropdown.set_selected_by_name(&default_option_text, ctx),
         };
     }
 

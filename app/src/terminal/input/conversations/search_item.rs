@@ -13,6 +13,7 @@ use crate::ai::active_agent_views_model::ActiveAgentViewsModel;
 use crate::ai::agent_conversations_model::AgentConversationEntry;
 use crate::ai::conversation_status_ui::render_status_element;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::{ItemHighlightState, SearchItem};
 use crate::terminal::input::conversations::AcceptConversation;
 use crate::terminal::input::inline_menu::styles as inline_styles;
@@ -84,7 +85,7 @@ impl SearchItem for ConversationSearchItem {
             .active_window()
             .and_then(|window_id| active_agent_views.get_focused_terminal_view_id(window_id));
 
-        let secondary_suffix = " open in different pane";
+        let secondary_suffix = t!("terminal_ui.input.menu_actions.open_in_different_pane");
         let title = &self.entry.display.title;
         let should_show_suffix = open_terminal_view_id
             .is_some_and(|terminal_view_id| Some(terminal_view_id) != focused_terminal_view_id);
@@ -172,6 +173,10 @@ impl SearchItem for ConversationSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Conversation: {}", self.entry.display.title)
+        t!(
+            "terminal_ui.input.a11y.conversation",
+            name = self.entry.display.title
+        )
+        .to_string()
     }
 }

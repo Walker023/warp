@@ -4,6 +4,7 @@ use warpui::elements::{ConstrainedBox, Container, Icon, Text};
 use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::ai_context_menu::mixer::AIContextMenuSearchableAction;
 use crate::search::item::SearchItem;
 use crate::search::result_renderer::ItemHighlightState;
@@ -81,6 +82,10 @@ impl SearchItem for CommandSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Command: {}", self.command)
+        t!(
+            "workspace_search_ui.search.a11y.command",
+            name = self.command
+        )
+        .to_string()
     }
 }

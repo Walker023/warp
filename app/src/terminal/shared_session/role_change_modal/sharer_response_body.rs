@@ -14,6 +14,7 @@ use warpui::{AppContext, Element, Entity, SingletonEntity, TypedActionView, View
 
 use super::{BODY_PADDING, HEADER_FONT_SIZE, MODAL_PADDING, TEXT_FONT_SIZE};
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::terminal::shared_session::render_util::{
     non_hoverable_participant_avatar, ParticipantAvatarParams,
 };
@@ -143,7 +144,7 @@ impl SharerResponseBody {
                     ButtonVariant::Outlined,
                     role_request_params.button_mouse_states.deny_button,
                 )
-                .with_centered_text_label(String::from("Deny"))
+                .with_centered_text_label(t!("terminal_ui.shared_session.roles.deny").to_string())
                 .with_style(UiComponentStyles {
                     font_size: Some(BUTTON_FONT_SIZE),
                     font_weight: Some(Weight::Bold),
@@ -173,7 +174,7 @@ impl SharerResponseBody {
                 ButtonVariant::Outlined,
                 role_request_params.button_mouse_states.approve_button,
             )
-            .with_centered_text_label(String::from("Approve"))
+            .with_centered_text_label(t!("terminal_ui.shared_session.roles.approve").to_string())
             .with_style(UiComponentStyles {
                 font_size: Some(BUTTON_FONT_SIZE),
                 font_weight: Some(Weight::Bold),
@@ -264,9 +265,9 @@ impl View for SharerResponseBody {
 
     fn render(&self, app: &AppContext) -> Box<dyn Element> {
         let appearance = Appearance::as_ref(app);
-        let header = "Edit Requests";
-        let text1 = "This grants the ability to execute commands on your";
-        let text2 = "behalf. Use with caution.";
+        let header = t!("terminal_ui.shared_session.roles.edit_requests");
+        let text1 = t!("terminal_ui.shared_session.roles.caution_line_1");
+        let text2 = t!("terminal_ui.shared_session.roles.caution_line_2");
 
         let text_body = Container::new(
             Flex::column()

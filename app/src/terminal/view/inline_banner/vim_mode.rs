@@ -6,6 +6,7 @@ use super::{
     InlineBannerContent, InlineBannerStyle, InlineBannerTextButton, InlineBannerTextButtonVariant,
 };
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::terminal::view::TerminalAction;
 
 pub struct VimModeBannerState {
@@ -27,7 +28,7 @@ pub fn render_vim_mode_banner(
     let active_ui_text_color = appearance.theme().active_ui_text_color();
 
     let buttons = vec![InlineBannerTextButton {
-        text: "Enable".to_owned(),
+        text: t!("common.enable").to_string(),
         text_color: active_ui_text_color.into_solid(),
         button_state: InlineBannerButtonState {
             on_click_event: TerminalAction::VimModeBanner(VimModeBannerAction::Enable),
@@ -47,7 +48,7 @@ pub fn render_vim_mode_banner(
         InlineBannerStyle::LowPriority,
         appearance,
         InlineBannerContent {
-            title: "Enable Warp's Vim keybindings?".to_string(),
+            title: t!("terminal_ui.inline_banner.vim_mode.title").to_string(),
             buttons,
             close_button: Some(close_button),
             ..Default::default()

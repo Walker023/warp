@@ -33,6 +33,7 @@ use crate::drive::items::WarpDriveItemId;
 use crate::drive::sharing::ShareableObject;
 use crate::drive::CloudObjectTypeAndId;
 use crate::editor::InteractionState;
+use crate::i18n::t;
 use crate::menu::{Menu, MenuItem, MenuItemFields};
 use crate::notebooks::editor::model::NotebooksEditorModel;
 use crate::notebooks::editor::rich_text_styles;
@@ -137,7 +138,9 @@ impl From<PaneEvent> for AIDocumentEvent {
     }
 }
 
-pub const DEFAULT_PLANNING_DOCUMENT_TITLE: &str = "Planning document";
+pub fn default_planning_document_title() -> String {
+    t!("ai_ui.document.planning_document").to_string()
+}
 
 /// Entry for the version history dropdown menu.
 struct VersionMenuEntry {
@@ -368,7 +371,7 @@ impl AIDocumentView {
         let document_title = AIDocumentModel::as_ref(ctx)
             .get_document(&document_id, document_version)
             .map(|doc| doc.get_title())
-            .unwrap_or_else(|| DEFAULT_PLANNING_DOCUMENT_TITLE.to_string());
+            .unwrap_or_else(|| t!("ai_ui.document.planning_document").to_string());
         let pane_configuration = ctx.add_model(|_ctx| PaneConfiguration::new(document_title));
 
         // Create version menu view and subscribe to close events to hide overlay
@@ -387,7 +390,7 @@ impl AIDocumentView {
             ActionButton::new("", NakedTheme)
                 .with_icon(icons::Icon::History)
                 .with_size(ButtonSize::Small)
-                .with_tooltip("Show version history")
+                .with_tooltip(t!("ai_ui.document.show_version_history").to_string())
                 .on_click(|ctx| {
                     ctx.dispatch_typed_action(
                         PaneHeaderAction::<AIDocumentAction, AIDocumentAction>::CustomAction(
@@ -410,10 +413,11 @@ impl AIDocumentView {
         // Read the actual configured keybinding for the save action
         let save_action = keybinding_name_to_keystroke(SAVE_FILE_BINDING_NAME, ctx)
             .map(|k| k.displayed())
-            .unwrap_or("Click".to_string());
-        let tooltip_text = format!("This plan has changes the agent isn't aware of. {save_action} to stop the agent's current task and send the updated plan");
+            .unwrap_or_else(|| t!("ai_ui.document.click").to_string());
+        let tooltip_text =
+            t!("ai_ui.document.update_agent_tooltip", action = &save_action).to_string();
         let update_plan_button = ctx.add_typed_action_view(|_ctx| {
-            ActionButton::new("Update Agent", PrimaryTheme)
+            ActionButton::new(t!("ai_ui.document.update_agent").to_string(), PrimaryTheme)
                 .with_size(ButtonSize::Small)
                 .with_tooltip(tooltip_text)
                 .with_tooltip_alignment(TooltipAlignment::Right)
@@ -429,7 +433,7 @@ impl AIDocumentView {
 
         // Create restore button
         let restore_button = ctx.add_typed_action_view(|_ctx| {
-            ActionButton::new("Restore", SecondaryTheme)
+            ActionButton::new(t!("ai_ui.document.restore").to_string(), SecondaryTheme)
                 .with_size(ButtonSize::Small)
                 .on_click(|ctx| {
                     ctx.dispatch_typed_action(
@@ -669,7 +673,7 @@ impl AIDocumentView {
                 let appearance = Appearance::as_ref(app);
                 let ui_builder = appearance.ui_builder().clone();
                 let tooltip = ui_builder
-                    .tool_tip("Save and auto-sync this plan to your Warp Drive".to_string())
+                    .tool_tip(t!("ai_ui.document.save_and_sync_tooltip").to_string())
                     .build()
                     .finish();
                 let sync_button_mouse_state = self.sync_button_mouse_state.clone();
@@ -721,9 +725,7 @@ impl AIDocumentView {
                 let theme = appearance.theme();
                 let color = theme.nonactive_ui_detail().into_solid();
                 let ui_builder = appearance.ui_builder().clone();
-                let tooltip_text =
-                    "This plan is synced to your Warp Drive and will auto save any edits you make."
-                        .to_string();
+                let tooltip_text = t!("ai_ui.document.synced_tooltip").to_string();
                 let synced_status_mouse_state = self.synced_status_mouse_state.clone();
                 Container::new(
                     ConstrainedBox::new(
@@ -780,7 +782,7 @@ impl AIDocumentView {
         let title = AIDocumentModel::as_ref(app)
             .get_current_document(&self.document_id)
             .map(|doc| doc.title.clone())
-            .unwrap_or_else(|| DEFAULT_PLANNING_DOCUMENT_TITLE.to_string());
+            .unwrap_or_else(|| t!("ai_ui.document.planning_document").to_string());
 
         let version_button = SavePosition::new(
             ChildView::new(&self.version_button).finish(),
@@ -914,7 +916,12 @@ impl AIDocumentView {
             .iter()
             .map(|entry| {
                 let label = if let Some(from_version) = entry.restored_from {
-                    format!("{} (restored from {})", entry.version, from_version)
+                    t!(
+                        "ai_ui.document.version_restored_from",
+                        version = entry.version,
+                        source = from_version
+                    )
+                    .to_string()
                 } else {
                     entry.version.to_string()
                 };
@@ -1026,12 +1033,12 @@ impl AIDocumentView {
         let title = AIDocumentModel::as_ref(ctx)
             .get_current_document(&self.document_id)
             .map(|doc| doc.title.clone())
-            .unwrap_or_else(|| "Untitled".to_string());
+            .unwrap_or_else(|| t!("ai_ui.rules.untitled").to_string());
 
         // Sanitize the title for use as a filename
         let sanitized_title = safe_filename(&title);
         let filename = if sanitized_title.is_empty() {
-            "Untitled.md".to_string()
+            t!("ai_ui.document.untitled_markdown_filename").to_string()
         } else {
             format!("{sanitized_title}.md")
         };
@@ -1151,7 +1158,9 @@ impl TypedActionView for AIDocumentView {
                 let window_id = ctx.window_id();
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
-                        DismissibleToast::success("Copied to clipboard as Markdown".to_string()),
+                        DismissibleToast::success(
+                            t!("ai_ui.document.copied_as_markdown").to_string(),
+                        ),
                         window_id,
                         ctx,
                     );
@@ -1169,7 +1178,7 @@ impl TypedActionView for AIDocumentView {
                 let window_id = ctx.window_id();
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
-                        DismissibleToast::success("Link copied to clipboard".to_string()),
+                        DismissibleToast::success(t!("ai_ui.document.link_copied").to_string()),
                         window_id,
                         ctx,
                     );
@@ -1182,7 +1191,7 @@ impl TypedActionView for AIDocumentView {
                 let window_id = ctx.window_id();
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     toast_stack.add_ephemeral_toast(
-                        DismissibleToast::success("Plan ID copied to clipboard".to_string()),
+                        DismissibleToast::success(t!("ai_ui.document.plan_id_copied").to_string()),
                         window_id,
                         ctx,
                     );
@@ -1263,7 +1272,7 @@ impl TypedActionView for AIDocumentView {
                         .ai_controller()
                         .update(ctx, |controller, ctx| {
                             controller.send_user_query_in_conversation(
-                                "I've updated the plan.".to_string(),
+                                t!("ai_misc.document.updated_plan_query").to_string(),
                                 conversation_id,
                                 None,
                                 ctx,
@@ -1332,13 +1341,13 @@ impl BackingView for AIDocumentView {
             AIDocumentModel::as_ref(ctx).get_document_warp_drive_object_link(&self.document_id, ctx)
         {
             menu_items.push(
-                MenuItemFields::new("Copy link")
+                MenuItemFields::new(t!("ai_ui.document.copy_link").to_string())
                     .with_on_select_action(AIDocumentAction::CopyLink(link))
                     .with_icon(Icon::Link)
                     .into_item(),
             );
             menu_items.push(
-                MenuItemFields::new("Show in Warp Drive")
+                MenuItemFields::new(t!("ai_ui.document.show_in_warp_drive").to_string())
                     .with_on_select_action(AIDocumentAction::ShowInWarpDrive)
                     .with_icon(Icon::WarpDrive)
                     .into_item(),
@@ -1346,7 +1355,7 @@ impl BackingView for AIDocumentView {
         }
 
         menu_items.push(
-            MenuItemFields::new("Copy as Markdown")
+            MenuItemFields::new(t!("ai_ui.document.copy_as_markdown").to_string())
                 .with_on_select_action(AIDocumentAction::CopyAsMarkdown)
                 .with_icon(Icon::Copy)
                 .into_item(),
@@ -1355,7 +1364,7 @@ impl BackingView for AIDocumentView {
         #[cfg(feature = "local_fs")]
         {
             menu_items.push(
-                crate::menu::MenuItemFields::new("Save as markdown file")
+                crate::menu::MenuItemFields::new(t!("ai_ui.document.save_as_markdown").to_string())
                     .with_on_select_action(AIDocumentAction::Export)
                     .with_icon(Icon::Download)
                     .into_item(),
@@ -1364,7 +1373,7 @@ impl BackingView for AIDocumentView {
 
         // Add "Attach to active session" menu item
         menu_items.push(
-            MenuItemFields::new("Attach to active session")
+            MenuItemFields::new(t!("ai_ui.document.attach_to_active_session").to_string())
                 .with_on_select_action(AIDocumentAction::AttachToActiveSession)
                 .with_icon(Icon::Paperclip)
                 .into_item(),
@@ -1372,7 +1381,7 @@ impl BackingView for AIDocumentView {
 
         // Add "Copy plan ID" menu item
         menu_items.push(
-            MenuItemFields::new("Copy plan ID")
+            MenuItemFields::new(t!("ai_ui.document.copy_plan_id").to_string())
                 .with_on_select_action(AIDocumentAction::CopyPlanId)
                 .with_icon(Icon::Copy)
                 .into_item(),

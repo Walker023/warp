@@ -1,9 +1,9 @@
 use std::collections::{HashMap, HashSet};
-use std::mem;
 use std::ops::Range;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
+use std::{fmt, mem};
 
 use ai::project_context::model::ProjectContextModel;
 use indexmap::IndexMap;
@@ -58,7 +58,7 @@ use warpui::{
 use super::code_review_header::CodeReviewHeader;
 use super::comment_list_view::{CommentListDebugState, CommentListEvent, CommentListView};
 use super::comments::{attach_pending_imported_comments, AttachedReviewComment, CommentOrigin};
-use super::diff_size_limits::DiffSize;
+use super::diff_size_limits::{DiffSize, UnrenderableReason};
 use super::git_dialog::{GitDialog, GitDialogEvent, GitDialogKind};
 use super::{GlobalCodeReviewEvent, GlobalCodeReviewModel};
 use crate::ai::agent::{
@@ -266,7 +266,16 @@ const CODE_REVIEW_EDITOR_LINE_HEIGHT_RATIO: f32 = 1.4;
 /// Extra scroll buffer (in pixels) added when scrolling to a line that has a comment editor below it.
 const COMMENT_EDITOR_SCROLL_BUFFER: f32 = 200.0;
 
-pub const CODE_REVIEW_TOOLTIP_TEXT: &str = "View changes";
+pub struct CodeReviewTooltipText;
+
+impl fmt::Display for CodeReviewTooltipText {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let text = t!("code_review.tooltip");
+        f.write_str(text.as_ref())
+    }
+}
+
+pub const CODE_REVIEW_TOOLTIP_TEXT: CodeReviewTooltipText = CodeReviewTooltipText;
 
 pub fn get_discard_button_disabled_tooltip(git_operation_blocked: bool) -> String {
     if git_operation_blocked {
@@ -3838,6 +3847,11 @@ impl CodeReviewView {
 
     fn render_error_state(&self, error: &str, appearance: &Appearance) -> Box<dyn Element> {
         let theme = appearance.theme();
+        let localized_error = if error == "server returned empty diff data" {
+            t!("code_review.empty_diff_data").to_string()
+        } else {
+            error.to_string()
+        };
 
         let main_column = Flex::column()
             .with_main_axis_size(MainAxisSize::Max)
@@ -3877,7 +3891,7 @@ impl CodeReviewView {
                             Shrinkable::new(
                                 1.,
                                 Text::new(
-                                    error.to_string(),
+                                    localized_error,
                                     appearance.ui_font_family(),
                                     appearance.ui_font_size() + 2.,
                                 )
@@ -4176,7 +4190,11 @@ impl CodeReviewView {
                         zero_state_column.add_child(
                             Container::new(
                                 Text::new(
-                                    format!("Repo is initialized with a {file_name} file."),
+                                    t!(
+                                        "code_editor_extra.code_review.repo_initialized",
+                                        file = file_name
+                                    )
+                                    .to_string(),
                                     appearance.ui_font_family(),
                                     12.,
                                 )
@@ -4323,7 +4341,9 @@ impl CodeReviewView {
 
                 self.clear_review_comments(ctx);
                 ToastStack::handle(ctx).update(ctx, |stack, ctx| {
-                    let toast = DismissibleToast::default("Comments sent to agent".into());
+                    let toast = DismissibleToast::default(
+                        t!("code_editor_extra.code_review.comments_sent_to_agent").to_string(),
+                    );
                     stack.add_ephemeral_toast(toast, self.window_id, ctx);
                 });
                 ctx.emit(CodeReviewViewEvent::ReviewSubmitted);
@@ -4331,7 +4351,8 @@ impl CodeReviewView {
             }
             ReviewSubmissionResult::Error => {
                 report_error!("Failed to submit review comments");
-                let error_message = "Could not submit comments to the agent".to_string();
+                let error_message =
+                    t!("code_editor_extra.code_review.comments_submit_failed").to_string();
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     let toast = DismissibleToast::error(error_message);
                     toast_stack.add_ephemeral_toast(toast, self.window_id, ctx);
@@ -4994,8 +5015,11 @@ impl CodeReviewView {
             if editor_state.has_unsaved_changes(app) {
                 let save_keystroke = Keystroke::parse("cmdorctrl-s").unwrap_or_default();
                 let save_shortcut = save_keystroke.displayed();
-                let tooltip_text =
-                    format!("This file has unsaved changes. {save_shortcut} to save");
+                let tooltip_text = t!(
+                    "code_editor_extra.code_review.unsaved_changes_save",
+                    shortcut = save_shortcut
+                )
+                .to_string();
                 render_unsaved_circle_with_tooltip(
                     editor_state.unsaved_changes_mouse_state(),
                     tooltip_text,
@@ -5230,9 +5254,17 @@ impl CodeReviewView {
 
         let diff_size = file.file_diff.size;
         if let DiffSize::Unrenderable(reason) = diff_size {
+            let message = match reason {
+                UnrenderableReason::DiffTooLarge => {
+                    t!("code_editor_extra.code_review.diff_too_large").to_string()
+                }
+                UnrenderableReason::FileTooLarge => {
+                    t!("code_editor_extra.code_review.file_too_large").to_string()
+                }
+            };
             return Self::styled_file_content_container(
                 Text::new(
-                    reason.to_string(),
+                    message,
                     appearance.monospace_font_family(),
                     appearance.monospace_font_size(),
                 )
@@ -5675,7 +5707,7 @@ impl CodeReviewView {
                 let toast_id = self.revert_hunk_toast_id(ctx);
                 crate::workspace::ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     let toast = crate::view_components::DismissibleToast::default(
-                        "Diff removed".to_string(),
+                        t!("code_editor_extra.code_review.diff_removed").to_string(),
                     )
                     .with_object_id(toast_id)
                     .with_action_button(self.undo_action_button.clone());
@@ -5777,7 +5809,8 @@ impl CodeReviewView {
                 let toast_id = self.attach_context_not_allowed_toast_id(ctx);
                 crate::workspace::ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     let toast = crate::view_components::DismissibleToast::default(
-                        "Cannot attach context when terminal is running".to_string(),
+                        t!("code_editor_extra.code_review.cannot_attach_context_while_running")
+                            .to_string(),
                     )
                     .with_object_id(toast_id);
                     toast_stack.add_ephemeral_toast(toast, self.window_id, ctx);
@@ -5885,7 +5918,8 @@ impl CodeReviewView {
                 let toast_id = self.attach_diff_not_allowed_toast_id(ctx);
                 ToastStack::handle(ctx).update(ctx, |toast_stack, ctx| {
                     let toast = DismissibleToast::default(
-                        "Cannot attach diff while input is not available".to_string(),
+                        t!("code_editor_extra.code_review.cannot_attach_diff_without_input")
+                            .to_string(),
                     )
                     .with_object_id(toast_id);
                     toast_stack.add_ephemeral_toast(toast, self.window_id, ctx);
@@ -6606,10 +6640,15 @@ impl CodeReviewView {
             }
             PrimaryGitActionMode::Push => {
                 self.git_primary_action_button.update(ctx, |button, ctx| {
-                    button.set_label("Push", ctx);
+                    button.set_label(t!("code_review.push").to_string(), ctx);
                     button.set_icon(Some(Icon::ArrowUp), ctx);
                     button.set_disabled(false, ctx);
-                    button.set_tooltip(Some("Push commits to remote"), ctx);
+                    button.set_tooltip(
+                        Some(
+                            t!("code_editor_extra.code_review.push_commits_to_remote").to_string(),
+                        ),
+                        ctx,
+                    );
                     button.set_on_click(
                         |ctx| ctx.dispatch_typed_action(CodeReviewAction::OpenPushDialog),
                         ctx,
@@ -6622,10 +6661,13 @@ impl CodeReviewView {
             }
             PrimaryGitActionMode::CreatePr => {
                 self.git_primary_action_button.update(ctx, |button, ctx| {
-                    button.set_label("Create PR", ctx);
+                    button.set_label(t!("code_review.create_pr").to_string(), ctx);
                     button.set_icon(Some(Icon::Github), ctx);
                     button.set_disabled(false, ctx);
-                    button.set_tooltip(Some("Create a pull request"), ctx);
+                    button.set_tooltip(
+                        Some(t!("code_editor_extra.code_review.create_pull_request").to_string()),
+                        ctx,
+                    );
                     button.set_on_click(
                         |ctx| ctx.dispatch_typed_action(CodeReviewAction::OpenCreatePrDialog),
                         ctx,
@@ -6646,9 +6688,9 @@ impl CodeReviewView {
                         button.set_disabled(is_pr_info_refreshing, ctx);
                         button.set_tooltip(
                             Some(if is_pr_info_refreshing {
-                                "Refreshing PR info"
+                                t!("code_editor_extra.code_review.refreshing_pr_info").to_string()
                             } else {
-                                "View pull request on GitHub"
+                                t!("code_editor_extra.code_review.view_pr_on_github").to_string()
                             }),
                             ctx,
                         );
@@ -6664,10 +6706,16 @@ impl CodeReviewView {
             }
             PrimaryGitActionMode::Publish => {
                 self.git_primary_action_button.update(ctx, |button, ctx| {
-                    button.set_label("Publish", ctx);
+                    button.set_label(t!("code_review.publish").to_string(), ctx);
                     button.set_icon(Some(Icon::UploadCloud), ctx);
                     button.set_disabled(false, ctx);
-                    button.set_tooltip(Some("Publish branch to remote"), ctx);
+                    button.set_tooltip(
+                        Some(
+                            t!("code_editor_extra.code_review.publish_branch_to_remote")
+                                .to_string(),
+                        ),
+                        ctx,
+                    );
                     button.set_on_click(
                         |ctx| ctx.dispatch_typed_action(CodeReviewAction::PublishBranch),
                         ctx,
@@ -7706,7 +7754,9 @@ impl BackingView for CodeReviewView {
         _ctx: &view::HeaderRenderContext<'_>,
         _app: &AppContext,
     ) -> view::HeaderContent {
-        view::HeaderContent::simple("Reviewing code changes")
+        view::HeaderContent::simple(
+            t!("code_editor_extra.code_review.reviewing_code_changes").to_string(),
+        )
     }
 
     fn set_focus_handle(&mut self, focus_handle: PaneFocusHandle, ctx: &mut ViewContext<Self>) {

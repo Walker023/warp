@@ -27,6 +27,7 @@ use super::model::{NotebooksEditorModel, RichTextEditorModelEvent};
 use super::view::EditorViewAction;
 use super::BlockType;
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::menu::MenuVariant;
 use crate::ui_components::buttons::icon_button;
 use crate::ui_components::icons::Icon;
@@ -223,7 +224,7 @@ impl Omnibar {
     fn reset_conversion_menu(&self, block_type: BlockType, ctx: &mut ViewContext<Self>) {
         let block_name = block_type.label();
         self.block_conversion_dropdown.update(ctx, |dropdown, ctx| {
-            dropdown.set_selected_by_name(block_name, ctx);
+            dropdown.set_selected_by_name(&block_name, ctx);
         });
     }
 
@@ -441,14 +442,26 @@ impl TypedActionView for Omnibar {
                 .style_toggle_a11y(BufferTextStyle::InlineCode),
             OmnibarAction::ConvertBlock(style) => {
                 ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
-                    format!("Convert to {}", BlockType::from(style).label()),
+                    t!(
+                        "notebooks.editor.convert_block",
+                        block = BlockType::from(style).label()
+                    )
+                    .to_string(),
                     WarpA11yRole::UserAction,
                 ))
             }
-            OmnibarAction::OpenLinkEditor => ActionAccessibilityContent::from_debug(),
-            OmnibarAction::UnstyleLink => ActionAccessibilityContent::Custom(
-                AccessibilityContent::new_without_help("Remove link", WarpA11yRole::UserAction),
-            ),
+            OmnibarAction::OpenLinkEditor => {
+                ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
+                    t!("notebooks.editor.open_link_editor").to_string(),
+                    WarpA11yRole::UserAction,
+                ))
+            }
+            OmnibarAction::UnstyleLink => {
+                ActionAccessibilityContent::Custom(AccessibilityContent::new_without_help(
+                    t!("notebooks.editor.remove_link").to_string(),
+                    WarpA11yRole::UserAction,
+                ))
+            }
         }
     }
 }

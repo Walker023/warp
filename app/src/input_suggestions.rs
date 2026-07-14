@@ -652,7 +652,7 @@ impl InputSuggestions {
         ctx: &mut ViewContext<Self>,
     ) {
         ctx.emit_a11y_content(AccessibilityContent::new_without_help(
-            "Closed suggestions.",
+            t!("common_extra.input_suggestions.closed").to_string(),
             WarpA11yRole::UserAction,
         ));
         ctx.emit(Event::CloseSuggestion {
@@ -708,7 +708,7 @@ impl InputSuggestions {
                     Align::new(
                         Container::new(
                             Text::new_inline(
-                                String::from("No suggestions"),
+                                t!("common_extra.input_suggestions.none").to_string(),
                                 appearance.monospace_font_family(),
                                 appearance.monospace_font_size(),
                             )
@@ -1095,10 +1095,9 @@ impl View for InputSuggestions {
 
     fn accessibility_contents(&self, _: &AppContext) -> Option<AccessibilityContent> {
         Some(AccessibilityContent::new(
-            "Command suggestions.",
+            t!("common_extra.input_suggestions.accessibility_title").to_string(),
             // TODO use bindings from user settings
-            "Navigate with tab and shift-tab, and confirm with enter. Execute selected command \
-                with command + enter. Esc leaves the suggestions menu.",
+            t!("common_extra.input_suggestions.accessibility_help").to_string(),
             WarpA11yRole::MenuRole,
         ))
     }

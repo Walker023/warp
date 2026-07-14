@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use anyhow::anyhow;
 use lazy_static::lazy_static;
@@ -68,6 +68,24 @@ pub enum DescriptionContext {
 /// [`BindingDescription::with_dynamic_override`].
 pub type DynamicDescriptionResolver = Arc<dyn Fn(&AppContext) -> Option<String> + Send + Sync>;
 
+/// 可选的应用级快捷键描述本地化函数。
+pub type BindingDescriptionLocalizer = fn(&str) -> Option<String>;
+
+static BINDING_DESCRIPTION_LOCALIZER: OnceLock<BindingDescriptionLocalizer> = OnceLock::new();
+
+/// 安装进程级快捷键描述本地化函数。
+///
+/// 应用可能在同一进程中初始化多个 UI 上下文，因此首次安装成功后，后续安装不会生效。
+pub fn install_binding_description_localizer(localizer: BindingDescriptionLocalizer) {
+    let _ = BINDING_DESCRIPTION_LOCALIZER.set(localizer);
+}
+
+fn localize_binding_description(description: &str) -> Option<String> {
+    BINDING_DESCRIPTION_LOCALIZER
+        .get()
+        .and_then(|localizer| localizer(description))
+}
+
 #[derive(Default, Clone)]
 /// A description of the binding.  Supports a single default context and
 /// multiple custom contexts.  Custom contexts are effectively overrides.
@@ -111,8 +129,10 @@ impl fmt::Debug for BindingDescription {
 
 impl BindingDescription {
     pub fn new<S: Into<String>>(description: S) -> Self {
+        let description = description.into();
         BindingDescription {
-            description: titlecase(&description.into()),
+            description: localize_binding_description(&description)
+                .unwrap_or_else(|| titlecase(&description)),
             ..Default::default()
         }
     }
@@ -129,10 +149,12 @@ impl BindingDescription {
         context: DescriptionContext,
         description: S,
     ) -> Self {
+        let description = description.into();
+        let description = localize_binding_description(&description).unwrap_or(description);
         if let DescriptionContext::Custom(key) = context {
             self.custom
                 .get_or_insert_with(HashMap::new)
-                .insert(key, description.into());
+                .insert(key, description);
         } else {
             debug_assert!(false, "Expected custom description");
         }
@@ -164,7 +186,10 @@ impl BindingDescription {
     pub fn resolve(&self, ctx: &AppContext, context: DescriptionContext) -> Cow<'_, str> {
         match &self.dynamic_override {
             Some(f) => match f(ctx) {
-                Some(description) => Cow::Owned(titlecase(&description)),
+                Some(description) => Cow::Owned(
+                    localize_binding_description(&description)
+                        .unwrap_or_else(|| titlecase(&description)),
+                ),
                 None => Cow::Borrowed(self.in_context(context)),
             },
             None => Cow::Borrowed(self.in_context(context)),

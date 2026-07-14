@@ -19,8 +19,8 @@ use crate::ai::ambient_agents::spawn::{spawn_task, submit_run_followup, AmbientA
 use crate::ai::ambient_agents::task::{HarnessAuthSecretsConfig, HarnessConfig};
 use crate::ai::ambient_agents::telemetry::CloudAgentTelemetryEvent;
 use crate::ai::ambient_agents::{
-    github_auth_url, AgentSource, AmbientAgentTaskId, OUT_OF_CREDITS_TASK_FAILURE_MESSAGE,
-    SERVER_OVERLOADED_TASK_FAILURE_MESSAGE,
+    github_auth_url, out_of_credits_task_failure_message, server_overloaded_task_failure_message,
+    AgentSource, AmbientAgentTaskId,
 };
 #[cfg(all(feature = "local_fs", not(target_family = "wasm")))]
 use crate::ai::blocklist::handoff::touched_repos::TouchedWorkspace;
@@ -94,13 +94,13 @@ impl AgentProgress {
         }
     }
 
-    pub fn setup_status_text(&self) -> &'static str {
+    pub fn setup_status_text(&self) -> String {
         if self.harness_started_at.is_some() {
-            "Starting Environment (Step 3/3)"
+            t!("terminal_ui.ambient_agent.setup.starting_environment").to_string()
         } else if self.claimed_at.is_some() {
-            "Creating Environment (Step 2/3)"
+            t!("terminal_ui.ambient_agent.setup.creating_environment").to_string()
         } else {
-            "Connecting to Host (Step 1/3)"
+            t!("terminal_ui.ambient_agent.setup.connecting_host").to_string()
         }
     }
 }
@@ -1537,16 +1537,13 @@ impl AmbientAgentViewModel {
                 } => {
                     let error_message = user_display_message
                         .clone()
-                        .unwrap_or_else(|| OUT_OF_CREDITS_TASK_FAILURE_MESSAGE.to_string());
+                        .unwrap_or_else(out_of_credits_task_failure_message);
                     self.handle_spawn_error(error_message, ctx);
                     ctx.emit(AmbientAgentViewModelEvent::ShowAICreditModal);
                     return;
                 }
                 AIApiError::ServerOverloaded => {
-                    self.handle_spawn_error(
-                        SERVER_OVERLOADED_TASK_FAILURE_MESSAGE.to_string(),
-                        ctx,
-                    );
+                    self.handle_spawn_error(server_overloaded_task_failure_message(), ctx);
                     return;
                 }
                 _ => {}

@@ -2,6 +2,7 @@ use std::ops::Range;
 use std::sync::Arc;
 use std::time::Duration;
 
+use rust_i18n::t;
 use warp_core::ui::appearance::Appearance;
 use warp_core::ui::theme::color::internal_colors;
 use warpui_core::elements::{
@@ -62,9 +63,9 @@ impl RenderableHiddenSection {
 
             let lines = line_count.as_usize();
             let label = if lines == 1 {
-                "1 unmodified line".to_string()
+                t!("editor.hidden_section.unmodified_line", count = lines).to_string()
             } else {
-                format!("{lines} unmodified lines")
+                t!("editor.hidden_section.unmodified_lines", count = lines).to_string()
             };
             let label_char_count = label.chars().count();
 
@@ -93,7 +94,7 @@ impl RenderableHiddenSection {
             if state.is_hovered() {
                 let tooltip = appearance
                     .ui_builder()
-                    .tool_tip("Expand all lines".to_string())
+                    .tool_tip(t!("editor.hidden_section.expand_all_lines").to_string())
                     .build()
                     .finish();
                 stack.add_positioned_overlay_child(

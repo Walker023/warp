@@ -12,6 +12,7 @@ use warpui::text_layout::ClipConfig;
 use warpui::{AppContext, Element, SingletonEntity};
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::search::result_renderer::ItemHighlightState;
 use crate::search::SearchItem;
 use crate::terminal::input::inline_menu::styles as inline_styles;
@@ -191,6 +192,10 @@ impl SearchItem for RepoSearchItem {
     }
 
     fn accessibility_label(&self) -> String {
-        format!("Indexed repository: {}", self.display_name)
+        t!(
+            "terminal_ui.input.a11y.indexed_repository",
+            name = self.display_name
+        )
+        .to_string()
     }
 }

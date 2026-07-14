@@ -7,6 +7,7 @@ use warpui::{Entity, ModelContext, SingletonEntity};
 use crate::ai::request_usage_model::{
     AIRequestUsageModel, AIRequestUsageModelEvent, BonusGrant, BonusGrantScope,
 };
+use crate::i18n::t;
 use crate::terminal::general_settings::GeneralSettings;
 
 pub struct BonusGrantNotificationModel {
@@ -105,14 +106,18 @@ impl BonusGrantNotificationModel {
     }
 
     fn format_generic_grant_message(grant: &BonusGrant) -> String {
-        let scope_text = match grant.scope {
-            BonusGrantScope::User => "account",
-            BonusGrantScope::Workspace(_) => "team",
-        };
-        format!(
-            "{} Reload Credits have been added to your {}.",
-            grant.request_credits_granted, scope_text
-        )
+        match grant.scope {
+            BonusGrantScope::User => t!(
+                "workspace_search_ui.workspace.bonus_grant.account",
+                count = grant.request_credits_granted
+            )
+            .to_string(),
+            BonusGrantScope::Workspace(_) => t!(
+                "workspace_search_ui.workspace.bonus_grant.team",
+                count = grant.request_credits_granted
+            )
+            .to_string(),
+        }
     }
 
     fn create_grant_key(grant: &BonusGrant) -> String {

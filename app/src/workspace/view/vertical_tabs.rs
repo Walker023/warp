@@ -2787,19 +2787,22 @@ fn render_grouped_tabs_header(
         if let Some(editor) = rename_editor.filter(|_| is_being_renamed) {
             render_inline_tab_rename_editor(editor, appearance, app)
         } else {
-            let title_text = group
-                .name
-                .clone()
-                .unwrap_or_else(|| "New Group".to_string());
+            let title_text = group.name.clone().unwrap_or_else(|| {
+                t!("workspace_search_ui.workspace.vertical_tabs.new_group").to_string()
+            });
             Text::new_inline(title_text, font_family, 12.)
                 .with_clip(ClipConfig::ellipsis())
                 .with_color(main_text_color.into())
                 .finish()
         };
     let subtitle_text = if member_count == 1 {
-        "1 tab".to_string()
+        t!("workspace_search_ui.workspace.vertical_tabs.one_tab").to_string()
     } else {
-        format!("{member_count} tabs")
+        t!(
+            "workspace_search_ui.workspace.vertical_tabs.tabs",
+            count = member_count
+        )
+        .to_string()
     };
     let subtitle = Text::new_inline(subtitle_text, font_family, 10.)
         .with_clip(ClipConfig::ellipsis())
@@ -3235,7 +3238,7 @@ fn render_group_header(props: GroupHeaderProps<'_>, app: &AppContext) -> Box<dyn
     let theme = appearance.theme();
     let title = pane_group.display_title(app);
     let title = if title.is_empty() {
-        "Untitled tab".to_string()
+        t!("workspace_search_ui.workspace.vertical_tabs.untitled_tab").to_string()
     } else {
         title
     };
@@ -3578,7 +3581,7 @@ impl TypedPane<'_> {
                 .file_view(app)
                 .as_ref(app)
                 .contains_unsaved_changes(app)
-                .then(|| "Unsaved".to_string()),
+                .then(|| t!("workspace_search_ui.workspace.vertical_tabs.unsaved").to_string()),
             TypedPane::Terminal(_)
             | TypedPane::CodeDiff
             | TypedPane::File
@@ -4062,7 +4065,7 @@ fn terminal_kind_badge_label(is_oz_agent: bool, cli_agent: Option<CLIAgent>) -> 
     } else if is_oz_agent {
         "Oz".to_string()
     } else {
-        "Terminal".to_string()
+        t!("workspace.pane_kinds.terminal").to_string()
     }
 }
 
@@ -4266,13 +4269,13 @@ fn cloud_agent_working_directory_and_env(
         .and_then(|id| CloudAmbientAgentEnvironment::get_by_id(id, app))
         .map(|env| env.model().string_model.display_name());
 
-    let setup_status: Option<&str> = model_ref.agent_progress().map(|p| p.setup_status_text());
+    let setup_status: Option<String> = model_ref.agent_progress().map(|p| p.setup_status_text());
 
     match (env_name, setup_status, working_directory) {
         (Some(env), Some(status), _) => Some(format!("{env} · {status}")),
         (Some(env), None, Some(wd)) => Some(format!("{env} · {wd}")),
         (Some(env), None, None) => Some(env),
-        (None, Some(status), _) => Some(status.to_string()),
+        (None, Some(status), _) => Some(status),
         (None, None, _) => None,
     }
 }
@@ -4833,7 +4836,11 @@ fn render_summary_overflow_line(
     appearance: &Appearance,
 ) -> Box<dyn Element> {
     Text::new_inline(
-        format!("+ {hidden_count} more"),
+        t!(
+            "workspace_search_ui.workspace.vertical_tabs.more",
+            count = hidden_count
+        )
+        .to_string(),
         appearance.ui_font_family(),
         10.,
     )
@@ -6822,7 +6829,11 @@ fn render_code_detail_section(
 
     if extra_open_tabs > 0 {
         section.add_child(render_detail_wrapping_text(
-            format!("and {extra_open_tabs} more"),
+            t!(
+                "workspace_search_ui.workspace.vertical_tabs.and_more",
+                count = extra_open_tabs
+            )
+            .to_string(),
             12.,
             text_colors.sub,
             None,

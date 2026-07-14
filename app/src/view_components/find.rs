@@ -22,6 +22,7 @@ use crate::editor::{
     EditorView, Event as EditorEvent, PropagateAndNoOpNavigationKeys, SingleLineEditorOptions,
     TextOptions,
 };
+use crate::i18n::t;
 use crate::send_telemetry_from_ctx;
 use crate::server::telemetry::{FindOption, TelemetryEvent};
 use crate::settings::InputModeSettings;
@@ -40,13 +41,8 @@ pub(crate) const FIND_EDITOR_BORDER_WIDTH: f32 = 1.;
 const FIND_EDITOR_FONT_SIZE: f32 = 12.;
 
 pub const REGEX_TOGGLE_LABEL: &str = ". *";
-pub const REGEX_TOGGLE_TOOLTIP: &str = "Regex toggle";
 
 pub const CASE_SENSITIVE_LABEL: &str = "Aa";
-pub const CASE_SENSITIVE_TOOLTIP: &str = "Case sensitive search";
-
-pub const FIND_WITHIN_BLOCK_TOOLTIP: &str = "Find in selected block";
-pub const FIND_PLACEHOLDER_TEXT: &str = "Find";
 
 // Moving FindEvent, FindModel implementations away from terminal/.
 pub enum FindEvent {
@@ -168,7 +164,7 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> Find<T> {
                 },
                 ctx,
             );
-            editor.set_placeholder_text(FIND_PLACEHOLDER_TEXT, ctx);
+            editor.set_placeholder_text(t!("common_extra.find.placeholder"), ctx);
             editor
         });
 
@@ -256,16 +252,20 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> Find<T> {
     pub fn emit_result_a11y_content(&mut self, ctx: &mut ViewContext<Self>) {
         let content = if let Some(match_index) = self.model.as_ref(ctx).focused_match_index() {
             AccessibilityContent::new(
-                format!(
-                    "Result {} of {}.",
-                    match_index + 1,
-                    self.model.as_ref(ctx).match_count()
-                ),
-                "Use enter and shift-enter to navigate between matches. Escape to quit.",
+                t!(
+                    "common_extra.find.result",
+                    current = match_index + 1,
+                    total = self.model.as_ref(ctx).match_count()
+                )
+                .to_string(),
+                t!("common_extra.find.navigation_help").to_string(),
                 WarpA11yRole::UserAction,
             )
         } else {
-            AccessibilityContent::new_without_help("No results.", WarpA11yRole::UserAction)
+            AccessibilityContent::new_without_help(
+                t!("common_extra.find.no_results").to_string(),
+                WarpA11yRole::UserAction,
+            )
         };
         ctx.emit_a11y_content(content);
     }
@@ -329,7 +329,7 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> Find<T> {
             let label = if match_count > 0 {
                 format!("{}+ ...", match_count)
             } else {
-                "Scanning...".to_string()
+                t!("common_extra.find.scanning").to_string()
             };
             return Text::new_inline(label, appearance.ui_font_family(), FIND_EDITOR_FONT_SIZE)
                 .with_color(blended_colors::text_sub(
@@ -363,10 +363,10 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> Find<T> {
         mouse_state_handle: MouseStateHandle,
         on_click_action: FindAction,
         size: f32,
-        tooltip_text: Option<&str>,
+        tooltip_text: Option<String>,
         right_margin: f32,
     ) -> Box<dyn Element> {
-        Hoverable::new(mouse_state_handle, |state| {
+        Hoverable::new(mouse_state_handle, move |state| {
             let (border, background) = if is_selected {
                 (
                     Border::all(1.).with_border_fill(appearance.theme().accent()),
@@ -399,7 +399,7 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> Find<T> {
             .finish();
 
             let mut stack = Stack::new().with_child(icon);
-            if let (Some(tooltip_text), true) = (tooltip_text, state.is_hovered()) {
+            if let (Some(tooltip_text), true) = (tooltip_text.as_ref(), state.is_hovered()) {
                 let tooltip = appearance
                     .ui_builder()
                     .tool_tip(tooltip_text.to_string())
@@ -520,8 +520,8 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> View for Find<T> {
 
     fn accessibility_contents(&self, _: &AppContext) -> Option<AccessibilityContent> {
         Some(AccessibilityContent::new(
-            "Type searched phrase.",
-            "Press escape to quit, use enter and shift-enter to navigate between matches",
+            t!("common_extra.find.input_label").to_string(),
+            t!("common_extra.find.input_help").to_string(),
             WarpA11yRole::TextareaRole,
         ))
     }
@@ -552,7 +552,7 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> View for Find<T> {
             self.button_mouse_states.toggle_regex_search.clone(),
             FindAction::ToggleRegexSearch,
             editor_height,
-            Some(REGEX_TOGGLE_TOOLTIP),
+            Some(t!("common_extra.find.regex_toggle").to_string()),
             ICON_PADDING,
         );
         let case_sensitive_icon = Container::new(
@@ -564,7 +564,7 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> View for Find<T> {
                     self.button_mouse_states.toggle_case_sensitivity.clone(),
                     FindAction::ToggleCaseSensitivity,
                     editor_height,
-                    Some(CASE_SENSITIVE_TOOLTIP),
+                    Some(t!("common_extra.find.case_sensitive").to_string()),
                     ICON_PADDING,
                 ),
                 "case_sensitive_button",
@@ -581,7 +581,7 @@ impl<T: FindModel + Entity<Event = FindEvent> + 'static> View for Find<T> {
                     self.button_mouse_states.toggle_find_in_block.clone(),
                     FindAction::ToggleFindInBlock,
                     editor_height,
-                    Some(FIND_WITHIN_BLOCK_TOOLTIP),
+                    Some(t!("common_extra.find.within_block").to_string()),
                     0.,
                 ),
                 "find_in_block_button",

@@ -5,6 +5,7 @@ use warpui::keymap::Keystroke;
 
 use crate::ai::blocklist::agent_view::{AgentMessageBarMouseStates, AgentViewController};
 use crate::ai::blocklist::{BlocklistAIContextModel, BlocklistAIInputModel};
+use crate::i18n::t;
 use crate::terminal::input::buffer_model::InputBufferModel;
 use crate::terminal::input::message_bar::{
     truncated_command_for_block, Message, MessageItem, MessageProvider,
@@ -58,18 +59,24 @@ impl<Args: AttachedContextArgs + Copy> MessageProvider<Args> for AttachedBlocksM
             .map(|cmd| truncated_command_for_block(&cmd))?;
 
         let message_text = if context_block_ids.len() == 1 {
-            format!("`{}` attached as context", block_command)
+            t!(
+                "terminal_ui.input.attached_context.one",
+                name = block_command
+            )
+            .to_string()
         } else if context_block_ids.len() == 2 {
-            format!(
-                "`{}` and 1 other command attached as context",
-                block_command
+            t!(
+                "terminal_ui.input.attached_context.two",
+                name = block_command
             )
+            .to_string()
         } else {
-            format!(
-                "`{}` and {} other commands attached as context",
-                block_command,
-                context_block_ids.len().saturating_sub(1)
+            t!(
+                "terminal_ui.input.attached_context.many",
+                name = block_command,
+                count = context_block_ids.len().saturating_sub(1)
             )
+            .to_string()
         };
 
         let mut items = vec![MessageItem::text(message_text)];
@@ -83,7 +90,7 @@ impl<Args: AttachedContextArgs + Copy> MessageProvider<Args> for AttachedBlocksM
                         key: "escape".to_owned(),
                         ..Default::default()
                     }),
-                    MessageItem::text(" to remove"),
+                    MessageItem::text(t!("terminal_ui.input.attached_context.remove")),
                 ],
                 |ctx| {
                     ctx.dispatch_typed_action(InputAction::ClearAttachedContext);
@@ -120,7 +127,9 @@ impl<Args: AttachedContextArgs + Copy> MessageProvider<Args>
 
         let _ = args.context_model().pending_context_selected_text()?;
 
-        let mut items = vec![MessageItem::text("selected text attached as context")];
+        let mut items = vec![MessageItem::text(t!(
+            "terminal_ui.input.attached_context.selected_text"
+        ))];
 
         // Always show ESC hint in agent view, make it clickable
         if args.agent_view_controller().is_active() {
@@ -131,7 +140,7 @@ impl<Args: AttachedContextArgs + Copy> MessageProvider<Args>
                         key: "escape".to_owned(),
                         ..Default::default()
                     }),
-                    MessageItem::text(" to remove"),
+                    MessageItem::text(t!("terminal_ui.input.attached_context.remove")),
                 ],
                 |ctx| {
                     ctx.dispatch_typed_action(InputAction::ClearAttachedContext);

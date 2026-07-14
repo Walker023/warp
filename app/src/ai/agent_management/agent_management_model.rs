@@ -12,6 +12,7 @@ use crate::ai::agent_management::notifications::{
 };
 use crate::ai::artifacts::Artifact;
 use crate::ai::blocklist::{BlocklistAIHistoryEvent, ConversationStatusUpdate, QueuedQueryModel};
+use crate::i18n::t;
 use crate::server::telemetry::TelemetryEvent;
 use crate::settings::AISettings;
 use crate::terminal::cli_agent_sessions::{
@@ -157,17 +158,23 @@ impl AgentNotificationsModel {
                     );
                 }
                 CLIAgentSessionStatus::Success => {
-                    let title = session_context
-                        .display_title()
-                        .unwrap_or_else(|| format!("{} completed", agent.display_name()));
+                    let title = session_context.display_title().unwrap_or_else(|| {
+                        t!(
+                            "ai_ui.agent_management.notifications.agent_completed",
+                            name = agent.display_name()
+                        )
+                        .to_string()
+                    });
                     let message = match agent {
-                        CLIAgent::Codex => "Notification from Codex",
-                        _ => "Task completed.",
+                        CLIAgent::Codex => {
+                            t!("ai_ui.agent_management.notifications.from_codex")
+                        }
+                        _ => t!("ai_ui.agent_management.notifications.task_completed"),
                     };
                     let metadata = TerminalViewMetadata::lookup(*terminal_view_id, ctx);
                     self.add_notification(
                         title,
-                        message.to_owned(),
+                        message.to_string(),
                         NotificationCategory::Complete,
                         NotificationSourceAgent::CLI {
                             agent: *agent,
@@ -181,15 +188,19 @@ impl AgentNotificationsModel {
                     );
                 }
                 CLIAgentSessionStatus::Blocked { message } => {
-                    let title = session_context
-                        .display_title()
-                        .unwrap_or_else(|| format!("{} needs attention", agent.display_name()));
+                    let title = session_context.display_title().unwrap_or_else(|| {
+                        t!(
+                            "ai_ui.agent_management.notifications.agent_needs_attention",
+                            name = agent.display_name()
+                        )
+                        .to_string()
+                    });
                     let metadata = TerminalViewMetadata::lookup(*terminal_view_id, ctx);
                     self.add_notification(
                         title,
-                        message
-                            .clone()
-                            .unwrap_or_else(|| "Waiting for input.".to_owned()),
+                        message.clone().unwrap_or_else(|| {
+                            t!("ai_ui.agent_management.notifications.waiting_for_input").to_string()
+                        }),
                         NotificationCategory::Request,
                         NotificationSourceAgent::CLI {
                             agent: *agent,
@@ -319,7 +330,8 @@ impl AgentNotificationsModel {
             return;
         }
 
-        let title = latest_query.unwrap_or_else(|| "Agent task".to_owned());
+        let title = latest_query
+            .unwrap_or_else(|| t!("ai_ui.agent_management.notifications.agent_task").to_string());
         let metadata = TerminalViewMetadata::lookup(terminal_view_id, ctx);
         let oz_agent = NotificationSourceAgent::Oz {
             is_ambient: metadata.is_ambient,
@@ -343,7 +355,7 @@ impl AgentNotificationsModel {
                 let artifacts = self.flush_pending_artifacts(conversation_id);
                 self.add_notification(
                     title,
-                    "Task completed.".to_owned(),
+                    t!("ai_ui.agent_management.notifications.task_completed").to_string(),
                     NotificationCategory::Complete,
                     oz_agent,
                     origin,
@@ -357,7 +369,7 @@ impl AgentNotificationsModel {
                 let artifacts = self.flush_pending_artifacts(conversation_id);
                 self.add_notification(
                     title,
-                    "Task was cancelled.".to_owned(),
+                    t!("ai_ui.agent_management.notifications.task_cancelled").to_string(),
                     NotificationCategory::Complete,
                     oz_agent,
                     origin,
@@ -384,7 +396,7 @@ impl AgentNotificationsModel {
                 let artifacts = self.flush_pending_artifacts(conversation_id);
                 self.add_notification(
                     title,
-                    "Something went wrong.".to_owned(),
+                    t!("ai_ui.agent_management.notifications.something_went_wrong").to_string(),
                     NotificationCategory::Error,
                     oz_agent,
                     origin,

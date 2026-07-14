@@ -47,6 +47,7 @@ use websocket::{Message, Sink, Stream, WebSocket, WebsocketMessage as _};
 
 use crate::auth::{AuthStateProvider, UserUid};
 use crate::editor::{CrdtOperation, ReplicaId};
+use crate::i18n::t;
 use crate::server::server_api::ServerApiProvider;
 #[cfg(not(any(test, feature = "integration_tests")))]
 use crate::server::telemetry::telemetry_context;
@@ -1742,8 +1743,6 @@ impl Network {
     }
 }
 
-const NO_QUOTA_REMAINING_MESSAGE: &str =
-    "Session sharing usage exceeded for the day. Please try again later.";
 fn session_terminated_reason_diagnostic_label(reason: &SessionTerminatedReason) -> &'static str {
     match reason {
         SessionTerminatedReason::NoUserQuotaRemaining {} => "no_user_quota_remaining",
@@ -1760,14 +1759,18 @@ pub fn session_terminated_reason_string(
     match reason {
         SessionTerminatedReason::NoUserQuotaRemaining {} => {
             // TODO: we should pass down the next refresh time to tell the user.
-            NO_QUOTA_REMAINING_MESSAGE.to_string()
+            t!("terminal_ui.shared_session.errors.quota_exceeded").to_string()
         }
         SessionTerminatedReason::ExceededSizeLimit => {
             let max_bytes = max_session_size.get_appropriate_unit(UnitType::Decimal);
-            format!("Session limit ({max_bytes}) exceeded. Please reshare to continue.")
+            t!(
+                "terminal_ui.shared_session.errors.session_limit_exceeded",
+                name = max_bytes
+            )
+            .to_string()
         }
         SessionTerminatedReason::InternalServerError { .. } => {
-            "Session ended due to an internal error. Please try sharing again.".to_string()
+            t!("terminal_ui.shared_session.errors.ended_internal").to_string()
         }
     }
 }
@@ -1776,31 +1779,33 @@ pub fn session_terminated_reason_string(
 pub fn failed_to_initialize_session_user_error(reason: &FailedToInitializeSessionReason) -> String {
     match reason {
         FailedToInitializeSessionReason::InternalServerError { .. } => {
-            "An internal error occurred. Please try sharing again."
+            t!("terminal_ui.shared_session.errors.initialize_internal").to_string()
         }
         FailedToInitializeSessionReason::ScrollbackTooLarge {} => {
-            "Scrollback exceeds limit. Try sharing again without scrollback."
+            t!("terminal_ui.shared_session.errors.scrollback_too_large").to_string()
         }
         FailedToInitializeSessionReason::NoUserQuotaRemaining { .. } => {
             // TODO: we should pass down the next refresh time to tell the user.
-            NO_QUOTA_REMAINING_MESSAGE
+            t!("terminal_ui.shared_session.errors.quota_exceeded").to_string()
         }
-        FailedToInitializeSessionReason::UserNotFound => "You must be logged in to share sessions.",
+        FailedToInitializeSessionReason::UserNotFound => {
+            t!("terminal_ui.shared_session.errors.login_required").to_string()
+        }
     }
-    .to_string()
 }
 
 pub fn failed_to_add_guests_user_error(reason: &FailedToAddGuestsReason) -> String {
     match reason {
-        FailedToAddGuestsReason::Invalid => "Something went wrong. Please try again.",
+        FailedToAddGuestsReason::Invalid => {
+            t!("terminal_ui.shared_session.errors.generic").to_string()
+        }
         FailedToAddGuestsReason::NotWarpUsers => {
-            "One or more emails were not associated with Warp accounts."
+            t!("terminal_ui.shared_session.errors.not_warp_users").to_string()
         }
         FailedToAddGuestsReason::GuestAlreadyAdded => {
-            "One or more emails have already been added to the session."
+            t!("terminal_ui.shared_session.errors.guests_already_added").to_string()
         }
     }
-    .to_string()
 }
 
 pub enum NetworkEvent {

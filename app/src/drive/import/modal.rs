@@ -18,6 +18,7 @@ use super::modal_body::{ImportModalBody, ImportModalBodyAction, ImportModalBodyE
 use crate::appearance::Appearance;
 use crate::cloud_object::model::persistence::CloudModel;
 use crate::cloud_object::{CloudObject, Owner};
+use crate::i18n::t;
 use crate::server::ids::SyncId;
 use crate::server::sync_queue::SyncQueue;
 use crate::themes::theme::WarpTheme;
@@ -228,9 +229,13 @@ impl ImportModal {
                 Shrinkable::new(
                     1.0,
                     Align::new(
-                        Text::new_inline("Import", appearance.ui_font_family(), HEADER_FONT_SIZE)
-                            .with_color(appearance.theme().active_ui_text_color().into())
-                            .finish(),
+                        Text::new_inline(
+                            t!("drive_extra.import.title").to_string(),
+                            appearance.ui_font_family(),
+                            HEADER_FONT_SIZE,
+                        )
+                        .with_color(appearance.theme().active_ui_text_color().into())
+                        .finish(),
                     )
                     .left()
                     .finish(),
@@ -282,9 +287,9 @@ impl ImportModal {
 
     fn render_footer(&self, appearance: &Appearance, app: &AppContext) -> Box<dyn Element> {
         let button_text = if !self.import_modal.as_ref(app).upload_in_progress(app) {
-            "Close".to_string()
+            t!("drive_extra.common.close").to_string()
         } else {
-            "Cancel".to_string()
+            t!("drive_extra.common.cancel").to_string()
         };
 
         Container::new(
@@ -295,7 +300,7 @@ impl ImportModal {
                         ButtonVariant::Outlined,
                         self.footer_button_mouse_state.clone(),
                     )
-                    .with_centered_text_label(button_text.to_string())
+                    .with_centered_text_label(button_text)
                     .with_style(UiComponentStyles {
                         width: Some(150.),
                         height: Some(40.),

@@ -281,7 +281,7 @@ impl ProjectSlide {
         let back_button = self.back_button.render(
             appearance,
             button::Params {
-                content: button::Content::Label(t!("onboarding.common.back").into()),
+                content: button::Content::Label(t!("onboarding.common.back")),
                 theme: &button::themes::Naked,
                 options: button::Options {
                     on_click: Some(Box::new(|ctx, _app, _pos| {

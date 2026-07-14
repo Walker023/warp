@@ -45,6 +45,7 @@ use crate::ai::harness_availability::{
 };
 use crate::ai::llms::{LLMPreferences, LLMPreferencesEvent};
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::ui_components::blended_colors;
 use crate::workspace::WorkspaceAction;
 use crate::BlocklistAIHistoryModel;
@@ -64,11 +65,6 @@ fn host_presence(execution_mode: &RunAgentsExecutionMode) -> bool {
         RunAgentsExecutionMode::Remote { worker_host, .. } if !worker_host.is_empty()
     )
 }
-
-const CONFIG_BLOCK_HEADER: &str = "Use orchestration";
-const CONFIG_BLOCK_DESCRIPTION: &str =
-    "Break this work into coordinated streams with multiple agents.";
-const BASE_MODEL_HELPER: &str = "The primary model all agents will use.";
 
 // ── Action type ─────────────────────────────────────────────────────
 
@@ -566,7 +562,7 @@ impl View for OrchestrationConfigBlockView {
 
         // Header row: "Use orchestration" + pill toggle switch
         let header_label = Text::new(
-            CONFIG_BLOCK_HEADER.to_string(),
+            t!("ai_ui.document.orchestration.use_orchestration").to_string(),
             appearance.ui_font_family(),
             16.,
         )
@@ -595,7 +591,7 @@ impl View for OrchestrationConfigBlockView {
 
         // Description
         let description = Text::new(
-            CONFIG_BLOCK_DESCRIPTION.to_string(),
+            t!("ai_ui.document.orchestration.description").to_string(),
             appearance.ui_font_family(),
             appearance.monospace_font_size(),
         )
@@ -623,7 +619,7 @@ impl View for OrchestrationConfigBlockView {
             };
             let disabled_text_color = blended_colors::text_disabled(theme, theme.background());
             let details_text = Text::new(
-                "View details".to_string(),
+                t!("ai_ui.document.orchestration.view_details").to_string(),
                 appearance.ui_font_family(),
                 appearance.monospace_font_size() + 1.,
             )
@@ -683,7 +679,7 @@ impl View for OrchestrationConfigBlockView {
 
                 // Helper text
                 let helper = Text::new(
-                    BASE_MODEL_HELPER.to_string(),
+                    t!("ai_ui.document.orchestration.base_model_helper").to_string(),
                     appearance.ui_font_family(),
                     appearance.monospace_font_size() - 1.,
                 )

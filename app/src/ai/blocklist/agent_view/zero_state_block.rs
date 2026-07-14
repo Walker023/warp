@@ -50,7 +50,6 @@ use crate::terminal::{self, prompt, TerminalModel};
 use crate::util::time_format::format_approx_duration_from_now_utc;
 
 const CLOUD_AGENT_DOCS_URL: &str = "https://docs.warp.dev/agent-platform/cloud-agents/overview";
-const OZ_UPDATES_SECTION_HEADER: &str = "What's new in Oz";
 
 // The maximum number of Oz updates from the changelog rendered in-line in the 'What's new in Oz section'.
 const MAX_OZ_UPDATE_COUNT: usize = 4;
@@ -654,7 +653,7 @@ fn render_title_and_description(props: HeaderProps, app: &AppContext) -> Vec<Box
             items.push(
                 Container::new(
                     Text::new(
-                        "Run your agent task in an isolated cloud environment.",
+                        t!("ai_ui.zero_state.cloud_environment_description").to_string(),
                         appearance.ui_font_family(),
                         appearance.monospace_font_size(),
                     )
@@ -668,9 +667,12 @@ fn render_title_and_description(props: HeaderProps, app: &AppContext) -> Vec<Box
             // Second line: text with "Visit docs" hyperlink.
             let description_with_link = FormattedText::new([FormattedTextLine::Line(vec![
                 FormattedTextFragment::plain_text(
-                    "Use cloud agents to run parallel agents, build agents that run autonomously, and check in on your agents from anywhere. ",
+                    t!("ai_ui.zero_state.cloud_agents_description").to_string(),
                 ),
-                FormattedTextFragment::hyperlink("Visit docs", CLOUD_AGENT_DOCS_URL),
+                FormattedTextFragment::hyperlink(
+                    t!("ai_ui.zero_state.visit_docs").to_string(),
+                    CLOUD_AGENT_DOCS_URL,
+                ),
             ])]);
 
             items.push(
@@ -824,9 +826,7 @@ fn render_body(props: ZeroStateBodyProps<'_>, app: &AppContext) -> Vec<Box<dyn E
                 key: "/init".to_owned(),
                 ..Default::default()
             }),
-            MessageItem::text(
-                "to index this codebase and generate an AGENTS.md for optimal performance",
-            ),
+            MessageItem::text(t!("ai_ui.zero_state.init_callout").to_string()),
         ])
         .with_text_color(main_text_color);
         body_items.push(
@@ -896,7 +896,7 @@ fn render_recent_conversations_section(
         .with_child(
             Container::new(
                 Text::new(
-                    "RECENT ACTIVITY",
+                    t!("ai_ui.zero_state.recent_activity").to_string(),
                     appearance.ui_font_family(),
                     header_font_size,
                 )
@@ -1067,7 +1067,7 @@ fn render_oz_updates(props: OzUpdatesProps<'_>, app: &AppContext) -> Option<Box<
                         .with_child(
                             Container::new(
                                 Text::new(
-                                    OZ_UPDATES_SECTION_HEADER,
+                                    t!("ai_ui.zero_state.whats_new_in_oz").to_string(),
                                     appearance.ui_font_family(),
                                     appearance.monospace_font_size() - 2.,
                                 )
@@ -1082,15 +1082,16 @@ fn render_oz_updates(props: OzUpdatesProps<'_>, app: &AppContext) -> Option<Box<
                             Container::new(
                                 Text::new(
                                     if changelog_model.oz_updates.len() == 1 {
-                                        "1 update".to_owned()
+                                        t!("ai_ui.zero_state.one_update").to_string()
                                     } else {
-                                        format!(
-                                            "{} updates",
-                                            changelog_model
+                                        t!(
+                                            "ai_ui.zero_state.updates",
+                                            count = changelog_model
                                                 .oz_updates
                                                 .len()
                                                 .min(MAX_OZ_UPDATE_COUNT)
                                         )
+                                        .to_string()
                                     },
                                     appearance.ui_font_family(),
                                     appearance.monospace_font_size() - 2.,
@@ -1127,7 +1128,7 @@ fn render_oz_updates(props: OzUpdatesProps<'_>, app: &AppContext) -> Option<Box<
                                 .with_child(
                                     Container::new(
                                         Text::new(
-                                            "View changelog",
+                                            t!("ai_ui.zero_state.view_changelog").to_string(),
                                             appearance.ui_font_family(),
                                             appearance.monospace_font_size() - 2.,
                                         )
@@ -1245,7 +1246,7 @@ where
     let font_size = styles::CREDITS_BANNER_FONT_SIZE;
     let text_color = theme.terminal_colors().normal.blue;
 
-    let credits_text = format!("{credits} free cloud agent credits");
+    let credits_text = t!("ai_ui.zero_state.free_cloud_credits", count = credits).to_string();
     let text = Text::new(credits_text, font_family, font_size)
         .with_color(text_color.into())
         .with_style(Properties::default().weight(Weight::Semibold))

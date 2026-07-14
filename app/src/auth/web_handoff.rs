@@ -8,6 +8,7 @@ use super::auth_manager::{AuthManager, AuthManagerEvent};
 use crate::auth::auth_view_modal::AuthRedirectPayload;
 use crate::auth::credentials::RefreshToken;
 use crate::auth::login_error_modal::LoginErrorModal;
+use crate::i18n::t;
 use crate::platform::wasm::{user_handoff, AuthHandoffError};
 
 #[wasm_bindgen]
@@ -119,8 +120,10 @@ impl View for WebHandoffView {
 
     fn render(&self, app: &AppContext) -> Box<dyn Element> {
         let label = match &self.state {
-            HandoffState::LoadingFromHost | HandoffState::LoadingFromSessionCookie => "Loading...",
-            HandoffState::Failed => "Error authenticating - please refresh the page",
+            HandoffState::LoadingFromHost | HandoffState::LoadingFromSessionCookie => {
+                t!("auth_extra.web_handoff.loading").to_string()
+            }
+            HandoffState::Failed => t!("auth_extra.web_handoff.failed").to_string(),
         };
 
         LoginErrorModal::new(app)

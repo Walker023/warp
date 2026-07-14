@@ -19,6 +19,7 @@ use warpui::fonts::FamilyId;
 use warpui::ui_components::checkbox::HOVER_BACKGROUND_COLOR;
 
 use crate::appearance::Appearance;
+use crate::i18n::t;
 use crate::notebooks::editor::embedded_item::EmbeddedWorkflow;
 use crate::settings::{derived_notebook_font_size, FontSettings};
 use crate::themes::theme::Fill;
@@ -131,15 +132,25 @@ impl BlockType {
         }
     }
 
-    fn label(self) -> &'static str {
+    fn label(self) -> String {
         match self {
-            BlockType::Text => "Text",
-            BlockType::Header(size) => size.label(),
-            BlockType::RunnableCommand => "Command",
-            BlockType::UnorderedList => "Bulleted list",
-            BlockType::OrderedList => "Numbered list",
-            BlockType::Code => "Code",
-            BlockType::TaskList => "To-do list",
+            BlockType::Text => t!("notebooks.block.text").to_string(),
+            BlockType::Header(size) => {
+                let level = match size {
+                    BlockHeaderSize::Header1 => 1,
+                    BlockHeaderSize::Header2 => 2,
+                    BlockHeaderSize::Header3 => 3,
+                    BlockHeaderSize::Header4 => 4,
+                    BlockHeaderSize::Header5 => 5,
+                    BlockHeaderSize::Header6 => 6,
+                };
+                t!("notebooks.block.heading", level = level).to_string()
+            }
+            BlockType::RunnableCommand => t!("notebooks.block.command").to_string(),
+            BlockType::UnorderedList => t!("notebooks.block.bulleted_list").to_string(),
+            BlockType::OrderedList => t!("notebooks.block.numbered_list").to_string(),
+            BlockType::Code => t!("notebooks.block.code").to_string(),
+            BlockType::TaskList => t!("notebooks.block.todo_list").to_string(),
         }
     }
 }
