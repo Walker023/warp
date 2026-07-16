@@ -198,6 +198,7 @@ jobs:
       - name: Assemble unsigned universal DMG
         id: bundle
         shell: bash
+        timeout-minutes: 45
         run: |
           set -o pipefail
           ./script/bundle --channel oss --nosign --release-tag "$GIT_RELEASE_TAG" --skip-build 2>&1 | tee macos-build.log
