@@ -57,11 +57,11 @@ jobs:
   build_macos_arch:
     name: Build macOS binary (${{ matrix.arch }})
     needs: validate
-    runs-on: macos-26-xlarge
+    runs-on: macos-26
     timeout-minutes: 360
     env:
-      # The shared low-resource default cannot finish macOS release builds before GitHub's six-hour job limit.
-      CARGO_BUILD_JOBS: 8
+      # Use the standard runner's available CPU capacity without oversubscribing it.
+      CARGO_BUILD_JOBS: 3
     strategy:
       fail-fast: false
       matrix:
@@ -144,7 +144,7 @@ jobs:
   build_macos:
     name: Assemble macOS Universal DMG
     needs: build_macos_arch
-    runs-on: macos-26-xlarge
+    runs-on: macos-26
     timeout-minutes: 90
     steps:
       - name: Checkout sources
