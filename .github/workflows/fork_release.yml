@@ -100,7 +100,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          ./script/bundle --channel oss --nosign --release-tag "$GIT_RELEASE_TAG" --arch "${{ matrix.arch }}" --dmg-name-suffix "${{ matrix.arch }}" 2>&1 | tee "macos-${{ matrix.arch }}-build.log"
+          ./script/bundle --channel oss --selfsign --release-tag "$GIT_RELEASE_TAG" --arch "${{ matrix.arch }}" --dmg-name-suffix "${{ matrix.arch }}" 2>&1 | tee "macos-${{ matrix.arch }}-build.log"
 
       - name: Report macOS architecture build failure
         if: ${{ failure() }}
@@ -237,6 +237,12 @@ jobs:
             - `WarpOssSetup-arm64.exe`：Windows ARM64 安装程序。
             - `SHA256SUMS.txt`：全部安装包的 SHA-256 校验值。
 
-            这些社区构建未使用 Warp 官方证书签名或公证。macOS Gatekeeper 和 Windows SmartScreen 可能在安装时显示安全警告。
+            macOS 安装包使用 ad-hoc 自签名，但未使用 Apple Developer ID 公证。请先将应用拖入“应用程序”，如果首次启动仍提示“已损坏”，请运行：
+
+            ```bash
+            sudo xattr -rd com.apple.quarantine /Applications/WarpOss.app
+            ```
+
+            Windows SmartScreen 也可能显示安全警告。
           files: release-assets/*
           fail_on_unmatched_files: true
